@@ -727,7 +727,7 @@ h2 {
 }
 
 .day.is-today {
-  background: rgba(52, 152, 219, 0.08);
+  background: rgba(52, 152, 219, 0.18);
 }
 
 .day.is-today .day-number {
@@ -736,7 +736,7 @@ h2 {
 }
 
 .day.is-holiday {
-  background: rgba(200, 160, 0, 0.08);
+  background: rgba(200, 160, 0, 0.18);
 }
 
 .holiday-label {
