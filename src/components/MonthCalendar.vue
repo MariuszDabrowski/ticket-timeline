@@ -158,7 +158,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
   // Ticket entering this month from outside (move or resize)
   const ep = extraPreview.value
   if (ep) {
-    const previewSlot = totalSlots.value - 1
+    const firstEmpty = slots.indexOf(null)
+    const previewSlot = firstEmpty !== -1 ? firstEmpty : totalSlots.value - 1
     if (
       compareCalendarDates(ep.startDate, thisDate) <= 0 &&
       compareCalendarDates(thisDate, ep.endDate) <= 0
