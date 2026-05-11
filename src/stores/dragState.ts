@@ -15,7 +15,10 @@ export const useDragStateStore = defineStore('dragState', () => {
   }
 
   function updateMovePreview(date: CalendarDate) {
-    if (moveDrag.value) movePreviewDate.value = date
+    if (!moveDrag.value) return
+    const cur = movePreviewDate.value
+    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
+    movePreviewDate.value = date
   }
 
   function clearMoveDrag() {
@@ -29,7 +32,10 @@ export const useDragStateStore = defineStore('dragState', () => {
   }
 
   function updateResizePreview(date: CalendarDate) {
-    if (resizeDrag.value) resizePreviewDate.value = date
+    if (!resizeDrag.value) return
+    const cur = resizePreviewDate.value
+    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
+    resizePreviewDate.value = date
   }
 
   function clearResizeDrag() {

@@ -339,6 +339,7 @@ function effectiveDaySlots(day: number, rowIdx: number): (DayTicketInfo | null)[
 
 function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
+  if (dragOverDay.value === day) return
   dragOverDay.value = day
   if (dragState.resizeDrag) dragState.updateResizePreview(calDate(day))
   if (dragState.moveDrag) dragState.updateMovePreview(calDate(day))
