@@ -6,6 +6,9 @@ export const useDragStateStore = defineStore('dragState', () => {
   const moveDrag = ref<{ ticketId: number; span: number } | null>(null)
   const movePreviewDate = ref<CalendarDate | null>(null)
 
+  const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
+  const resizePreviewDate = ref<CalendarDate | null>(null)
+
   function startMoveDrag(ticketId: number, span: number) {
     moveDrag.value = { ticketId, span }
     movePreviewDate.value = null
@@ -20,5 +23,22 @@ export const useDragStateStore = defineStore('dragState', () => {
     movePreviewDate.value = null
   }
 
-  return { moveDrag, movePreviewDate, startMoveDrag, updateMovePreview, clearMoveDrag }
+  function startResizeDrag(ticketId: number, side: 'start' | 'end') {
+    resizeDrag.value = { ticketId, side }
+    resizePreviewDate.value = null
+  }
+
+  function updateResizePreview(date: CalendarDate) {
+    if (resizeDrag.value) resizePreviewDate.value = date
+  }
+
+  function clearResizeDrag() {
+    resizeDrag.value = null
+    resizePreviewDate.value = null
+  }
+
+  return {
+    moveDrag, movePreviewDate, startMoveDrag, updateMovePreview, clearMoveDrag,
+    resizeDrag, resizePreviewDate, startResizeDrag, updateResizePreview, clearResizeDrag,
+  }
 })
