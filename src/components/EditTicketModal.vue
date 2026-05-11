@@ -79,7 +79,10 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="field">
-        <label>Ticket Link</label>
+        <label class="link-label">
+          Ticket Link
+          <a v-if="link.trim()" :href="link.trim()" target="_blank" rel="noopener" class="open-link" title="Open link">↗</a>
+        </label>
         <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
@@ -129,6 +132,24 @@ h3 {
 label {
   font-size: 0.8rem;
   color: #555;
+}
+
+.link-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.open-link {
+  font-size: 0.8rem;
+  color: #555;
+  text-decoration: none;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.open-link:hover {
+  opacity: 1;
 }
 
 input,
