@@ -328,8 +328,10 @@ function onDrop(event: DragEvent, day: number) {
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
       >
-        <span class="day-number">{{ day }}</span>
-        <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
+        <div class="day-header">
+          <span class="day-number">{{ day }}</span>
+          <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
+        </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in daySlots(day)" :key="slotIdx" class="slot-row">
             <div
@@ -405,9 +407,8 @@ h2 {
 
 .day {
   border-top: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-rows: 2.6rem 1fr;
 }
 
 .day.drag-over {
@@ -415,9 +416,17 @@ h2 {
   outline: 2px dashed #99b;
 }
 
+.day-header {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0 0;
+  overflow: hidden;
+}
+
 .day-number {
   font-size: 0.85rem;
   padding: 0 0.25rem;
+  flex-shrink: 0;
 }
 
 .day.is-holiday {
@@ -432,6 +441,7 @@ h2 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .placed-tickets {
