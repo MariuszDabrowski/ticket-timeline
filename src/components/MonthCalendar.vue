@@ -554,6 +554,7 @@ h2 {
 .day-number-wrap {
   position: relative;
   display: inline-flex;
+  align-self: flex-start;
 }
 
 .day-number {
@@ -581,7 +582,7 @@ h2 {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(30, 30, 30, 0.92);
+  background: rgba(80, 80, 80, 0.85);
   color: #fff;
   padding: 0.3rem 0.6rem;
   border-radius: 5px;
@@ -600,7 +601,7 @@ h2 {
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(30, 30, 30, 0.92);
+  border-top-color: rgba(80, 80, 80, 0.85);
 }
 
 .day-number-wrap:hover .day-marker-tooltip {
