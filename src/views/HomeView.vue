@@ -43,6 +43,25 @@ const unplacedTickets = computed(() => {
 })
 
 const draggingTicketId = ref<number | null>(null)
+const ticketListIsOver = ref(false)
+
+function onTicketListDragOver(event: DragEvent) {
+  if (!event.dataTransfer?.types.includes('movecalendarticket')) return
+  event.preventDefault()
+  ticketListIsOver.value = true
+}
+
+function onTicketListDragLeave() {
+  ticketListIsOver.value = false
+}
+
+function onTicketListDrop(event: DragEvent) {
+  ticketListIsOver.value = false
+  const id = event.dataTransfer?.getData('moveCalendarTicket')
+  if (!id) return
+  event.preventDefault()
+  tickets.removePlacement(Number(id))
+}
 </script>
 
 <template>
@@ -67,7 +86,13 @@ const draggingTicketId = ref<number | null>(null)
         </ul>
       </section>
 
-      <section>
+      <section
+        class="ticket-section"
+        :class="{ 'drop-target': ticketListIsOver }"
+        @dragover="onTicketListDragOver"
+        @dragleave="onTicketListDragLeave"
+        @drop="onTicketListDrop"
+      >
         <h3>Tickets</h3>
         <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
         <ul class="ticket-list">
@@ -85,6 +110,7 @@ const draggingTicketId = ref<number | null>(null)
         </ul>
       </section>
     </aside>
+
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
@@ -173,6 +199,16 @@ h3 {
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.ticket-section {
+  border-radius: 4px;
+  transition: background 0.1s, outline 0.1s;
+}
+
+.ticket-section.drop-target {
+  background: #f0f4ff;
+  outline: 2px dashed #99b;
 }
 
 .ticket-list {

@@ -72,6 +72,11 @@ export const useTicketsStore = defineStore('tickets', () => {
     placement.endDate = addDays(newStartDate, span)
   }
 
+  function removePlacement(ticketId: number) {
+    const idx = placements.value.findIndex((p) => p.ticketId === ticketId)
+    if (idx !== -1) placements.value.splice(idx, 1)
+  }
+
   function resizePlacement(ticketId: number, side: 'start' | 'end', date: CalendarDate) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
@@ -91,5 +96,5 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, placeTicket, moveTicket, resizePlacement, getPlacementsForMonth }
+  return { tickets, placements, addTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
 })
