@@ -519,6 +519,7 @@ h2 {
   min-height: 125px;
   border-right: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
+  overflow: visible;
 }
 
 .header {
@@ -531,6 +532,7 @@ h2 {
 .day {
   display: grid;
   grid-template-rows: 2.6rem 1fr;
+  overflow: visible;
 }
 
 .day.drag-over {
@@ -542,7 +544,7 @@ h2 {
   display: flex;
   flex-direction: column;
   padding: 0.25rem 0 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .day-number {
