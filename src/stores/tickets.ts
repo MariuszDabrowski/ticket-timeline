@@ -9,12 +9,40 @@ export interface Ticket {
   link: string
 }
 
-export interface Placement {
-  ticketId: number
+export interface CalendarDate {
   year: number
   month: number
-  startDay: number
-  endDay: number
+  day: number
+}
+
+export interface Placement {
+  ticketId: number
+  startDate: CalendarDate
+  endDate: CalendarDate
+}
+
+function toDate(d: CalendarDate): Date {
+  return new Date(d.year, d.month, d.day)
+}
+
+function fromDate(d: Date): CalendarDate {
+  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
+}
+
+export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
+  if (a.year !== b.year) return a.year - b.year
+  if (a.month !== b.month) return a.month - b.month
+  return a.day - b.day
+}
+
+function addDays(date: CalendarDate, days: number): CalendarDate {
+  const d = toDate(date)
+  d.setDate(d.getDate() + days)
+  return fromDate(d)
+}
+
+function daysBetween(start: CalendarDate, end: CalendarDate): number {
+  return Math.round((toDate(end).getTime() - toDate(start).getTime()) / 86_400_000)
 }
 
 export const useTicketsStore = defineStore('tickets', () => {
@@ -30,32 +58,38 @@ export const useTicketsStore = defineStore('tickets', () => {
     tickets.value.push({ id: nextId++, ...ticket })
   }
 
-  function placeTicket(ticketId: number, year: number, month: number, day: number) {
+  function placeTicket(ticketId: number, date: CalendarDate) {
     const existing = placements.value.findIndex((p) => p.ticketId === ticketId)
     if (existing !== -1) placements.value.splice(existing, 1)
-    placements.value.push({ ticketId, year, month, startDay: day, endDay: day })
+    placements.value.push({ ticketId, startDate: date, endDate: date })
   }
 
-  function moveTicket(ticketId: number, newStartDay: number) {
+  function moveTicket(ticketId: number, newStartDate: CalendarDate) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
-    const span = placement.endDay - placement.startDay
-    placement.startDay = newStartDay
-    placement.endDay = newStartDay + span
+    const span = daysBetween(placement.startDate, placement.endDate)
+    placement.startDate = newStartDate
+    placement.endDate = addDays(newStartDate, span)
   }
 
-  function resizePlacement(ticketId: number, side: 'start' | 'end', day: number) {
+  function resizePlacement(ticketId: number, side: 'start' | 'end', date: CalendarDate) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
-    if (side === 'start' && day <= placement.endDay) placement.startDay = day
-    if (side === 'end' && day >= placement.startDay) placement.endDay = day
+    if (side === 'start' && compareCalendarDates(date, placement.endDate) <= 0)
+      placement.startDate = date
+    if (side === 'end' && compareCalendarDates(date, placement.startDate) >= 0)
+      placement.endDate = date
   }
 
-  function getPlacementsForDay(year: number, month: number, day: number): Placement[] {
+  function getPlacementsForMonth(year: number, month: number): Placement[] {
+    const monthStart: CalendarDate = { year, month, day: 1 }
+    const monthEnd: CalendarDate = { year, month, day: new Date(year, month + 1, 0).getDate() }
     return placements.value.filter(
-      (p) => p.year === year && p.month === month && p.startDay <= day && day <= p.endDay,
+      (p) =>
+        compareCalendarDates(p.startDate, monthEnd) <= 0 &&
+        compareCalendarDates(p.endDate, monthStart) >= 0,
     )
   }
 
-  return { tickets, placements, addTicket, placeTicket, moveTicket, resizePlacement, getPlacementsForDay }
+  return { tickets, placements, addTicket, placeTicket, moveTicket, resizePlacement, getPlacementsForMonth }
 })

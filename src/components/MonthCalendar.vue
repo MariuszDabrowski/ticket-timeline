@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useTicketsStore } from '../stores/tickets'
+import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
-import type { Ticket, Placement } from '../stores/tickets'
+import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
   year: number
@@ -27,6 +27,10 @@ const dragOverDay = ref<number | null>(null)
 const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
 const resizePreviewDay = ref<number | null>(null)
 
+function calDate(day: number): CalendarDate {
+  return { year: props.year, month: props.month, day }
+}
+
 function ticketColor(assignedTo: number | null): string {
   if (assignedTo === null) return '#ccc'
   return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
@@ -34,30 +38,31 @@ function ticketColor(assignedTo: number | null): string {
 
 function effectivePlacement(placement: Placement): Placement {
   if (resizeDrag.value?.ticketId === placement.ticketId && resizePreviewDay.value !== null) {
-    if (resizeDrag.value.side === 'start') {
-      return { ...placement, startDay: Math.min(resizePreviewDay.value, placement.endDay) }
-    } else {
-      return { ...placement, endDay: Math.max(resizePreviewDay.value, placement.startDay) }
+    const previewDate = calDate(resizePreviewDay.value)
+    if (resizeDrag.value.side === 'start' && compareCalendarDates(previewDate, placement.endDate) <= 0) {
+      return { ...placement, startDate: previewDate }
+    }
+    if (resizeDrag.value.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0) {
+      return { ...placement, endDate: previewDate }
     }
   }
   return placement
 }
 
-// Assign each ticket a stable slot index for the month using greedy interval coloring.
-// Computed from original placements so slots don't shift during resize preview.
+// Stable slot assignment from original placements so slots don't shift during resize preview
 const slotMap = computed(() => {
-  const monthPlacements = ticketsStore.placements
-    .filter((p) => p.year === props.year && p.month === props.month)
+  const monthPlacements = ticketsStore
+    .getPlacementsForMonth(props.year, props.month)
     .slice()
-    .sort((a, b) => a.startDay - b.startDay)
+    .sort((a, b) => compareCalendarDates(a.startDate, b.startDate))
 
   const map = new Map<number, number>()
-  const slotEndDay: number[] = []
+  const slotEndDates: CalendarDate[] = []
 
   for (const p of monthPlacements) {
-    const slot = slotEndDay.findIndex((end) => end < p.startDay)
-    const assigned = slot === -1 ? slotEndDay.length : slot
-    slotEndDay[assigned] = p.endDay
+    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, p.startDate) < 0)
+    const assigned = slot === -1 ? slotEndDates.length : slot
+    slotEndDates[assigned] = p.endDate
     map.set(p.ticketId, assigned)
   }
 
@@ -75,20 +80,24 @@ interface DayTicketInfo {
   isEnd: boolean
 }
 
-// Returns one entry per slot; null means the slot is empty on this day (spacer).
 function daySlots(day: number): (DayTicketInfo | null)[] {
+  const thisDate = calDate(day)
   const slots: (DayTicketInfo | null)[] = Array(totalSlots.value).fill(null)
 
-  for (const placement of ticketsStore.placements.filter(
-    (p) => p.year === props.year && p.month === props.month,
-  )) {
+  for (const placement of ticketsStore.getPlacementsForMonth(props.year, props.month)) {
     const eff = effectivePlacement(placement)
-    if (eff.startDay > day || day > eff.endDay) continue
+    if (compareCalendarDates(eff.startDate, thisDate) > 0) continue
+    if (compareCalendarDates(thisDate, eff.endDate) > 0) continue
     const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
     if (!ticket) continue
     const slot = slotMap.value.get(placement.ticketId)
     if (slot === undefined) continue
-    slots[slot] = { ticket, placement: eff, isStart: eff.startDay === day, isEnd: eff.endDay === day }
+    slots[slot] = {
+      ticket,
+      placement: eff,
+      isStart: compareCalendarDates(eff.startDate, thisDate) === 0,
+      isEnd: compareCalendarDates(eff.endDate, thisDate) === 0,
+    }
   }
 
   return slots
@@ -105,16 +114,15 @@ function onDragLeave(event: DragEvent) {
   dragOverDay.value = null
 }
 
-function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
-  const span = info.placement.endDay - info.placement.startDay
-  event.dataTransfer?.setData('moveCalendarTicket', `${info.ticket.id}:${span}`)
-}
-
 function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | 'end') {
   event.stopPropagation()
   event.dataTransfer?.setData('resizeHandle', `${side}:${ticketId}`)
   resizeDrag.value = { ticketId, side }
   resizePreviewDay.value = null
+}
+
+function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
+  event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
 }
 
 function clearResizeDrag() {
@@ -129,21 +137,20 @@ function onDrop(event: DragEvent, day: number) {
   const resizeHandle = event.dataTransfer?.getData('resizeHandle')
   if (resizeHandle) {
     const [side, id] = resizeHandle.split(':')
-    ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', day)
+    ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
     clearResizeDrag()
     return
   }
 
   const moveData = event.dataTransfer?.getData('moveCalendarTicket')
   if (moveData) {
-    const [id] = moveData.split(':')
-    ticketsStore.moveTicket(Number(id), day)
+    ticketsStore.moveTicket(Number(moveData), calDate(day))
     return
   }
 
   const ticketId = event.dataTransfer?.getData('ticketId')
   if (ticketId) {
-    ticketsStore.placeTicket(Number(ticketId), props.year, props.month, day)
+    ticketsStore.placeTicket(Number(ticketId), calDate(day))
   }
 }
 </script>
