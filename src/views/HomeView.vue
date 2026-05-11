@@ -7,6 +7,7 @@ import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import EditTicketModal from '../components/EditTicketModal.vue'
 import type { Ticket } from '../stores/tickets'
+import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 
@@ -52,6 +53,20 @@ const unplacedTickets = computed(() => {
   const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
   return tickets.tickets.filter((t) => !placedIds.has(t.id))
 })
+
+const csvInput = ref<HTMLInputElement | null>(null)
+
+function onCSVUpload(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const text = e.target?.result
+    if (typeof text === 'string') importEpicCSV(text, people, tickets)
+  }
+  reader.readAsText(file)
+  ;(event.target as HTMLInputElement).value = ''
+}
 
 const editingTicket = ref<Ticket | null>(null)
 
@@ -150,6 +165,8 @@ function onTicketListDrop(event: DragEvent) {
         </button>
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
+          <input ref="csvInput" type="file" accept=".csv" style="display:none" @change="onCSVUpload" />
+          <button class="add-btn" @click="csvInput?.click()">+ Upload Epic CSV</button>
           <ul class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span

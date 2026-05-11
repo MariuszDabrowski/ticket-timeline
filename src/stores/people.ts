@@ -27,9 +27,11 @@ export const usePeopleStore = defineStore('people', () => {
   ])
   let nextId = 2
 
-  function addPerson(name: string) {
-    const color = COLORS[people.value.length % COLORS.length]
-    people.value.push({ id: nextId++, name, color })
+  function addPerson(name: string): number {
+    const id = nextId++
+    const color = COLORS[people.value.length % COLORS.length]!
+    people.value.push({ id, name, color })
+    return id
   }
 
   return { people, addPerson }
