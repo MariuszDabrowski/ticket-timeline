@@ -60,6 +60,13 @@ export const useTicketsStore = defineStore('tickets', () => {
     if (ticket) Object.assign(ticket, data)
   }
 
+  function deleteTicket(id: number) {
+    const idx = tickets.value.findIndex((t) => t.id === id)
+    if (idx !== -1) tickets.value.splice(idx, 1)
+    const pIdx = placements.value.findIndex((p) => p.ticketId === id)
+    if (pIdx !== -1) placements.value.splice(pIdx, 1)
+  }
+
   function removePlacement(ticketId: number) {
     const idx = placements.value.findIndex((p) => p.ticketId === ticketId)
     if (idx !== -1) placements.value.splice(idx, 1)
@@ -84,5 +91,5 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, updateTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
+  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
 })

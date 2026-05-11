@@ -96,6 +96,11 @@ function handleEditSubmit(data: { number: string; title: string; assignedTo: num
   editingTicket.value = null
 }
 
+function handleDeleteTicket() {
+  if (editingTicket.value) ticketsStore.deleteTicket(editingTicket.value.id)
+  editingTicket.value = null
+}
+
 function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
 }
@@ -455,6 +460,7 @@ function onDrop(event: DragEvent, day: number) {
     :ticket="editingTicket"
     :people="peopleStore.people"
     @submit="handleEditSubmit"
+    @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
   />
 </template>

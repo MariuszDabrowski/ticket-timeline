@@ -96,6 +96,11 @@ export function importEpicCSV(
     const firstEmail = (row[ownersIdx] ?? '').split(/[,;]/)[0]?.trim() ?? ''
     const assignedTo = firstEmail ? (emailToPersonId.get(firstEmail) ?? null) : null
 
-    ticketsStore.addTicket({ number, title, assignedTo, link: '' })
+    ticketsStore.addTicket({
+      number,
+      title,
+      assignedTo,
+      link: `https://app.shortcut.com/clearbanc/story/${number}`,
+    })
   }
 }

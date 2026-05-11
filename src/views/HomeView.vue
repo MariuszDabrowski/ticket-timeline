@@ -75,6 +75,11 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
   editingTicket.value = null
 }
 
+function handleDeleteTicket() {
+  if (editingTicket.value) tickets.deleteTicket(editingTicket.value.id)
+  editingTicket.value = null
+}
+
 const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
 const options = useOptionsStore()
@@ -217,6 +222,7 @@ function onTicketListDrop(event: DragEvent) {
     :ticket="editingTicket"
     :people="people.people"
     @submit="handleEditTicket"
+    @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
   />
 </template>

@@ -11,6 +11,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string }]
   cancel: []
+  delete: []
 }>()
 
 const number = ref(props.ticket.number)
@@ -83,8 +84,11 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="actions">
-        <button @click="emit('cancel')">Cancel</button>
-        <button @click="handleSubmit" :disabled="!number.trim() || !title.trim()">Save</button>
+        <button class="delete-btn" @click="emit('delete')">Delete</button>
+        <div class="actions-right">
+          <button @click="emit('cancel')">Cancel</button>
+          <button @click="handleSubmit" :disabled="!number.trim() || !title.trim()">Save</button>
+        </div>
       </div>
     </div>
   </div>
@@ -138,9 +142,24 @@ select {
 
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 0.25rem;
+}
+
+.actions-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.delete-btn {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+  color: #fff;
 }
 
 button {
