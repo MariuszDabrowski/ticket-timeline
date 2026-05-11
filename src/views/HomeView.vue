@@ -36,6 +36,13 @@ function ticketColor(assignedTo: number | null): string {
   if (assignedTo === null) return '#ccc'
   return people.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
 }
+
+const unplacedTickets = computed(() => {
+  const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
+  return tickets.tickets.filter((t) => !placedIds.has(t.id))
+})
+
+const draggingTicketId = ref<number | null>(null)
 </script>
 
 <template>
@@ -64,13 +71,15 @@ function ticketColor(assignedTo: number | null): string {
         <h3>Tickets</h3>
         <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
         <ul class="ticket-list">
-          <li v-for="ticket in tickets.tickets" :key="ticket.id">
+          <li v-for="ticket in unplacedTickets" :key="ticket.id">
             <span
               class="ticket-pill"
+              :class="{ dragging: draggingTicketId === ticket.id }"
               :style="{ background: ticketColor(ticket.assignedTo) }"
               :title="ticket.title"
               draggable="true"
-              @dragstart="(e) => e.dataTransfer?.setData('ticketId', String(ticket.id))"
+              @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id }"
+              @dragend="draggingTicketId = null"
             >{{ ticket.number }}</span>
           </li>
         </ul>
@@ -190,6 +199,12 @@ h3 {
 
 .ticket-pill:active {
   cursor: grabbing;
+}
+
+.ticket-pill.dragging {
+  opacity: 0.4;
+  outline: 2px dashed currentColor;
+  outline-offset: 2px;
 }
 
 .panel {
