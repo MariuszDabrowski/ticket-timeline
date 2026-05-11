@@ -27,6 +27,7 @@ const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentAbs + i))
 // Range of months visible as checkboxes in the sidebar
 const visibleStart = ref(currentYear * 12)        // Jan of current year
 const visibleEnd   = ref(currentYear * 12 + 11)   // Dec of current year
+const excludedMonths = ref<number[]>([])
 
 function absToYearMonth(abs: number) {
   return { year: Math.floor(abs / 12), month: abs % 12 }
@@ -36,6 +37,7 @@ function absToYearMonth(abs: number) {
 const monthsByYear = computed(() => {
   const groups: { year: number; months: number[] }[] = []
   for (let abs = visibleStart.value; abs <= visibleEnd.value; abs++) {
+    if (excludedMonths.value.includes(abs)) continue
     const { year } = absToYearMonth(abs)
     const last = groups[groups.length - 1]
     if (last && last.year === year) last.months.push(abs)
@@ -43,6 +45,13 @@ const monthsByYear = computed(() => {
   }
   return groups
 })
+
+function removeMonth(abs: number) {
+  excludedMonths.value.push(abs)
+  selectedMonths.value = selectedMonths.value.filter((m) => m !== abs)
+  const { year, month } = absToYearMonth(abs)
+  tickets.removePlacementsForMonth(year, month)
+}
 
 const sortedMonths = computed(() =>
   [...selectedMonths.value].sort((a, b) => a - b).map(absToYearMonth)
@@ -164,10 +173,13 @@ function onTicketListDrop(event: DragEvent) {
           <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
           <template v-for="group in monthsByYear" :key="group.year">
             <span class="year-label">{{ group.year }}</span>
-            <label v-for="abs in group.months" :key="abs" class="month-option">
-              <input type="checkbox" :value="abs" v-model="selectedMonths" />
-              {{ MONTH_NAMES[absToYearMonth(abs).month] }}
-            </label>
+            <div v-for="abs in group.months" :key="abs" class="month-row">
+              <label class="month-option">
+                <input type="checkbox" :value="abs" v-model="selectedMonths" />
+                {{ MONTH_NAMES[absToYearMonth(abs).month] }}
+              </label>
+              <button class="remove-month-btn" @click="removeMonth(abs)" title="Remove month">×</button>
+            </div>
           </template>
           <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
         </div>
@@ -339,12 +351,39 @@ function onTicketListDrop(event: DragEvent) {
   display: block;
 }
 
+.month-row {
+  display: flex;
+  align-items: center;
+}
+
+.month-row .remove-month-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.month-row:hover .remove-month-btn {
+  opacity: 1;
+}
+
+.remove-month-btn:hover {
+  color: #c0392b;
+}
+
 .month-option {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.9rem;
   cursor: pointer;
+  flex: 1;
 }
 
 .add-btn {

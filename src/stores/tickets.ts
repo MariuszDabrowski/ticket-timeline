@@ -87,5 +87,15 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
+  function removePlacementsForMonth(year: number, month: number) {
+    const monthStart: CalendarDate = { year, month, day: 1 }
+    const monthEnd: CalendarDate = { year, month, day: new Date(year, month + 1, 0).getDate() }
+    placements.value = placements.value.filter(
+      (p) =>
+        compareCalendarDates(p.startDate, monthEnd) > 0 ||
+        compareCalendarDates(p.endDate, monthStart) < 0,
+    )
+  }
+
+  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth, removePlacementsForMonth }
 })
