@@ -656,7 +656,7 @@ h2 {
 .day-header {
   display: flex;
   flex-direction: column;
-  padding: 0.25rem 0 0.3rem 0.25rem;
+  padding: 0.25rem 0 0 0.25rem;
   overflow: visible;
 }
 
@@ -743,7 +743,7 @@ h2 {
   font-size: 0.65rem;
   color: #9a7a1a;
   font-weight: 500;
-  padding: 0 0.25rem 0.3rem;
+  padding: 0 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -760,6 +760,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  padding-top: 0.3rem;
 }
 
 .slot-row {
