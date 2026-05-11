@@ -121,6 +121,20 @@ const showUploadEpic = ref(false)
 function handleEpicImport(csvText: string, workspaceSlug: string) {
   importEpicCSV(csvText, people, tickets, workspaceSlug)
   showUploadEpic.value = false
+
+  // Auto-select any months that have newly placed tickets
+  const selected = new Set(selectedMonths.value)
+  for (const p of tickets.placements) {
+    for (const date of [p.startDate, p.endDate]) {
+      const abs = date.year * 12 + date.month
+      if (!selected.has(abs)) {
+        selected.add(abs)
+        if (abs < visibleStart.value) visibleStart.value = abs
+        if (abs > visibleEnd.value) visibleEnd.value = abs
+      }
+    }
+  }
+  selectedMonths.value = [...selected]
 }
 
 const editingTicket = ref<Ticket | null>(null)
