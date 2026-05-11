@@ -216,6 +216,7 @@ function onTicketListDrop(event: DragEvent) {
   cursor: pointer;
   text-align: left;
   margin-bottom: 0.5rem;
+  color: inherit;
 }
 
 .chevron {
@@ -252,6 +253,7 @@ function onTicketListDrop(event: DragEvent) {
   padding: 0.3rem 0.6rem;
   width: 100%;
   text-align: left;
+  color: inherit;
 }
 
 .people-list {

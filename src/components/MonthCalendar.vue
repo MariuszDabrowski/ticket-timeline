@@ -517,18 +517,24 @@ h2 {
 }
 
 .day.is-holiday {
-  background: #fffbf0;
+  background: rgba(200, 160, 0, 0.08);
 }
 
 .holiday-label {
   font-size: 0.65rem;
-  color: #b8860b;
+  color: #9a7a1a;
   font-weight: 500;
   padding: 0 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .holiday-label {
+    color: #c8a030;
+  }
 }
 
 .placed-tickets {
