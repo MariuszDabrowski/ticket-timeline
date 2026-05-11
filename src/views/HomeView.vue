@@ -12,7 +12,8 @@ const MONTH_NAMES = [
 ]
 
 const currentYear = new Date().getFullYear()
-const selectedMonths = ref<number[]>([])
+const currentMonth = new Date().getMonth()
+const selectedMonths = ref<number[]>([currentMonth, currentMonth + 1])
 const sortedMonths = computed(() => [...selectedMonths.value].sort((a, b) => a - b))
 
 const people = usePeopleStore()

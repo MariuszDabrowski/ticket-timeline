@@ -21,8 +21,11 @@ const COLORS = [
 ]
 
 export const usePeopleStore = defineStore('people', () => {
-  const people = ref<Person[]>([])
-  let nextId = 0
+  const people = ref<Person[]>([
+    { id: 0, name: 'Mariusz', color: COLORS[0]! },
+    { id: 1, name: 'Jonathon', color: COLORS[1]! },
+  ])
+  let nextId = 2
 
   function addPerson(name: string) {
     const color = COLORS[people.value.length % COLORS.length]
