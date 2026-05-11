@@ -2,9 +2,9 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useOptionsStore = defineStore('options', () => {
-  const hideWeekends = ref(false)
-  const showCanadianHolidays = ref(false)
-  const showAmericanHolidays = ref(false)
+  const hideWeekends = ref(true)
+  const showCanadianHolidays = ref(true)
+  const showAmericanHolidays = ref(true)
 
   return { hideWeekends, showCanadianHolidays, showAmericanHolidays }
 })

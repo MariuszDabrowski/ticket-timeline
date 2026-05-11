@@ -16,6 +16,13 @@ const MONTH_NAMES = [
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth()
 const selectedMonths = ref<number[]>([currentMonth, currentMonth + 1])
+
+const collapsed = ref<Record<string, boolean>>({
+  options: false,
+  months: false,
+  people: false,
+  tickets: false,
+})
 const sortedMonths = computed(() => [...selectedMonths.value].sort((a, b) => a - b))
 
 const people = usePeopleStore()
@@ -72,38 +79,53 @@ function onTicketListDrop(event: DragEvent) {
   <div class="layout">
     <aside class="sidebar">
       <section>
-        <h3>Options</h3>
-        <label class="option">
-          <input type="checkbox" v-model="options.hideWeekends" />
-          Hide Weekends
-        </label>
-        <label class="option">
-          <input type="checkbox" v-model="options.showCanadianHolidays" />
-          Canadian Holidays
-        </label>
-        <label class="option">
-          <input type="checkbox" v-model="options.showAmericanHolidays" />
-          American Holidays
-        </label>
+        <button class="section-header" @click="collapsed.options = !collapsed.options">
+          <span>Options</span>
+          <span class="chevron" :class="{ rotated: collapsed.options }">›</span>
+        </button>
+        <div v-show="!collapsed.options" class="section-body">
+          <label class="option">
+            <input type="checkbox" v-model="options.hideWeekends" />
+            Hide Weekends
+          </label>
+          <label class="option">
+            <input type="checkbox" v-model="options.showCanadianHolidays" />
+            Canadian Holidays
+          </label>
+          <label class="option">
+            <input type="checkbox" v-model="options.showAmericanHolidays" />
+            American Holidays
+          </label>
+        </div>
       </section>
 
       <section>
-        <h3>Months {{ currentYear }}</h3>
-        <label v-for="(name, index) in MONTH_NAMES" :key="index" class="month-option">
-          <input type="checkbox" :value="index" v-model="selectedMonths" />
-          {{ name }}
-        </label>
+        <button class="section-header" @click="collapsed.months = !collapsed.months">
+          <span>Months {{ currentYear }}</span>
+          <span class="chevron" :class="{ rotated: collapsed.months }">›</span>
+        </button>
+        <div v-show="!collapsed.months" class="section-body">
+          <label v-for="(name, index) in MONTH_NAMES" :key="index" class="month-option">
+            <input type="checkbox" :value="index" v-model="selectedMonths" />
+            {{ name }}
+          </label>
+        </div>
       </section>
 
       <section>
-        <h3>People</h3>
-        <button class="add-btn" @click="showAddPerson = true">+ Add Person</button>
-        <ul class="people-list">
-          <li v-for="person in people.people" :key="person.id" class="person">
-            <span class="color-dot" :style="{ background: person.color }" />
-            {{ person.name }}
-          </li>
-        </ul>
+        <button class="section-header" @click="collapsed.people = !collapsed.people">
+          <span>People</span>
+          <span class="chevron" :class="{ rotated: collapsed.people }">›</span>
+        </button>
+        <div v-show="!collapsed.people" class="section-body">
+          <button class="add-btn" @click="showAddPerson = true">+ Add Person</button>
+          <ul class="people-list">
+            <li v-for="person in people.people" :key="person.id" class="person">
+              <span class="color-dot" :style="{ background: person.color }" />
+              {{ person.name }}
+            </li>
+          </ul>
+        </div>
       </section>
 
       <section
@@ -113,21 +135,26 @@ function onTicketListDrop(event: DragEvent) {
         @dragleave="onTicketListDragLeave"
         @drop="onTicketListDrop"
       >
-        <h3>Tickets</h3>
-        <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
-        <ul class="ticket-list">
-          <li v-for="ticket in unplacedTickets" :key="ticket.id">
-            <span
-              class="ticket-pill"
-              :class="{ dragging: draggingTicketId === ticket.id }"
-              :style="{ background: ticketColor(ticket.assignedTo) }"
-              :title="ticket.title"
-              draggable="true"
-              @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-              @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-            >{{ ticket.number }}</span>
-          </li>
-        </ul>
+        <button class="section-header" @click="collapsed.tickets = !collapsed.tickets">
+          <span>Tickets</span>
+          <span class="chevron" :class="{ rotated: collapsed.tickets }">›</span>
+        </button>
+        <div v-show="!collapsed.tickets" class="section-body">
+          <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
+          <ul class="ticket-list">
+            <li v-for="ticket in unplacedTickets" :key="ticket.id">
+              <span
+                class="ticket-pill"
+                :class="{ dragging: draggingTicketId === ticket.id }"
+                :style="{ background: ticketColor(ticket.assignedTo) }"
+                :title="ticket.title"
+                draggable="true"
+                @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+              >{{ ticket.number }}</span>
+            </li>
+          </ul>
+        </div>
       </section>
     </aside>
 
@@ -176,10 +203,36 @@ function onTicketListDrop(event: DragEvent) {
   gap: 1.5rem;
 }
 
-h3 {
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
   font-size: 0.85rem;
   font-weight: bold;
+  cursor: pointer;
+  text-align: left;
   margin-bottom: 0.5rem;
+}
+
+.chevron {
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.15s;
+  transform: rotate(90deg);
+}
+
+.chevron.rotated {
+  transform: rotate(-90deg);
+}
+
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .month-option {
