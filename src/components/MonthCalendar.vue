@@ -379,7 +379,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
+              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.number }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
