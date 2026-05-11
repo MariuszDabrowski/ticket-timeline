@@ -407,7 +407,9 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   padding: 1rem;
-  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  min-width: 560px;
+  flex-shrink: 0;
 }
 
 h2 {

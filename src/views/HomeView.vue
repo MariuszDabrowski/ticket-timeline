@@ -134,12 +134,14 @@ function onTicketListDrop(event: DragEvent) {
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
-      <MonthCalendar
-        v-for="month in sortedMonths"
-        :key="month"
-        :year="currentYear"
-        :month="month"
-      />
+      <div class="months-row">
+        <MonthCalendar
+          v-for="month in sortedMonths"
+          :key="month"
+          :year="currentYear"
+          :month="month"
+        />
+      </div>
     </main>
   </div>
 
@@ -265,7 +267,12 @@ h3 {
 
 .panel {
   flex: 1;
-  overflow-y: auto;
+  overflow: auto;
+}
+
+.months-row {
+  display: flex;
+  align-items: flex-start;
 }
 
 .option {
