@@ -5,6 +5,8 @@ import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
+import EditTicketModal from '../components/EditTicketModal.vue'
+import type { Ticket } from '../stores/tickets'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 
@@ -50,6 +52,13 @@ const unplacedTickets = computed(() => {
   const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
   return tickets.tickets.filter((t) => !placedIds.has(t.id))
 })
+
+const editingTicket = ref<Ticket | null>(null)
+
+function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string }) {
+  if (editingTicket.value) tickets.updateTicket(editingTicket.value.id, data)
+  editingTicket.value = null
+}
 
 const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
@@ -149,6 +158,7 @@ function onTicketListDrop(event: DragEvent) {
                 :style="{ background: ticketColor(ticket.assignedTo) }"
                 :title="ticket.title"
                 draggable="true"
+                @click.stop="editingTicket = ticket"
                 @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
               >{{ ticket.number }}</span>
@@ -183,6 +193,14 @@ function onTicketListDrop(event: DragEvent) {
     :people="people.people"
     @submit="handleAddTicket"
     @cancel="showAddTicket = false"
+  />
+
+  <EditTicketModal
+    v-if="editingTicket"
+    :ticket="editingTicket"
+    :people="people.people"
+    @submit="handleEditTicket"
+    @cancel="editingTicket = null"
   />
 </template>
 
