@@ -29,6 +29,13 @@ const MONTH_NAMES = [
 const monthName = computed(() => MONTH_NAMES[props.month])
 const daysInMonth = computed(() => new Date(props.year, props.month + 1, 0).getDate())
 
+const today = new Date()
+const todayYear = today.getFullYear()
+const todayMonth = today.getMonth()
+const todayDay = today.getDate()
+const isToday = (day: number) =>
+  props.year === todayYear && props.month === todayMonth && day === todayDay
+
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
@@ -494,6 +501,7 @@ function onDrop(event: DragEvent, day: number) {
         :class="{
           'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag,
           'is-holiday': holidayMap.has(day),
+          'is-today': isToday(day),
         }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
@@ -716,6 +724,15 @@ h2 {
 .day-number-wrap:hover .day-marker-tooltip,
 .day-marker-tooltip.always-visible {
   opacity: 1;
+}
+
+.day.is-today {
+  background: rgba(52, 152, 219, 0.08);
+}
+
+.day.is-today .day-number {
+  background: #3498db;
+  color: #fff;
 }
 
 .day.is-holiday {
