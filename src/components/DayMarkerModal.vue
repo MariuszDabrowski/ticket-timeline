@@ -122,8 +122,11 @@ label {
 .swatch {
   width: 1.6rem;
   height: 1.6rem;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
   border-radius: 50%;
   border: 2px solid transparent;
+  padding: 0;
   cursor: pointer;
   transition: transform 0.1s, border-color 0.1s;
 }

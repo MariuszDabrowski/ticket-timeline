@@ -543,7 +543,7 @@ h2 {
 .day-header {
   display: flex;
   flex-direction: column;
-  padding: 0.25rem 0 0;
+  padding: 0.25rem 0 0 0.25rem;
   overflow: visible;
 }
 
@@ -587,6 +587,7 @@ h2 {
   padding: 0.3rem 0.6rem;
   border-radius: 5px;
   font-size: 0.75rem;
+  width: max-content;
   max-width: 250px;
   white-space: normal;
   text-align: center;
