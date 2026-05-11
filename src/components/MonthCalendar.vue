@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useTicketsStore } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
+import type { Ticket, Placement } from '../stores/tickets'
 
 const props = defineProps<{
   year: number
@@ -29,11 +30,22 @@ function ticketColor(assignedTo: number | null): string {
   return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
 }
 
-function placedTickets(day: number) {
+interface DayTicketInfo {
+  ticket: Ticket
+  placement: Placement
+  isStart: boolean
+  isEnd: boolean
+}
+
+function dayTicketInfos(day: number): DayTicketInfo[] {
   return ticketsStore
     .getPlacementsForDay(props.year, props.month, day)
-    .map((p) => ticketsStore.tickets.find((t) => t.id === p.ticketId))
-    .filter(Boolean)
+    .map((placement) => {
+      const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
+      if (!ticket) return null
+      return { ticket, placement, isStart: placement.startDay === day, isEnd: placement.endDay === day }
+    })
+    .filter((x): x is DayTicketInfo => x !== null)
 }
 
 function onDragOver(event: DragEvent, day: number) {
@@ -41,16 +53,31 @@ function onDragOver(event: DragEvent, day: number) {
   dragOverDay.value = day
 }
 
-function onDragLeave() {
+function onDragLeave(event: DragEvent) {
+  if ((event.currentTarget as Element).contains(event.relatedTarget as Node)) return
   dragOverDay.value = null
+}
+
+function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | 'end') {
+  event.stopPropagation()
+  event.dataTransfer?.setData('resizeHandle', `${side}:${ticketId}`)
 }
 
 function onDrop(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = null
+
+  const resizeHandle = event.dataTransfer?.getData('resizeHandle')
+  if (resizeHandle) {
+    const [side, id] = resizeHandle.split(':')
+    ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', day)
+    return
+  }
+
   const ticketId = event.dataTransfer?.getData('ticketId')
-  if (!ticketId) return
-  ticketsStore.placeTicket(Number(ticketId), props.year, props.month, day)
+  if (ticketId) {
+    ticketsStore.placeTicket(Number(ticketId), props.year, props.month, day)
+  }
 }
 </script>
 
@@ -71,13 +98,28 @@ function onDrop(event: DragEvent, day: number) {
       >
         <span class="day-number">{{ day }}</span>
         <div class="placed-tickets">
-          <span
-            v-for="ticket in placedTickets(day)"
-            :key="ticket!.id"
+          <div
+            v-for="info in dayTicketInfos(day)"
+            :key="info.ticket.id"
             class="ticket-pill"
-            :style="{ background: ticketColor(ticket!.assignedTo) }"
-            :title="ticket!.title"
-          >{{ ticket!.number }}</span>
+            :class="{ 'is-start': info.isStart, 'is-end': info.isEnd }"
+            :style="{ background: ticketColor(info.ticket.assignedTo) }"
+            :title="info.ticket.title"
+          >
+            <button
+              v-if="info.isStart"
+              class="resize-handle"
+              draggable="true"
+              @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
+            >‹</button>
+            <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
+            <button
+              v-if="info.isEnd"
+              class="resize-handle"
+              draggable="true"
+              @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
+            >›</button>
+          </div>
         </div>
       </div>
     </div>
@@ -137,16 +179,53 @@ h2 {
 }
 
 .ticket-pill {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  min-height: 1.4rem;
   font-size: 0.72rem;
   font-weight: bold;
   color: #fff;
+  overflow: hidden;
+  /* middle segment: flat edges, full width */
+  border-radius: 0;
+  padding: 0.1rem 0;
+}
+
+.ticket-pill.is-start {
+  border-radius: 999px 0 0 999px;
+  padding-left: 0.1rem;
+}
+
+.ticket-pill.is-end {
+  border-radius: 0 999px 999px 0;
+  padding-right: 0.1rem;
+}
+
+.ticket-pill.is-start.is-end {
+  border-radius: 999px;
+}
+
+.ticket-label {
+  flex: 1;
+  padding: 0 0.3rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-  cursor: default;
+}
+
+.resize-handle {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 0.25rem;
+  cursor: ew-resize;
+  opacity: 0.7;
+}
+
+.resize-handle:hover {
+  opacity: 1;
 }
 </style>

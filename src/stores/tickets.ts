@@ -13,7 +13,8 @@ export interface Placement {
   ticketId: number
   year: number
   month: number
-  day: number
+  startDay: number
+  endDay: number
 }
 
 export const useTicketsStore = defineStore('tickets', () => {
@@ -32,14 +33,21 @@ export const useTicketsStore = defineStore('tickets', () => {
   function placeTicket(ticketId: number, year: number, month: number, day: number) {
     const existing = placements.value.findIndex((p) => p.ticketId === ticketId)
     if (existing !== -1) placements.value.splice(existing, 1)
-    placements.value.push({ ticketId, year, month, day })
+    placements.value.push({ ticketId, year, month, startDay: day, endDay: day })
+  }
+
+  function resizePlacement(ticketId: number, side: 'start' | 'end', day: number) {
+    const placement = placements.value.find((p) => p.ticketId === ticketId)
+    if (!placement) return
+    if (side === 'start' && day <= placement.endDay) placement.startDay = day
+    if (side === 'end' && day >= placement.startDay) placement.endDay = day
   }
 
   function getPlacementsForDay(year: number, month: number, day: number): Placement[] {
     return placements.value.filter(
-      (p) => p.year === year && p.month === month && p.day === day,
+      (p) => p.year === year && p.month === month && p.startDay <= day && day <= p.endDay,
     )
   }
 
-  return { tickets, placements, addTicket, placeTicket, getPlacementsForDay }
+  return { tickets, placements, addTicket, placeTicket, resizePlacement, getPlacementsForDay }
 })
