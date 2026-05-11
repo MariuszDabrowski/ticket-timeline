@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
+import { useDragStateStore } from '../stores/dragState'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
@@ -22,12 +23,12 @@ const daysInMonth = computed(() => new Date(props.year, props.month + 1, 0).getD
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
+const dragState = useDragStateStore()
 
-const dragOverDay = ref<number | null>(null)
+// Resize drag stays local — handles are only visible in their own month
 const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
 const resizePreviewDay = ref<number | null>(null)
-const moveDrag = ref<{ ticketId: number; span: number } | null>(null)
-const movePreviewDay = ref<number | null>(null)
+const dragOverDay = ref<number | null>(null)
 
 function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
@@ -60,13 +61,14 @@ function effectivePlacement(placement: Placement): Placement {
     if (resizeDrag.value.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0)
       return { ...placement, endDate: previewDate }
   }
-  if (moveDrag.value?.ticketId === placement.ticketId && movePreviewDay.value !== null) {
-    const newStart = calDate(movePreviewDay.value)
-    return { ...placement, startDate: newStart, endDate: addDays(newStart, moveDrag.value.span) }
+  if (dragState.moveDrag?.ticketId === placement.ticketId && dragState.movePreviewDate) {
+    const newStart = dragState.movePreviewDate
+    return { ...placement, startDate: newStart, endDate: addDays(newStart, dragState.moveDrag.span) }
   }
   return placement
 }
 
+// Stable slot assignment from original placements for tickets that belong to this month
 const slotMap = computed(() => {
   const monthPlacements = ticketsStore
     .getPlacementsForMonth(props.year, props.month)
@@ -86,9 +88,24 @@ const slotMap = computed(() => {
   return map
 })
 
-const totalSlots = computed(() =>
-  slotMap.value.size === 0 ? 0 : Math.max(...slotMap.value.values()) + 1,
-)
+// A ticket being dragged from another month into this one — needs an extra preview slot
+const foreignPreview = computed(() => {
+  const { moveDrag, movePreviewDate } = dragState
+  if (!moveDrag || !movePreviewDate) return null
+  if (slotMap.value.has(moveDrag.ticketId)) return null // already has a slot here
+  const previewStart = movePreviewDate
+  const previewEnd = addDays(previewStart, moveDrag.span)
+  const monthStart: CalendarDate = { year: props.year, month: props.month, day: 1 }
+  const monthEnd: CalendarDate = { year: props.year, month: props.month, day: daysInMonth.value }
+  if (compareCalendarDates(previewStart, monthEnd) > 0) return null
+  if (compareCalendarDates(previewEnd, monthStart) < 0) return null
+  return { ticketId: moveDrag.ticketId, startDate: previewStart, endDate: previewEnd }
+})
+
+const totalSlots = computed(() => {
+  const base = slotMap.value.size === 0 ? 0 : Math.max(...slotMap.value.values()) + 1
+  return foreignPreview.value ? base + 1 : base
+})
 
 interface DayTicketInfo {
   ticket: Ticket
@@ -102,6 +119,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
   const thisDate = calDate(day)
   const slots: (DayTicketInfo | null)[] = Array(totalSlots.value).fill(null)
 
+  // Tickets originally belonging to this month
   for (const placement of ticketsStore.getPlacementsForMonth(props.year, props.month)) {
     const eff = effectivePlacement(placement)
     if (compareCalendarDates(eff.startDate, thisDate) > 0) continue
@@ -115,7 +133,28 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       placement: eff,
       isStart: compareCalendarDates(eff.startDate, thisDate) === 0,
       isEnd: compareCalendarDates(eff.endDate, thisDate) === 0,
-      isMoving: moveDrag.value?.ticketId === placement.ticketId,
+      isMoving: dragState.moveDrag?.ticketId === placement.ticketId,
+    }
+  }
+
+  // Foreign ticket being dragged into this month
+  if (foreignPreview.value) {
+    const fp = foreignPreview.value
+    const previewSlot = totalSlots.value - 1
+    if (
+      compareCalendarDates(fp.startDate, thisDate) <= 0 &&
+      compareCalendarDates(thisDate, fp.endDate) <= 0
+    ) {
+      const ticket = ticketsStore.tickets.find((t) => t.id === fp.ticketId)
+      if (ticket) {
+        slots[previewSlot] = {
+          ticket,
+          placement: { ticketId: fp.ticketId, startDate: fp.startDate, endDate: fp.endDate },
+          isStart: compareCalendarDates(fp.startDate, thisDate) === 0,
+          isEnd: compareCalendarDates(fp.endDate, thisDate) === 0,
+          isMoving: true,
+        }
+      }
     }
   }
 
@@ -126,7 +165,7 @@ function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = day
   if (resizeDrag.value) resizePreviewDay.value = day
-  if (moveDrag.value) movePreviewDay.value = day
+  if (dragState.moveDrag) dragState.updateMovePreview(calDate(day))
 }
 
 function onDragLeave(event: DragEvent) {
@@ -143,21 +182,15 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
   event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
-  moveDrag.value = {
-    ticketId: info.ticket.id,
-    span: spanInDays(info.placement.startDate, info.placement.endDate),
-  }
-  movePreviewDay.value = null
+  dragState.startMoveDrag(
+    info.ticket.id,
+    spanInDays(info.placement.startDate, info.placement.endDate),
+  )
 }
 
 function clearResizeDrag() {
   resizeDrag.value = null
   resizePreviewDay.value = null
-}
-
-function clearMoveDrag() {
-  moveDrag.value = null
-  movePreviewDay.value = null
 }
 
 function onDrop(event: DragEvent, day: number) {
@@ -175,7 +208,7 @@ function onDrop(event: DragEvent, day: number) {
   const moveData = event.dataTransfer?.getData('moveCalendarTicket')
   if (moveData) {
     ticketsStore.moveTicket(Number(moveData), calDate(day))
-    clearMoveDrag()
+    dragState.clearMoveDrag()
     return
   }
 
@@ -196,7 +229,7 @@ function onDrop(event: DragEvent, day: number) {
         v-for="day in daysInMonth"
         :key="day"
         class="cell day"
-        :class="{ 'drag-over': dragOverDay === day && !resizeDrag && !moveDrag }"
+        :class="{ 'drag-over': dragOverDay === day && !resizeDrag && !dragState.moveDrag }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
@@ -216,7 +249,7 @@ function onDrop(event: DragEvent, day: number) {
               :title="info.ticket.title"
               draggable="true"
               @dragstart="onTicketDragStart($event, info)"
-              @dragend="clearMoveDrag"
+              @dragend="dragState.clearMoveDrag"
             >
               <button
                 v-if="info.isStart"
