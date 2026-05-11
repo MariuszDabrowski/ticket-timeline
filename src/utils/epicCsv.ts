@@ -57,6 +57,7 @@ export function importEpicCSV(
   text: string,
   peopleStore: ReturnType<typeof usePeopleStore>,
   ticketsStore: ReturnType<typeof useTicketsStore>,
+  workspaceSlug = '',
 ) {
   const rows = parseCSV(text)
   if (rows.length < 2) return
@@ -100,7 +101,9 @@ export function importEpicCSV(
       number,
       title,
       assignedTo,
-      link: `https://app.shortcut.com/clearbanc/story/${number}`,
+      link: workspaceSlug
+        ? `https://app.shortcut.com/${workspaceSlug}/story/${number}`
+        : '',
     })
   }
 }

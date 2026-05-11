@@ -6,6 +6,7 @@ import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import EditTicketModal from '../components/EditTicketModal.vue'
+import UploadEpicModal from '../components/UploadEpicModal.vue'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
@@ -54,18 +55,11 @@ const unplacedTickets = computed(() => {
   return tickets.tickets.filter((t) => !placedIds.has(t.id))
 })
 
-const csvInput = ref<HTMLInputElement | null>(null)
+const showUploadEpic = ref(false)
 
-function onCSVUpload(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const text = e.target?.result
-    if (typeof text === 'string') importEpicCSV(text, people, tickets)
-  }
-  reader.readAsText(file)
-  ;(event.target as HTMLInputElement).value = ''
+function handleEpicImport(csvText: string, workspaceSlug: string) {
+  importEpicCSV(csvText, people, tickets, workspaceSlug)
+  showUploadEpic.value = false
 }
 
 const editingTicket = ref<Ticket | null>(null)
@@ -170,8 +164,7 @@ function onTicketListDrop(event: DragEvent) {
         </button>
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
-          <input ref="csvInput" type="file" accept=".csv" style="display:none" @change="onCSVUpload" />
-          <button class="add-btn" @click="csvInput?.click()">+ Upload Epic CSV</button>
+          <button class="add-btn" @click="showUploadEpic = true">+ Upload Epic CSV</button>
           <ul class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span
@@ -215,6 +208,12 @@ function onTicketListDrop(event: DragEvent) {
     :people="people.people"
     @submit="handleAddTicket"
     @cancel="showAddTicket = false"
+  />
+
+  <UploadEpicModal
+    v-if="showUploadEpic"
+    @import="handleEpicImport"
+    @cancel="showUploadEpic = false"
   />
 
   <EditTicketModal
