@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
+import { useOptionsStore } from '../stores/options'
+import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
@@ -10,7 +12,8 @@ const props = defineProps<{
   month: number
 }>()
 
-const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -18,12 +21,67 @@ const MONTH_NAMES = [
 ]
 
 const monthName = computed(() => MONTH_NAMES[props.month])
-const startOffset = computed(() => new Date(props.year, props.month, 1).getDay())
 const daysInMonth = computed(() => new Date(props.year, props.month + 1, 0).getDate())
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
+const options = useOptionsStore()
+
+function isWeekend(day: number): boolean {
+  const dow = new Date(props.year, props.month, day).getDay()
+  return dow === 0 || dow === 6
+}
+
+const dayHeaders = computed(() => options.hideWeekends ? WEEKDAY_HEADERS_SHORT : WEEKDAY_HEADERS)
+const columnCount = computed(() => options.hideWeekends ? 5 : 7)
+
+const visibleDays = computed(() => {
+  const days: number[] = []
+  for (let d = 1; d <= daysInMonth.value; d++) {
+    if (options.hideWeekends && isWeekend(d)) continue
+    days.push(d)
+  }
+  return days
+})
+
+const startOffset = computed(() => {
+  if (options.hideWeekends) {
+    for (let d = 1; d <= daysInMonth.value; d++) {
+      const dow = new Date(props.year, props.month, d).getDay()
+      if (dow !== 0 && dow !== 6) return dow - 1 // Mon=0 … Fri=4
+    }
+    return 0
+  }
+  return new Date(props.year, props.month, 1).getDay()
+})
+
+// Maps each visible weekday number to its 0-based index among weekdays (used for colPos)
+const weekdayIndexMap = computed(() => {
+  if (!options.hideWeekends) return new Map<number, number>()
+  const map = new Map<number, number>()
+  let idx = 0
+  for (let d = 1; d <= daysInMonth.value; d++) {
+    const dow = new Date(props.year, props.month, d).getDay()
+    if (dow !== 0 && dow !== 6) map.set(d, idx++)
+  }
+  return map
+})
+
+const firstVisibleDay = computed(() => visibleDays.value[0] ?? 1)
+const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length - 1] ?? daysInMonth.value)
+
+const holidayMap = computed(() => {
+  const map = new Map<number, string>()
+  const all = [
+    ...(options.showCanadianHolidays ? getCanadianHolidays(props.year) : []),
+    ...(options.showAmericanHolidays ? getAmericanHolidays(props.year) : []),
+  ]
+  for (const h of all) {
+    if (h.date.month === props.month) map.set(h.date.day, h.name)
+  }
+  return map
+})
 
 const dragOverDay = ref<number | null>(null)
 
@@ -134,7 +192,11 @@ interface DayTicketInfo {
 }
 
 function colPos(day: number): number {
-  return (startOffset.value + day - 1) % 7
+  if (options.hideWeekends) {
+    const idx = weekdayIndexMap.value.get(day) ?? 0
+    return (startOffset.value + idx) % columnCount.value
+  }
+  return (startOffset.value + day - 1) % columnCount.value
 }
 
 function daySlots(day: number): (DayTicketInfo | null)[] {
@@ -160,8 +222,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       placement: eff,
       isStart,
       isEnd,
-      isRowEnd: !isEnd && (col === 6 || day === daysInMonth.value),
-      isRowStart: !isStart && (col === 0 || day === 1),
+      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
+      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
       isPreview,
     }
   }
@@ -251,19 +313,23 @@ function onDrop(event: DragEvent, day: number) {
 <template>
   <div class="month-calendar">
     <h2>{{ monthName }} {{ year }}</h2>
-    <div class="grid">
-      <div v-for="day in DAY_HEADERS" :key="day" class="cell header">{{ day }}</div>
+    <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }">
+      <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
       <div v-for="n in startOffset" :key="`empty-${n}`" class="cell" />
       <div
-        v-for="day in daysInMonth"
+        v-for="day in visibleDays"
         :key="day"
         class="cell day"
-        :class="{ 'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag }"
+        :class="{
+          'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag,
+          'is-holiday': holidayMap.has(day),
+        }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
       >
         <span class="day-number">{{ day }}</span>
+        <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in daySlots(day)" :key="slotIdx" class="slot-row">
             <div
@@ -320,7 +386,6 @@ h2 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
   row-gap: 2px;
   column-gap: 0;
 }
@@ -353,6 +418,20 @@ h2 {
 .day-number {
   font-size: 0.85rem;
   padding: 0 0.25rem;
+}
+
+.day.is-holiday {
+  background: #fffbf0;
+}
+
+.holiday-label {
+  font-size: 0.65rem;
+  color: #b8860b;
+  font-weight: 500;
+  padding: 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .placed-tickets {
