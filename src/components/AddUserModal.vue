@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const emit = defineEmits<{
   submit: [name: string]
@@ -7,6 +7,11 @@ const emit = defineEmits<{
 }>()
 
 const name = ref('')
+const modalRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  modalRef.value?.querySelector<HTMLElement>('input, select, button')?.focus()
+})
 
 function handleSubmit() {
   const trimmed = name.value.trim()
@@ -14,18 +19,35 @@ function handleSubmit() {
   emit('submit', trimmed)
   name.value = ''
 }
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') { emit('cancel'); return }
+  if (event.key !== 'Tab') return
+  const focusable = Array.from(
+    modalRef.value?.querySelectorAll<HTMLElement>(
+      'input:not([disabled]), select:not([disabled]), button:not([disabled])'
+    ) ?? []
+  )
+  if (focusable.length === 0) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault(); last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault(); first.focus()
+  }
+}
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" @keydown.esc="emit('cancel')">
+    <div class="modal" ref="modalRef" @keydown="onKeydown">
       <h3>Add Person</h3>
       <input
         v-model="name"
         type="text"
         placeholder="Name"
         @keydown.enter.prevent="handleSubmit"
-        autofocus
       />
       <div class="actions">
         <button @click="emit('cancel')">Cancel</button>
