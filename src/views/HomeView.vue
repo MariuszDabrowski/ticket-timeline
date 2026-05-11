@@ -19,7 +19,34 @@ const MONTH_NAMES = [
 
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth()
-const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentMonth + i).filter((m) => m <= 11))
+
+// Absolute month key: year * 12 + month — spans across year boundaries
+const currentAbs = currentYear * 12 + currentMonth
+const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentAbs + i))
+
+// Range of months visible as checkboxes in the sidebar
+const visibleStart = ref(currentYear * 12)        // Jan of current year
+const visibleEnd   = ref(currentYear * 12 + 11)   // Dec of current year
+
+function absToYearMonth(abs: number) {
+  return { year: Math.floor(abs / 12), month: abs % 12 }
+}
+
+// Months to show in the sidebar, grouped by year
+const monthsByYear = computed(() => {
+  const groups: { year: number; months: number[] }[] = []
+  for (let abs = visibleStart.value; abs <= visibleEnd.value; abs++) {
+    const { year } = absToYearMonth(abs)
+    const last = groups[groups.length - 1]
+    if (last && last.year === year) last.months.push(abs)
+    else groups.push({ year, months: [abs] })
+  }
+  return groups
+})
+
+const sortedMonths = computed(() =>
+  [...selectedMonths.value].sort((a, b) => a - b).map(absToYearMonth)
+)
 
 const collapsed = ref<Record<string, boolean>>({
   options: false,
@@ -27,7 +54,6 @@ const collapsed = ref<Record<string, boolean>>({
   people: false,
   tickets: false,
 })
-const sortedMonths = computed(() => [...selectedMonths.value].sort((a, b) => a - b))
 
 const people = usePeopleStore()
 const showAddPerson = ref(false)
@@ -131,14 +157,19 @@ function onTicketListDrop(event: DragEvent) {
 
       <section>
         <button class="section-header" @click="collapsed.months = !collapsed.months">
-          <span>Months {{ currentYear }}</span>
+          <span>Months</span>
           <span class="chevron" :class="{ rotated: collapsed.months }">›</span>
         </button>
         <div v-show="!collapsed.months" class="section-body">
-          <label v-for="(name, index) in MONTH_NAMES" :key="index" class="month-option">
-            <input type="checkbox" :value="index" v-model="selectedMonths" />
-            {{ name }}
-          </label>
+          <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
+          <template v-for="group in monthsByYear" :key="group.year">
+            <span class="year-label">{{ group.year }}</span>
+            <label v-for="abs in group.months" :key="abs" class="month-option">
+              <input type="checkbox" :value="abs" v-model="selectedMonths" />
+              {{ MONTH_NAMES[absToYearMonth(abs).month] }}
+            </label>
+          </template>
+          <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
         </div>
       </section>
 
@@ -196,10 +227,10 @@ function onTicketListDrop(event: DragEvent) {
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row">
         <MonthCalendar
-          v-for="month in sortedMonths"
-          :key="month"
-          :year="currentYear"
-          :month="month"
+          v-for="m in sortedMonths"
+          :key="`${m.year}-${m.month}`"
+          :year="m.year"
+          :month="m.month"
         />
       </div>
     </main>
@@ -282,6 +313,30 @@ function onTicketListDrop(event: DragEvent) {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.load-more-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  color: #888;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.load-more-btn:hover {
+  opacity: 1;
+}
+
+.year-label {
+  font-size: 0.72rem;
+  font-weight: bold;
+  opacity: 0.45;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .month-option {
