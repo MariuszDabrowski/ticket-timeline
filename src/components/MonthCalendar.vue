@@ -128,12 +128,19 @@ interface DayTicketInfo {
   placement: Placement
   isStart: boolean
   isEnd: boolean
+  isRowEnd: boolean
+  isRowStart: boolean
   isPreview: boolean
+}
+
+function colPos(day: number): number {
+  return (startOffset.value + day - 1) % 7
 }
 
 function daySlots(day: number): (DayTicketInfo | null)[] {
   const thisDate = calDate(day)
   const slots: (DayTicketInfo | null)[] = Array(totalSlots.value).fill(null)
+  const col = colPos(day)
 
   for (const placement of ticketsStore.getPlacementsForMonth(props.year, props.month)) {
     const eff = effectivePlacement(placement)
@@ -143,14 +150,18 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     if (!ticket) continue
     const slot = slotMap.value.get(placement.ticketId)
     if (slot === undefined) continue
+    const isStart = compareCalendarDates(eff.startDate, thisDate) === 0
+    const isEnd = compareCalendarDates(eff.endDate, thisDate) === 0
     const isPreview =
       dragState.moveDrag?.ticketId === placement.ticketId ||
       dragState.resizeDrag?.ticketId === placement.ticketId
     slots[slot] = {
       ticket,
       placement: eff,
-      isStart: compareCalendarDates(eff.startDate, thisDate) === 0,
-      isEnd: compareCalendarDates(eff.endDate, thisDate) === 0,
+      isStart,
+      isEnd,
+      isRowEnd: !isEnd && (col === 6 || day === daysInMonth.value),
+      isRowStart: !isStart && (col === 0 || day === 1),
       isPreview,
     }
   }
@@ -166,11 +177,15 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     ) {
       const ticket = ticketsStore.tickets.find((t) => t.id === ep.ticketId)
       if (ticket) {
+        const isStart = compareCalendarDates(ep.startDate, thisDate) === 0
+        const isEnd = compareCalendarDates(ep.endDate, thisDate) === 0
         slots[previewSlot] = {
           ticket,
           placement: { ticketId: ep.ticketId, startDate: ep.startDate, endDate: ep.endDate },
-          isStart: compareCalendarDates(ep.startDate, thisDate) === 0,
-          isEnd: compareCalendarDates(ep.endDate, thisDate) === 0,
+          isStart,
+          isEnd,
+          isRowEnd: !isEnd && (col === 6 || day === daysInMonth.value),
+          isRowStart: !isStart && (col === 0 || day === 1),
           isPreview: true,
         }
       }
@@ -258,6 +273,8 @@ function onDrop(event: DragEvent, day: number) {
                 'is-start': info.isStart,
                 'is-end': info.isEnd,
                 'is-preview': info.isPreview,
+                'row-end': info.isRowEnd,
+                'row-start': info.isRowStart,
               }"
               :style="{ background: ticketColor(info.ticket.assignedTo) }"
               :title="info.ticket.title"
@@ -359,7 +376,8 @@ h2 {
   font-size: 0.72rem;
   font-weight: bold;
   color: #fff;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
@@ -394,6 +412,32 @@ h2 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ticket-pill.row-end::after {
+  content: '';
+  position: absolute;
+  right: -0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: inherit;
+  z-index: 1;
+}
+
+.ticket-pill.row-start::before {
+  content: '';
+  position: absolute;
+  left: -0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--color-background, #ffffff);
+  z-index: 1;
 }
 
 .resize-handle {
