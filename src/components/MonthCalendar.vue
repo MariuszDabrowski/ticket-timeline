@@ -743,7 +743,7 @@ h2 {
   font-size: 0.65rem;
   color: #9a7a1a;
   font-weight: 500;
-  padding: 0 0.25rem;
+  padding: 0 0.25rem 0.3rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
