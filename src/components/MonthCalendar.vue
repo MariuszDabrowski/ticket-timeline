@@ -6,6 +6,7 @@ import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useCalendarLayoutStore } from '../stores/calendarLayout'
 import { useDayMarkersStore } from '../stores/dayMarkers'
+import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
@@ -33,6 +34,7 @@ const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
 const options = useOptionsStore()
 const layoutStore = useCalendarLayoutStore()
+const vacationsStore = useVacationsStore()
 const storeKey = computed(() => `${props.year}-${props.month}`)
 
 function isWeekend(day: number): boolean {
@@ -312,7 +314,7 @@ function dayRowIndex(visibleDayIndex: number): number {
   return Math.floor((startOffset.value + visibleDayIndex) / columnCount.value)
 }
 
-const slotsPerRow = computed<Record<number, number>>(() => {
+const ticketSlotsPerRow = computed<Record<number, number>>(() => {
   const result: Record<number, number> = {}
   visibleDays.value.forEach((day, idx) => {
     const row = dayRowIndex(idx)
@@ -322,8 +324,79 @@ const slotsPerRow = computed<Record<number, number>>(() => {
   return result
 })
 
+// --- Vacation slot computation ---
+
+interface DayVacationInfo {
+  personId: number
+  color: string
+  personName: string
+  isStart: boolean
+  isEnd: boolean
+  isRowStart: boolean
+  isRowEnd: boolean
+}
+
+const vacationSlotMap = computed(() => {
+  const monthVacations = vacationsStore.getVacationsForMonth(props.year, props.month)
+    .slice()
+    .sort((a, b) => compareCalendarDates(a.startDate, b.startDate))
+
+  const map = new Map<number, number>()
+  const slotEndDates: CalendarDate[] = []
+
+  for (const entry of monthVacations) {
+    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, entry.startDate) < 0)
+    const assigned = slot === -1 ? slotEndDates.length : slot
+    slotEndDates[assigned] = entry.endDate
+    map.set(entry.id, assigned)
+  }
+  return map
+})
+
+const totalVacationSlots = computed(() =>
+  vacationSlotMap.value.size === 0 ? 0 : Math.max(...vacationSlotMap.value.values()) + 1
+)
+
+function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
+  const thisDate = calDate(day)
+  const slots: (DayVacationInfo | null)[] = Array(totalVacationSlots.value).fill(null)
+  const col = colPos(day)
+
+  for (const entry of vacationsStore.getVacationsForMonth(props.year, props.month)) {
+    if (compareCalendarDates(entry.startDate, thisDate) > 0) continue
+    if (compareCalendarDates(thisDate, entry.endDate) > 0) continue
+    const slot = vacationSlotMap.value.get(entry.id)
+    if (slot === undefined) continue
+    const person = peopleStore.people.find((p) => p.id === entry.personId)
+    const isStart = compareCalendarDates(entry.startDate, thisDate) === 0
+    const isEnd = compareCalendarDates(entry.endDate, thisDate) === 0
+    slots[slot] = {
+      personId: entry.personId,
+      color: person?.color ?? '#aaa',
+      personName: person?.name ?? '',
+      isStart,
+      isEnd,
+      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
+      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
+    }
+  }
+
+  while (slots.length > 0 && slots[slots.length - 1] === null) slots.pop()
+  return slots
+}
+
+const vacationSlotsPerRow = computed<Record<number, number>>(() => {
+  const result: Record<number, number> = {}
+  visibleDays.value.forEach((day, idx) => {
+    const row = dayRowIndex(idx)
+    const count = vacationDaySlots(day).length
+    result[row] = Math.max(result[row] ?? 0, count)
+  })
+  return result
+})
+
 watchEffect(() => {
-  layoutStore.register(storeKey.value, slotsPerRow.value)
+  layoutStore.register(storeKey.value, ticketSlotsPerRow.value, vacationSlotsPerRow.value)
 })
 
 onUnmounted(() => {
@@ -332,9 +405,22 @@ onUnmounted(() => {
 
 function effectiveDaySlots(day: number, rowIdx: number): (DayTicketInfo | null)[] {
   const slots = daySlots(day)
-  const maxForRow = layoutStore.maxSlotsPerRow[rowIdx] ?? slots.length
+  const maxForRow = layoutStore.maxTicketSlotsPerRow[rowIdx] ?? slots.length
   while (slots.length < maxForRow) slots.push(null)
   return slots
+}
+
+function effectiveVacationSlots(day: number, rowIdx: number): (DayVacationInfo | null)[] {
+  const slots = vacationDaySlots(day)
+  const maxForRow = layoutStore.maxVacationSlotsPerRow[rowIdx] ?? slots.length
+  while (slots.length < maxForRow) slots.push(null)
+  return slots
+}
+
+function vacationStyle(color: string): Record<string, string> {
+  return {
+    background: `repeating-linear-gradient(45deg, ${color}bb, ${color}bb 5px, ${color}66 5px, ${color}66 10px)`,
+  }
 }
 
 function onDragOver(event: DragEvent, day: number) {
@@ -430,6 +516,21 @@ function onDrop(event: DragEvent, day: number) {
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         </div>
         <div class="placed-tickets">
+          <div v-for="(info, slotIdx) in effectiveVacationSlots(day, dayRowIndex(dayIdx))" :key="`vac-${slotIdx}`" class="slot-row">
+            <div
+              v-if="info"
+              class="vacation-pill"
+              :class="{
+                'is-start': info.isStart,
+                'is-end': info.isEnd,
+                'row-end': info.isRowEnd,
+                'row-start': info.isRowStart,
+              }"
+              :style="vacationStyle(info.color)"
+              :title="`${info.personName} – vacation`"
+            />
+            <div v-else class="slot-spacer" />
+          </div>
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div
               v-if="info"
@@ -648,6 +749,29 @@ h2 {
 
 .slot-spacer {
   height: 100%;
+}
+
+.vacation-pill {
+  display: flex;
+  height: 100%;
+  border-radius: 0;
+  cursor: default;
+  opacity: 0.9;
+  min-height: 1.1rem;
+}
+
+.vacation-pill.is-start {
+  border-radius: 999px 0 0 999px;
+  margin-left: 0.25rem;
+}
+
+.vacation-pill.is-end {
+  border-radius: 0 999px 999px 0;
+  margin-right: 0.25rem;
+}
+
+.vacation-pill.is-start.is-end {
+  border-radius: 999px;
 }
 
 .ticket-pill {

@@ -7,10 +7,14 @@ import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import EditTicketModal from '../components/EditTicketModal.vue'
 import UploadEpicModal from '../components/UploadEpicModal.vue'
+import HiBobModal from '../components/HiBobModal.vue'
+import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
+import { useVacationsStore } from '../stores/vacations'
+import type { ICSPersonGroup } from '../utils/icsParser'
 
 const vFocus = { mounted: (el: HTMLElement) => nextTick(() => el.focus()) }
 
@@ -60,6 +64,7 @@ const collapsed = ref<Record<string, boolean>>({
   months: false,
   people: false,
   tickets: false,
+  sync: false,
 })
 
 const people = usePeopleStore()
@@ -133,6 +138,29 @@ const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
 const options = useOptionsStore()
 const ticketListIsOver = ref(false)
+
+const vacations = useVacationsStore()
+const showHiBob = ref(false)
+const hibobGroups = ref<ICSPersonGroup[]>([])
+
+function handleHiBobParsed(groups: ICSPersonGroup[]) {
+  hibobGroups.value = groups
+  showHiBob.value = false
+}
+
+function handleHiBobConfirm(matches: { personId: number; group: ICSPersonGroup }[]) {
+  vacations.setVacations(
+    matches.flatMap(({ personId, group }) =>
+      group.events.map((ev) => ({
+        personId,
+        startDate: ev.startDate,
+        endDate: ev.endDate,
+      }))
+    )
+  )
+  hibobGroups.value = []
+}
+
 
 function onTicketListDragOver(event: DragEvent) {
   if (!event.dataTransfer?.types.includes('movecalendarticket')) return
@@ -265,6 +293,20 @@ function onTicketListDrop(event: DragEvent) {
           </ul>
         </div>
       </section>
+      <section>
+        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
+          <span>Sync</span>
+          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
+        </button>
+        <div v-show="!collapsed.sync" class="section-body">
+          <button class="add-btn" @click="showHiBob = true">↓ HiBob Vacation Days</button>
+          <button
+            v-if="vacations.entries.length > 0"
+            class="add-btn clear-sync-btn"
+            @click="vacations.clearVacations()"
+          >✕ Clear Synced Data</button>
+        </div>
+      </section>
     </aside>
 
 
@@ -307,6 +349,20 @@ function onTicketListDrop(event: DragEvent) {
     @submit="handleEditTicket"
     @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
+  />
+
+  <HiBobModal
+    v-if="showHiBob"
+    @parsed="handleHiBobParsed"
+    @cancel="showHiBob = false"
+  />
+
+  <HiBobConfirmModal
+    v-if="hibobGroups.length > 0"
+    :groups="hibobGroups"
+    :people="people.people"
+    @confirm="handleHiBobConfirm"
+    @cancel="hibobGroups = []"
   />
 </template>
 
@@ -539,5 +595,15 @@ function onTicketListDrop(event: DragEvent) {
   padding: 1rem;
   color: #888;
   font-size: 0.9rem;
+}
+
+.clear-sync-btn {
+  color: #c0392b;
+  border-color: #c0392b;
+  opacity: 0.8;
+}
+
+.clear-sync-btn:hover {
+  opacity: 1;
 }
 </style>
