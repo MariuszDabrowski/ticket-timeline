@@ -635,8 +635,22 @@ h2 {
   overflow: visible;
 }
 
-.cell:not(.day) {
-  opacity: 0.3;
+.cell:not(.day):not(.header) {
+  position: relative;
+}
+
+.cell:not(.day):not(.header)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .cell:not(.day):not(.header)::before {
+    background: rgba(255, 255, 255, 0.55);
+  }
 }
 
 .header {
