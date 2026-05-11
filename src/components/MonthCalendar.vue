@@ -105,6 +105,11 @@ function onDragLeave(event: DragEvent) {
   dragOverDay.value = null
 }
 
+function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
+  const span = info.placement.endDay - info.placement.startDay
+  event.dataTransfer?.setData('moveCalendarTicket', `${info.ticket.id}:${span}`)
+}
+
 function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | 'end') {
   event.stopPropagation()
   event.dataTransfer?.setData('resizeHandle', `${side}:${ticketId}`)
@@ -126,6 +131,13 @@ function onDrop(event: DragEvent, day: number) {
     const [side, id] = resizeHandle.split(':')
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', day)
     clearResizeDrag()
+    return
+  }
+
+  const moveData = event.dataTransfer?.getData('moveCalendarTicket')
+  if (moveData) {
+    const [id] = moveData.split(':')
+    ticketsStore.moveTicket(Number(id), day)
     return
   }
 
@@ -160,6 +172,8 @@ function onDrop(event: DragEvent, day: number) {
               :class="{ 'is-start': info.isStart, 'is-end': info.isEnd, 'is-preview': resizeDrag?.ticketId === info.ticket.id }"
               :style="{ background: ticketColor(info.ticket.assignedTo) }"
               :title="info.ticket.title"
+              draggable="true"
+              @dragstart="onTicketDragStart($event, info)"
             >
               <button
                 v-if="info.isStart"

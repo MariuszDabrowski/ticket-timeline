@@ -36,6 +36,14 @@ export const useTicketsStore = defineStore('tickets', () => {
     placements.value.push({ ticketId, year, month, startDay: day, endDay: day })
   }
 
+  function moveTicket(ticketId: number, newStartDay: number) {
+    const placement = placements.value.find((p) => p.ticketId === ticketId)
+    if (!placement) return
+    const span = placement.endDay - placement.startDay
+    placement.startDay = newStartDay
+    placement.endDay = newStartDay + span
+  }
+
   function resizePlacement(ticketId: number, side: 'start' | 'end', day: number) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
@@ -49,5 +57,5 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, placeTicket, resizePlacement, getPlacementsForDay }
+  return { tickets, placements, addTicket, placeTicket, moveTicket, resizePlacement, getPlacementsForDay }
 })
