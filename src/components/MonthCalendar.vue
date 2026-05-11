@@ -292,7 +292,7 @@ function onDrop(event: DragEvent, day: number) {
               <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
               <button
                 v-if="info.isEnd"
-                class="resize-handle"
+                class="resize-handle right-handle"
                 draggable="true"
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
                 @dragend="dragState.clearResizeDrag"
@@ -454,5 +454,9 @@ h2 {
 
 .resize-handle:hover {
   opacity: 1;
+}
+
+.right-handle {
+  margin-left: auto;
 }
 </style>
