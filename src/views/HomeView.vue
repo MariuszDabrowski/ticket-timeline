@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
+import { useTicketsStore } from '../stores/tickets'
+import AddTicketModal from '../components/AddTicketModal.vue'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -14,11 +16,24 @@ const selectedMonths = ref<number[]>([])
 const sortedMonths = computed(() => [...selectedMonths.value].sort((a, b) => a - b))
 
 const people = usePeopleStore()
-const showModal = ref(false)
+const showAddPerson = ref(false)
 
 function handleAddPerson(name: string) {
   people.addPerson(name)
-  showModal.value = false
+  showAddPerson.value = false
+}
+
+const tickets = useTicketsStore()
+const showAddTicket = ref(false)
+
+function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string }) {
+  tickets.addTicket(ticket)
+  showAddTicket.value = false
+}
+
+function ticketColor(assignedTo: number | null): string {
+  if (assignedTo === null) return '#ccc'
+  return people.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
 }
 </script>
 
@@ -35,11 +50,25 @@ function handleAddPerson(name: string) {
 
       <section>
         <h3>People</h3>
-        <button class="add-btn" @click="showModal = true">+ Add Person</button>
+        <button class="add-btn" @click="showAddPerson = true">+ Add Person</button>
         <ul class="people-list">
           <li v-for="person in people.people" :key="person.id" class="person">
             <span class="color-dot" :style="{ background: person.color }" />
             {{ person.name }}
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Tickets</h3>
+        <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
+        <ul class="ticket-list">
+          <li v-for="ticket in tickets.tickets" :key="ticket.id">
+            <span
+              class="ticket-pill"
+              :style="{ background: ticketColor(ticket.assignedTo) }"
+              :title="ticket.title"
+            >{{ ticket.number }}</span>
           </li>
         </ul>
       </section>
@@ -57,9 +86,16 @@ function handleAddPerson(name: string) {
   </div>
 
   <AddUserModal
-    v-if="showModal"
+    v-if="showAddPerson"
     @submit="handleAddPerson"
-    @cancel="showModal = false"
+    @cancel="showAddPerson = false"
+  />
+
+  <AddTicketModal
+    v-if="showAddTicket"
+    :people="people.people"
+    @submit="handleAddTicket"
+    @cancel="showAddTicket = false"
   />
 </template>
 
@@ -125,6 +161,28 @@ h3 {
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.ticket-list {
+  list-style: none;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ticket-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: bold;
+  color: #fff;
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .panel {
