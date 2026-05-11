@@ -5,18 +5,17 @@ import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useCalendarLayoutStore } from '../stores/calendarLayout'
-import { useDayLabelsStore } from '../stores/dayLabels'
+import { useDayMarkersStore } from '../stores/dayMarkers'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
+import DayMarkerModal from './DayMarkerModal.vue'
 
 const props = defineProps<{
   year: number
   month: number
 }>()
-
-const vFocusInput = { mounted: (el: HTMLElement) => el.focus() }
 
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -93,19 +92,8 @@ const holidayMap = computed(() => {
 
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
-const dayLabels = useDayLabelsStore()
-const editingLabelDay = ref<number | null>(null)
-const editingLabelText = ref('')
-
-function startEditingLabel(day: number) {
-  editingLabelDay.value = day
-  editingLabelText.value = dayLabels.getLabel(props.year, props.month, day)
-}
-
-function commitLabel(day: number) {
-  dayLabels.setLabel(props.year, props.month, day, editingLabelText.value)
-  editingLabelDay.value = null
-}
+const dayMarkers = useDayMarkersStore()
+const markerDay = ref<number | null>(null)
 
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string }) {
   if (editingTicket.value) ticketsStore.updateTicket(editingTicket.value.id, data)
@@ -424,23 +412,20 @@ function onDrop(event: DragEvent, day: number) {
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
       >
-        <div class="day-header" @click.stop="startEditingLabel(day)">
-          <span class="day-number">{{ day }}</span>
+        <div class="day-header">
+          <div class="day-number-wrap">
+            <span
+              class="day-number"
+              :class="{ 'has-marker': !!dayMarkers.getMarker(props.year, props.month, day) }"
+              :style="dayMarkers.getMarker(props.year, props.month, day) ? { background: dayMarkers.getMarker(props.year, props.month, day)!.color } : {}"
+              @click.stop="markerDay = day"
+            >{{ day }}</span>
+            <div
+              v-if="dayMarkers.getMarker(props.year, props.month, day)?.note"
+              class="day-marker-tooltip"
+            >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
+          </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
-          <input
-            v-if="editingLabelDay === day"
-            v-focus-input
-            class="day-label-input"
-            v-model="editingLabelText"
-            @click.stop
-            @blur="commitLabel(day)"
-            @keydown.enter.stop="commitLabel(day)"
-            @keydown.escape.stop="editingLabelDay = null"
-          />
-          <span
-            v-else-if="dayLabels.getLabel(props.year, props.month, day)"
-            class="day-label"
-          >{{ dayLabels.getLabel(props.year, props.month, day) }}</span>
         </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
@@ -492,6 +477,16 @@ function onDrop(event: DragEvent, day: number) {
     @submit="handleEditSubmit"
     @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
+  />
+
+  <DayMarkerModal
+    v-if="markerDay !== null"
+    :year="props.year"
+    :month="props.month"
+    :day="markerDay"
+    :existing="dayMarkers.getMarker(props.year, props.month, markerDay)"
+    @save="(m) => { dayMarkers.setMarker(props.year, props.month, markerDay!, m); markerDay = null }"
+    @cancel="markerDay = null"
   />
 </template>
 
@@ -552,36 +547,51 @@ h2 {
 
 .day-number {
   font-size: 0.85rem;
-  padding: 0 0.25rem;
+}
+
+.day-number-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.day-number {
+  cursor: pointer;
+  border-radius: 50%;
+  width: 1.6rem;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  transition: background 0.1s;
 }
 
-.day-header {
-  cursor: text;
+.day-number:hover {
+  background: rgba(128, 128, 128, 0.15);
 }
 
-.day-label {
-  font-size: 0.65rem;
-  font-weight: 500;
-  padding: 0 0.25rem;
+.day-number.has-marker {
+  color: #fff;
+}
+
+.day-marker-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #6a9fb5;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.day-label-input {
-  font-size: 0.65rem;
-  padding: 0 0.25rem;
-  border: none;
-  border-bottom: 1px solid #6a9fb5;
-  background: transparent;
-  color: inherit;
-  outline: none;
-  width: 125px;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
+.day-number-wrap:hover .day-marker-tooltip {
+  display: block;
 }
 
 .day.is-holiday {
