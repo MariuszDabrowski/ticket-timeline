@@ -9,6 +9,7 @@ import EditTicketModal from '../components/EditTicketModal.vue'
 import UploadEpicModal from '../components/UploadEpicModal.vue'
 import HiBobModal from '../components/HiBobModal.vue'
 import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
+import SummaryTile from '../components/SummaryTile.vue'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
@@ -318,6 +319,7 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row">
+        <SummaryTile />
         <MonthCalendar
           v-for="m in sortedMonths"
           :key="`${m.year}-${m.month}`"
