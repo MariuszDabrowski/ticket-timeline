@@ -7,6 +7,7 @@ import { useOptionsStore } from '../stores/options'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
+import EditTicketModal from './EditTicketModal.vue'
 
 const props = defineProps<{
   year: number
@@ -85,6 +86,12 @@ const holidayMap = computed(() => {
 })
 
 const dragOverDay = ref<number | null>(null)
+const editingTicket = ref<Ticket | null>(null)
+
+function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string }) {
+  if (editingTicket.value) ticketsStore.updateTicket(editingTicket.value.id, data)
+  editingTicket.value = null
+}
 
 function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
@@ -360,6 +367,7 @@ function onDrop(event: DragEvent, day: number) {
               :style="{ background: ticketColor(info.ticket.assignedTo) }"
               :title="info.ticket.title"
               draggable="true"
+              @click.stop="editingTicket = info.ticket"
               @dragstart="onTicketDragStart($event, info)"
               @dragend="dragState.clearMoveDrag"
             >
@@ -367,6 +375,7 @@ function onDrop(event: DragEvent, day: number) {
                 v-if="info.isStart"
                 class="resize-handle"
                 draggable="true"
+                @click.stop
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
@@ -385,6 +394,14 @@ function onDrop(event: DragEvent, day: number) {
       </div>
     </div>
   </div>
+
+  <EditTicketModal
+    v-if="editingTicket"
+    :ticket="editingTicket"
+    :people="peopleStore.people"
+    @submit="handleEditSubmit"
+    @cancel="editingTicket = null"
+  />
 </template>
 
 <style scoped>

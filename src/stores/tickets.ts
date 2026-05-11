@@ -72,6 +72,11 @@ export const useTicketsStore = defineStore('tickets', () => {
     placement.endDate = addDays(newStartDate, span)
   }
 
+  function updateTicket(id: number, data: Partial<Omit<Ticket, 'id'>>) {
+    const ticket = tickets.value.find((t) => t.id === id)
+    if (ticket) Object.assign(ticket, data)
+  }
+
   function removePlacement(ticketId: number) {
     const idx = placements.value.findIndex((p) => p.ticketId === ticketId)
     if (idx !== -1) placements.value.splice(idx, 1)
@@ -96,5 +101,5 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
+  return { tickets, placements, addTicket, updateTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
 })
