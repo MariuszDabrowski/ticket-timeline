@@ -263,6 +263,21 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
+      <section>
+        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
+          <span>Sync</span>
+          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
+        </button>
+        <div v-show="!collapsed.sync" class="section-body">
+          <button class="add-btn" @click="showHiBob = true">↓ HiBob Vacation Days</button>
+          <button
+            v-if="vacations.entries.length > 0"
+            class="add-btn clear-sync-btn"
+            @click="vacations.clearVacations()"
+          >✕ Clear Synced Data</button>
+        </div>
+      </section>
+
       <section
         class="ticket-section"
         :class="{ 'drop-target': ticketListIsOver }"
@@ -291,20 +306,6 @@ function onTicketListDrop(event: DragEvent) {
               >{{ ticket.number }}</span>
             </li>
           </ul>
-        </div>
-      </section>
-      <section>
-        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
-          <span>Sync</span>
-          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
-        </button>
-        <div v-show="!collapsed.sync" class="section-body">
-          <button class="add-btn" @click="showHiBob = true">↓ HiBob Vacation Days</button>
-          <button
-            v-if="vacations.entries.length > 0"
-            class="add-btn clear-sync-btn"
-            @click="vacations.clearVacations()"
-          >✕ Clear Synced Data</button>
         </div>
       </section>
     </aside>
@@ -373,7 +374,7 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .sidebar {
-  width: 180px;
+  width: 280px;
   flex-shrink: 0;
   border-right: 1px solid #ccc;
   padding: 1rem;
