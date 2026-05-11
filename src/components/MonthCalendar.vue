@@ -24,8 +24,6 @@ const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 
 const dragOverDay = ref<number | null>(null)
-
-// Tracks an in-progress resize handle drag so we can show a live preview
 const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
 const resizePreviewDay = ref<number | null>(null)
 
@@ -34,12 +32,8 @@ function ticketColor(assignedTo: number | null): string {
   return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
 }
 
-// Returns the effective placement for display, applying any live resize preview
 function effectivePlacement(placement: Placement): Placement {
-  if (
-    resizeDrag.value?.ticketId === placement.ticketId &&
-    resizePreviewDay.value !== null
-  ) {
+  if (resizeDrag.value?.ticketId === placement.ticketId && resizePreviewDay.value !== null) {
     if (resizeDrag.value.side === 'start') {
       return { ...placement, startDay: Math.min(resizePreviewDay.value, placement.endDay) }
     } else {
@@ -49,6 +43,31 @@ function effectivePlacement(placement: Placement): Placement {
   return placement
 }
 
+// Assign each ticket a stable slot index for the month using greedy interval coloring.
+// Computed from original placements so slots don't shift during resize preview.
+const slotMap = computed(() => {
+  const monthPlacements = ticketsStore.placements
+    .filter((p) => p.year === props.year && p.month === props.month)
+    .slice()
+    .sort((a, b) => a.startDay - b.startDay)
+
+  const map = new Map<number, number>()
+  const slotEndDay: number[] = []
+
+  for (const p of monthPlacements) {
+    const slot = slotEndDay.findIndex((end) => end < p.startDay)
+    const assigned = slot === -1 ? slotEndDay.length : slot
+    slotEndDay[assigned] = p.endDay
+    map.set(p.ticketId, assigned)
+  }
+
+  return map
+})
+
+const totalSlots = computed(() =>
+  slotMap.value.size === 0 ? 0 : Math.max(...slotMap.value.values()) + 1,
+)
+
 interface DayTicketInfo {
   ticket: Ticket
   placement: Placement
@@ -56,17 +75,23 @@ interface DayTicketInfo {
   isEnd: boolean
 }
 
-function dayTicketInfos(day: number): DayTicketInfo[] {
-  return ticketsStore.placements
-    .filter((p) => p.year === props.year && p.month === props.month)
-    .map((placement) => {
-      const eff = effectivePlacement(placement)
-      if (eff.startDay > day || day > eff.endDay) return null
-      const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
-      if (!ticket) return null
-      return { ticket, placement: eff, isStart: eff.startDay === day, isEnd: eff.endDay === day }
-    })
-    .filter((x): x is DayTicketInfo => x !== null)
+// Returns one entry per slot; null means the slot is empty on this day (spacer).
+function daySlots(day: number): (DayTicketInfo | null)[] {
+  const slots: (DayTicketInfo | null)[] = Array(totalSlots.value).fill(null)
+
+  for (const placement of ticketsStore.placements.filter(
+    (p) => p.year === props.year && p.month === props.month,
+  )) {
+    const eff = effectivePlacement(placement)
+    if (eff.startDay > day || day > eff.endDay) continue
+    const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
+    if (!ticket) continue
+    const slot = slotMap.value.get(placement.ticketId)
+    if (slot === undefined) continue
+    slots[slot] = { ticket, placement: eff, isStart: eff.startDay === day, isEnd: eff.endDay === day }
+  }
+
+  return slots
 }
 
 function onDragOver(event: DragEvent, day: number) {
@@ -128,29 +153,31 @@ function onDrop(event: DragEvent, day: number) {
       >
         <span class="day-number">{{ day }}</span>
         <div class="placed-tickets">
-          <div
-            v-for="info in dayTicketInfos(day)"
-            :key="info.ticket.id"
-            class="ticket-pill"
-            :class="{ 'is-start': info.isStart, 'is-end': info.isEnd, 'is-preview': resizeDrag?.ticketId === info.ticket.id }"
-            :style="{ background: ticketColor(info.ticket.assignedTo) }"
-            :title="info.ticket.title"
-          >
-            <button
-              v-if="info.isStart"
-              class="resize-handle"
-              draggable="true"
-              @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
-              @dragend="clearResizeDrag"
-            >‹</button>
-            <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
-            <button
-              v-if="info.isEnd"
-              class="resize-handle"
-              draggable="true"
-              @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
-              @dragend="clearResizeDrag"
-            >›</button>
+          <div v-for="(info, slotIdx) in daySlots(day)" :key="slotIdx" class="slot-row">
+            <div
+              v-if="info"
+              class="ticket-pill"
+              :class="{ 'is-start': info.isStart, 'is-end': info.isEnd, 'is-preview': resizeDrag?.ticketId === info.ticket.id }"
+              :style="{ background: ticketColor(info.ticket.assignedTo) }"
+              :title="info.ticket.title"
+            >
+              <button
+                v-if="info.isStart"
+                class="resize-handle"
+                draggable="true"
+                @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
+                @dragend="clearResizeDrag"
+              >‹</button>
+              <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
+              <button
+                v-if="info.isEnd"
+                class="resize-handle"
+                draggable="true"
+                @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
+                @dragend="clearResizeDrag"
+              >›</button>
+            </div>
+            <div v-else class="slot-spacer" />
           </div>
         </div>
       </div>
@@ -210,10 +237,18 @@ h2 {
   gap: 0.2rem;
 }
 
+.slot-row {
+  height: 1.4rem;
+}
+
+.slot-spacer {
+  height: 100%;
+}
+
 .ticket-pill {
   display: flex;
   align-items: center;
-  min-height: 1.4rem;
+  height: 100%;
   font-size: 0.72rem;
   font-weight: bold;
   color: #fff;
