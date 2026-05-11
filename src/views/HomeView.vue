@@ -394,6 +394,7 @@ function onTicketListDrop(event: DragEvent) {
   padding: 0;
   font-size: 0.85rem;
   font-weight: bold;
+  text-decoration: underline;
   cursor: pointer;
   text-align: left;
   margin-bottom: 0.5rem;

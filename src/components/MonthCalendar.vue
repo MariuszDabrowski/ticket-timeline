@@ -615,7 +615,7 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   padding: 1rem;
-  border: 1px dashed #bbb;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
   border-radius: 8px;
   margin: 1rem;
   min-width: fit-content;
@@ -882,7 +882,7 @@ h2 {
   font-size: 0.75rem;
   font-weight: normal;
   width: max-content;
-  max-width: 200px;
+  max-width: 250px;
   white-space: normal;
   text-align: center;
   line-height: 1.4;
