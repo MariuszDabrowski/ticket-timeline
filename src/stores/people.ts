@@ -34,5 +34,10 @@ export const usePeopleStore = defineStore('people', () => {
     return id
   }
 
-  return { people, addPerson }
+  function removePerson(id: number) {
+    const idx = people.value.findIndex((p) => p.id === id)
+    if (idx !== -1) people.value.splice(idx, 1)
+  }
+
+  return { people, addPerson, removePerson }
 })

@@ -37,6 +37,13 @@ function handleAddPerson(name: string) {
   showAddPerson.value = false
 }
 
+function handleRemovePerson(id: number) {
+  tickets.tickets.forEach((t) => {
+    if (t.assignedTo === id) tickets.updateTicket(t.id, { assignedTo: null })
+  })
+  people.removePerson(id)
+}
+
 const tickets = useTicketsStore()
 const showAddTicket = ref(false)
 
@@ -145,7 +152,8 @@ function onTicketListDrop(event: DragEvent) {
           <ul class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
               <span class="color-dot" :style="{ background: person.color }" />
-              {{ person.name }}
+              <span class="person-name">{{ person.name }}</span>
+              <button class="remove-person-btn" @click="handleRemovePerson(person.id)" title="Remove person">×</button>
             </li>
           </ul>
         </div>
@@ -309,6 +317,31 @@ function onTicketListDrop(event: DragEvent) {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+}
+
+.person-name {
+  flex: 1;
+}
+
+.remove-person-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.person:hover .remove-person-btn {
+  opacity: 1;
+}
+
+.remove-person-btn:hover {
+  color: #c0392b;
 }
 
 .color-dot {
