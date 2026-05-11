@@ -68,6 +68,8 @@ function ticketColor(assignedTo: number | null): string {
               class="ticket-pill"
               :style="{ background: ticketColor(ticket.assignedTo) }"
               :title="ticket.title"
+              draggable="true"
+              @dragstart="(e) => e.dataTransfer?.setData('ticketId', String(ticket.id))"
             >{{ ticket.number }}</span>
           </li>
         </ul>
@@ -178,11 +180,15 @@ h3 {
   font-size: 0.78rem;
   font-weight: bold;
   color: #fff;
-  cursor: default;
+  cursor: grab;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.ticket-pill:active {
+  cursor: grabbing;
 }
 
 .panel {

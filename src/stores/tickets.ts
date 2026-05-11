@@ -9,13 +9,33 @@ export interface Ticket {
   link: string
 }
 
+export interface Placement {
+  ticketId: number
+  year: number
+  month: number
+  day: number
+}
+
 export const useTicketsStore = defineStore('tickets', () => {
   const tickets = ref<Ticket[]>([])
+  const placements = ref<Placement[]>([])
   let nextId = 0
 
   function addTicket(ticket: Omit<Ticket, 'id'>) {
     tickets.value.push({ id: nextId++, ...ticket })
   }
 
-  return { tickets, addTicket }
+  function placeTicket(ticketId: number, year: number, month: number, day: number) {
+    const existing = placements.value.findIndex((p) => p.ticketId === ticketId)
+    if (existing !== -1) placements.value.splice(existing, 1)
+    placements.value.push({ ticketId, year, month, day })
+  }
+
+  function getPlacementsForDay(year: number, month: number, day: number): Placement[] {
+    return placements.value.filter(
+      (p) => p.year === year && p.month === month && p.day === day,
+    )
+  }
+
+  return { tickets, placements, addTicket, placeTicket, getPlacementsForDay }
 })
