@@ -215,6 +215,7 @@ function onDrop(event: DragEvent, day: number) {
   const ticketId = event.dataTransfer?.getData('ticketId')
   if (ticketId) {
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
+    dragState.clearMoveDrag()
   }
 }
 </script>

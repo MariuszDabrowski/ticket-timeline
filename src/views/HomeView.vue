@@ -5,6 +5,7 @@ import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
+import { useDragStateStore } from '../stores/dragState'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -43,6 +44,7 @@ const unplacedTickets = computed(() => {
 })
 
 const draggingTicketId = ref<number | null>(null)
+const dragState = useDragStateStore()
 const ticketListIsOver = ref(false)
 
 function onTicketListDragOver(event: DragEvent) {
@@ -103,8 +105,8 @@ function onTicketListDrop(event: DragEvent) {
               :style="{ background: ticketColor(ticket.assignedTo) }"
               :title="ticket.title"
               draggable="true"
-              @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id }"
-              @dragend="draggingTicketId = null"
+              @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+              @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
             >{{ ticket.number }}</span>
           </li>
         </ul>
