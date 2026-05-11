@@ -528,7 +528,9 @@ function onDrop(event: DragEvent, day: number) {
               }"
               :style="vacationStyle(info.color)"
               :title="`${info.personName} – vacation`"
-            />
+            >
+              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
+            </div>
             <div v-else class="slot-spacer" />
           </div>
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
@@ -772,6 +774,17 @@ h2 {
 
 .vacation-pill.is-start.is-end {
   border-radius: 999px;
+}
+
+.vacation-label {
+  padding: 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .ticket-pill {
