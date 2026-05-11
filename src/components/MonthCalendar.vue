@@ -5,6 +5,7 @@ import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useCalendarLayoutStore } from '../stores/calendarLayout'
+import { useDayLabelsStore } from '../stores/dayLabels'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
@@ -14,6 +15,8 @@ const props = defineProps<{
   year: number
   month: number
 }>()
+
+const vFocusInput = { mounted: (el: HTMLElement) => el.focus() }
 
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -90,6 +93,19 @@ const holidayMap = computed(() => {
 
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
+const dayLabels = useDayLabelsStore()
+const editingLabelDay = ref<number | null>(null)
+const editingLabelText = ref('')
+
+function startEditingLabel(day: number) {
+  editingLabelDay.value = day
+  editingLabelText.value = dayLabels.getLabel(props.year, props.month, day)
+}
+
+function commitLabel(day: number) {
+  dayLabels.setLabel(props.year, props.month, day, editingLabelText.value)
+  editingLabelDay.value = null
+}
 
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string }) {
   if (editingTicket.value) ticketsStore.updateTicket(editingTicket.value.id, data)
@@ -408,9 +424,23 @@ function onDrop(event: DragEvent, day: number) {
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
       >
-        <div class="day-header">
+        <div class="day-header" @click.stop="startEditingLabel(day)">
           <span class="day-number">{{ day }}</span>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
+          <input
+            v-if="editingLabelDay === day"
+            v-focus-input
+            class="day-label-input"
+            v-model="editingLabelText"
+            @click.stop
+            @blur="commitLabel(day)"
+            @keydown.enter.stop="commitLabel(day)"
+            @keydown.escape.stop="editingLabelDay = null"
+          />
+          <span
+            v-else-if="dayLabels.getLabel(props.year, props.month, day)"
+            class="day-label"
+          >{{ dayLabels.getLabel(props.year, props.month, day) }}</span>
         </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
@@ -524,6 +554,32 @@ h2 {
   font-size: 0.85rem;
   padding: 0 0.25rem;
   flex-shrink: 0;
+}
+
+.day-header {
+  cursor: text;
+}
+
+.day-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #6a9fb5;
+}
+
+.day-label-input {
+  font-size: 0.65rem;
+  padding: 0 0.25rem;
+  border: none;
+  border-bottom: 1px solid #6a9fb5;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  width: 100%;
+  min-width: 0;
 }
 
 .day.is-holiday {
