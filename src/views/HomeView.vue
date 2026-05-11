@@ -10,6 +10,9 @@ import UploadEpicModal from '../components/UploadEpicModal.vue'
 import HiBobModal from '../components/HiBobModal.vue'
 import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
+import ExportModal from '../components/ExportModal.vue'
+import ImportModal from '../components/ImportModal.vue'
+import type { ProjectData } from '../components/ExportModal.vue'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
@@ -155,6 +158,29 @@ const options = useOptionsStore()
 const ticketListIsOver = ref(false)
 
 const vacations = useVacationsStore()
+const showExport = ref(false)
+const showImport = ref(false)
+
+const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
+  tickets: tickets.tickets,
+  placements: tickets.placements,
+  people: people.people,
+  vacations: vacations.entries,
+  selectedMonths: selectedMonths.value,
+}))
+
+function handleImport(data: ProjectData) {
+  people.loadData(data.people)
+  tickets.loadData({ tickets: data.tickets, placements: data.placements })
+  vacations.loadData(data.vacations ?? [])
+  if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
+    selectedMonths.value = data.selectedMonths
+    visibleStart.value = Math.min(...data.selectedMonths)
+    visibleEnd.value = Math.max(...data.selectedMonths)
+  }
+  showImport.value = false
+}
+
 const showHiBob = ref(false)
 const hibobGroups = ref<ICSPersonGroup[]>([])
 
@@ -200,6 +226,10 @@ function onTicketListDrop(event: DragEvent) {
   <div class="layout">
     <header class="app-header">
       <span class="app-logo">📅 Ticket Timeline</span>
+      <div class="header-actions">
+        <button class="header-btn" @click="showImport = true">⬆ Import</button>
+        <button class="header-btn" @click="showExport = true">⬇ Export</button>
+      </div>
     </header>
     <div class="below-header">
     <aside class="sidebar">
@@ -373,6 +403,18 @@ function onTicketListDrop(event: DragEvent) {
     @cancel="editingTicket = null"
   />
 
+  <ExportModal
+    v-if="showExport"
+    :data="exportData"
+    @close="showExport = false"
+  />
+
+  <ImportModal
+    v-if="showImport"
+    @load="handleImport"
+    @close="showImport = false"
+  />
+
   <HiBobModal
     v-if="showHiBob"
     @parsed="handleHiBobParsed"
@@ -408,6 +450,25 @@ function onTicketListDrop(event: DragEvent) {
 .app-logo {
   font-size: 0.95rem;
   font-weight: bold;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header-btn {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 5px;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+}
+
+.header-btn:hover {
+  background: rgba(128, 128, 128, 0.12);
 }
 
 .below-header {

@@ -32,5 +32,10 @@ export const useVacationsStore = defineStore('vacations', () => {
     )
   }
 
-  return { entries, setVacations, clearVacations, getVacationsForMonth }
+  function loadData(loaded: VacationEntry[]) {
+    entries.value = loaded
+    nextId = loaded.length > 0 ? Math.max(...loaded.map((e) => e.id)) + 1 : 0
+  }
+
+  return { entries, setVacations, clearVacations, getVacationsForMonth, loadData }
 })

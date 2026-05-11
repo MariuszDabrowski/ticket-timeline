@@ -41,5 +41,10 @@ export const usePeopleStore = defineStore('people', () => {
     if (person) person.name = name
   }
 
-  return { people, addPerson, removePerson, updatePersonName }
+  function loadData(loaded: Person[]) {
+    people.value = loaded
+    nextId = loaded.length > 0 ? Math.max(...loaded.map((p) => p.id)) + 1 : 0
+  }
+
+  return { people, addPerson, removePerson, updatePersonName, loadData }
 })

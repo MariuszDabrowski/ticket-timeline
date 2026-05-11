@@ -89,5 +89,11 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
-  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth }
+  function loadData(data: { tickets: Ticket[]; placements: Placement[] }) {
+    tickets.value = data.tickets
+    placements.value = data.placements
+    nextId = data.tickets.length > 0 ? Math.max(...data.tickets.map((t) => t.id)) + 1 : 0
+  }
+
+  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth, loadData }
 })
