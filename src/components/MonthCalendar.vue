@@ -65,21 +65,21 @@ function effectivePlacement(placement: Placement): Placement {
   return placement
 }
 
-// Stable slot assignment from original placements for tickets that belong to this month
+// Slot assignment based on effective placements so overlapping tickets drop to new slots during preview
 const slotMap = computed(() => {
   const monthPlacements = ticketsStore
     .getPlacementsForMonth(props.year, props.month)
-    .slice()
-    .sort((a, b) => compareCalendarDates(a.startDate, b.startDate))
+    .map((p) => ({ ticketId: p.ticketId, eff: effectivePlacement(p) }))
+    .sort((a, b) => compareCalendarDates(a.eff.startDate, b.eff.startDate))
 
   const map = new Map<number, number>()
   const slotEndDates: CalendarDate[] = []
 
-  for (const p of monthPlacements) {
-    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, p.startDate) < 0)
+  for (const { ticketId, eff } of monthPlacements) {
+    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, eff.startDate) < 0)
     const assigned = slot === -1 ? slotEndDates.length : slot
-    slotEndDates[assigned] = p.endDate
-    map.set(p.ticketId, assigned)
+    slotEndDates[assigned] = eff.endDate
+    map.set(ticketId, assigned)
   }
 
   return map
