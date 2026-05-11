@@ -575,23 +575,34 @@ h2 {
 }
 
 .day-marker-tooltip {
-  display: none;
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(30, 30, 30, 0.92);
   color: #fff;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.day-marker-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(30, 30, 30, 0.92);
 }
 
 .day-number-wrap:hover .day-marker-tooltip {
-  display: block;
+  opacity: 1;
 }
 
 .day.is-holiday {
