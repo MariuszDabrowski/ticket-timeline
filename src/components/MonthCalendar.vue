@@ -26,9 +26,25 @@ const peopleStore = usePeopleStore()
 const dragOverDay = ref<number | null>(null)
 const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
 const resizePreviewDay = ref<number | null>(null)
+const moveDrag = ref<{ ticketId: number; span: number } | null>(null)
+const movePreviewDay = ref<number | null>(null)
 
 function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
+}
+
+function addDays(date: CalendarDate, days: number): CalendarDate {
+  const d = new Date(date.year, date.month, date.day)
+  d.setDate(d.getDate() + days)
+  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
+}
+
+function spanInDays(start: CalendarDate, end: CalendarDate): number {
+  return Math.round(
+    (new Date(end.year, end.month, end.day).getTime() -
+      new Date(start.year, start.month, start.day).getTime()) /
+      86_400_000,
+  )
 }
 
 function ticketColor(assignedTo: number | null): string {
@@ -39,17 +55,18 @@ function ticketColor(assignedTo: number | null): string {
 function effectivePlacement(placement: Placement): Placement {
   if (resizeDrag.value?.ticketId === placement.ticketId && resizePreviewDay.value !== null) {
     const previewDate = calDate(resizePreviewDay.value)
-    if (resizeDrag.value.side === 'start' && compareCalendarDates(previewDate, placement.endDate) <= 0) {
+    if (resizeDrag.value.side === 'start' && compareCalendarDates(previewDate, placement.endDate) <= 0)
       return { ...placement, startDate: previewDate }
-    }
-    if (resizeDrag.value.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0) {
+    if (resizeDrag.value.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0)
       return { ...placement, endDate: previewDate }
-    }
+  }
+  if (moveDrag.value?.ticketId === placement.ticketId && movePreviewDay.value !== null) {
+    const newStart = calDate(movePreviewDay.value)
+    return { ...placement, startDate: newStart, endDate: addDays(newStart, moveDrag.value.span) }
   }
   return placement
 }
 
-// Stable slot assignment from original placements so slots don't shift during resize preview
 const slotMap = computed(() => {
   const monthPlacements = ticketsStore
     .getPlacementsForMonth(props.year, props.month)
@@ -78,6 +95,7 @@ interface DayTicketInfo {
   placement: Placement
   isStart: boolean
   isEnd: boolean
+  isMoving: boolean
 }
 
 function daySlots(day: number): (DayTicketInfo | null)[] {
@@ -97,6 +115,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       placement: eff,
       isStart: compareCalendarDates(eff.startDate, thisDate) === 0,
       isEnd: compareCalendarDates(eff.endDate, thisDate) === 0,
+      isMoving: moveDrag.value?.ticketId === placement.ticketId,
     }
   }
 
@@ -107,6 +126,7 @@ function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = day
   if (resizeDrag.value) resizePreviewDay.value = day
+  if (moveDrag.value) movePreviewDay.value = day
 }
 
 function onDragLeave(event: DragEvent) {
@@ -123,11 +143,21 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
   event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
+  moveDrag.value = {
+    ticketId: info.ticket.id,
+    span: spanInDays(info.placement.startDate, info.placement.endDate),
+  }
+  movePreviewDay.value = null
 }
 
 function clearResizeDrag() {
   resizeDrag.value = null
   resizePreviewDay.value = null
+}
+
+function clearMoveDrag() {
+  moveDrag.value = null
+  movePreviewDay.value = null
 }
 
 function onDrop(event: DragEvent, day: number) {
@@ -145,6 +175,7 @@ function onDrop(event: DragEvent, day: number) {
   const moveData = event.dataTransfer?.getData('moveCalendarTicket')
   if (moveData) {
     ticketsStore.moveTicket(Number(moveData), calDate(day))
+    clearMoveDrag()
     return
   }
 
@@ -165,7 +196,7 @@ function onDrop(event: DragEvent, day: number) {
         v-for="day in daysInMonth"
         :key="day"
         class="cell day"
-        :class="{ 'drag-over': dragOverDay === day && !resizeDrag }"
+        :class="{ 'drag-over': dragOverDay === day && !resizeDrag && !moveDrag }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
@@ -176,11 +207,16 @@ function onDrop(event: DragEvent, day: number) {
             <div
               v-if="info"
               class="ticket-pill"
-              :class="{ 'is-start': info.isStart, 'is-end': info.isEnd, 'is-preview': resizeDrag?.ticketId === info.ticket.id }"
+              :class="{
+                'is-start': info.isStart,
+                'is-end': info.isEnd,
+                'is-preview': resizeDrag?.ticketId === info.ticket.id || info.isMoving,
+              }"
               :style="{ background: ticketColor(info.ticket.assignedTo) }"
               :title="info.ticket.title"
               draggable="true"
               @dragstart="onTicketDragStart($event, info)"
+              @dragend="clearMoveDrag"
             >
               <button
                 v-if="info.isStart"
@@ -276,7 +312,12 @@ h2 {
   overflow: hidden;
   border-radius: 0;
   padding: 0.1rem 0;
+  cursor: grab;
   transition: opacity 0.1s;
+}
+
+.ticket-pill:active {
+  cursor: grabbing;
 }
 
 .ticket-pill.is-start {
@@ -294,7 +335,7 @@ h2 {
 }
 
 .ticket-pill.is-preview {
-  opacity: 0.65;
+  opacity: 0.5;
 }
 
 .ticket-label {
