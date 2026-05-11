@@ -409,7 +409,7 @@ function onDrop(event: DragEvent, day: number) {
 <template>
   <div class="month-calendar">
     <h2>{{ monthName }} {{ year }}</h2>
-    <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(100px, 1fr))` }">
+    <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
       <div v-for="n in startOffset" :key="`empty-${n}`" class="cell" />
       <div
@@ -521,7 +521,7 @@ h2 {
 .cell {
   padding: 0.25rem 0;
   font-size: 0.85rem;
-  min-height: 100px;
+  min-height: 125px;
   border-right: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
 }
@@ -578,8 +578,10 @@ h2 {
   background: transparent;
   color: inherit;
   outline: none;
-  width: 100%;
+  width: 125px;
+  max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .day.is-holiday {
