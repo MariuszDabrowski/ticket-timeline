@@ -6,6 +6,7 @@ import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import { useDragStateStore } from '../stores/dragState'
+import { useOptionsStore } from '../stores/options'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,6 +46,7 @@ const unplacedTickets = computed(() => {
 
 const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
+const options = useOptionsStore()
 const ticketListIsOver = ref(false)
 
 function onTicketListDragOver(event: DragEvent) {
@@ -115,6 +117,20 @@ function onTicketListDrop(event: DragEvent) {
 
 
     <main class="panel">
+      <div class="options-bar">
+        <label class="option">
+          <input type="checkbox" v-model="options.hideWeekends" />
+          Hide Weekends
+        </label>
+        <label class="option">
+          <input type="checkbox" v-model="options.showCanadianHolidays" />
+          Canadian Holidays
+        </label>
+        <label class="option">
+          <input type="checkbox" v-model="options.showAmericanHolidays" />
+          American Holidays
+        </label>
+      </div>
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <MonthCalendar
         v-for="month in sortedMonths"
@@ -248,6 +264,24 @@ h3 {
 .panel {
   flex: 1;
   overflow-y: auto;
+}
+
+.options-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #ccc;
+  background: #fafafa;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
 }
 
 .empty {
