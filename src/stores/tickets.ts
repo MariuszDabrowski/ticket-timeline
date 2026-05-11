@@ -21,13 +21,6 @@ export interface Placement {
   endDate: CalendarDate
 }
 
-function toDate(d: CalendarDate): Date {
-  return new Date(d.year, d.month, d.day)
-}
-
-function fromDate(d: Date): CalendarDate {
-  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
-}
 
 export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
   if (a.year !== b.year) return a.year - b.year
@@ -35,15 +28,6 @@ export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
   return a.day - b.day
 }
 
-function addDays(date: CalendarDate, days: number): CalendarDate {
-  const d = toDate(date)
-  d.setDate(d.getDate() + days)
-  return fromDate(d)
-}
-
-function daysBetween(start: CalendarDate, end: CalendarDate): number {
-  return Math.round((toDate(end).getTime() - toDate(start).getTime()) / 86_400_000)
-}
 
 export const useTicketsStore = defineStore('tickets', () => {
   const tickets = ref<Ticket[]>([
@@ -64,12 +48,11 @@ export const useTicketsStore = defineStore('tickets', () => {
     placements.value.push({ ticketId, startDate: date, endDate: date })
   }
 
-  function moveTicket(ticketId: number, newStartDate: CalendarDate) {
+  function moveTicket(ticketId: number, newStartDate: CalendarDate, newEndDate: CalendarDate) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
-    const span = daysBetween(placement.startDate, placement.endDate)
     placement.startDate = newStartDate
-    placement.endDate = addDays(newStartDate, span)
+    placement.endDate = newEndDate
   }
 
   function updateTicket(id: number, data: Partial<Omit<Ticket, 'id'>>) {

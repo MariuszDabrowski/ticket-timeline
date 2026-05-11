@@ -367,8 +367,12 @@ function onDrop(event: DragEvent, day: number) {
   }
 
   const moveData = event.dataTransfer?.getData('moveCalendarTicket')
-  if (moveData) {
-    ticketsStore.moveTicket(Number(moveData), calDate(day))
+  if (moveData && dragState.moveDrag) {
+    const newStart = calDate(day)
+    const newEnd = options.hideWeekends
+      ? addWorkingDays(newStart, dragState.moveDrag.span)
+      : addDays(newStart, dragState.moveDrag.span)
+    ticketsStore.moveTicket(Number(moveData), newStart, newEnd)
     dragState.clearMoveDrag()
     return
   }
