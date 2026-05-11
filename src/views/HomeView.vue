@@ -183,6 +183,10 @@ function onTicketListDrop(event: DragEvent) {
 
 <template>
   <div class="layout">
+    <header class="app-header">
+      <span class="app-logo">📅 Ticket Timeline</span>
+    </header>
+    <div class="below-header">
     <aside class="sidebar">
       <section>
         <button class="section-header" @click="collapsed.options = !collapsed.options">
@@ -322,6 +326,7 @@ function onTicketListDrop(event: DragEvent) {
         />
       </div>
     </main>
+    </div>
   </div>
 
   <AddUserModal
@@ -370,7 +375,29 @@ function onTicketListDrop(event: DragEvent) {
 <style scoped>
 .layout {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 1rem;
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.app-logo {
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+.below-header {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -394,11 +421,14 @@ function onTicketListDrop(event: DragEvent) {
   padding: 0;
   font-size: 0.85rem;
   font-weight: bold;
-  text-decoration: underline;
   cursor: pointer;
   text-align: left;
   margin-bottom: 0.5rem;
   color: inherit;
+}
+
+.section-header > span:not(.chevron) {
+  text-decoration: underline;
 }
 
 .chevron {

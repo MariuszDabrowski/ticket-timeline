@@ -615,7 +615,7 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   padding: 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
   border-radius: 8px;
   margin: 1rem;
   min-width: fit-content;
