@@ -727,11 +727,11 @@ h2 {
 }
 
 .day.is-today {
-  background: rgba(52, 152, 219, 0.18);
+  background: rgba(39, 174, 96, 0.18);
 }
 
 .day.is-today .day-number {
-  background: #3498db;
+  background: #27ae60;
   color: #fff;
 }
 
