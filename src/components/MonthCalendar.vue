@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onUnmounted } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
+import { useCalendarLayoutStore } from '../stores/calendarLayout'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
@@ -29,6 +30,8 @@ const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
 const options = useOptionsStore()
+const layoutStore = useCalendarLayoutStore()
+const storeKey = computed(() => `${props.year}-${props.month}`)
 
 function isWeekend(day: number): boolean {
   const dow = new Date(props.year, props.month, day).getDay()
@@ -296,6 +299,35 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
   return slots
 }
 
+function dayRowIndex(visibleDayIndex: number): number {
+  return Math.floor((startOffset.value + visibleDayIndex) / columnCount.value)
+}
+
+const slotsPerRow = computed<Record<number, number>>(() => {
+  const result: Record<number, number> = {}
+  visibleDays.value.forEach((day, idx) => {
+    const row = dayRowIndex(idx)
+    const count = daySlots(day).length
+    result[row] = Math.max(result[row] ?? 0, count)
+  })
+  return result
+})
+
+watchEffect(() => {
+  layoutStore.register(storeKey.value, slotsPerRow.value)
+})
+
+onUnmounted(() => {
+  layoutStore.unregister(storeKey.value)
+})
+
+function effectiveDaySlots(day: number, rowIdx: number): (DayTicketInfo | null)[] {
+  const slots = daySlots(day)
+  const maxForRow = layoutStore.maxSlotsPerRow[rowIdx] ?? slots.length
+  while (slots.length < maxForRow) slots.push(null)
+  return slots
+}
+
 function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = day
@@ -356,7 +388,7 @@ function onDrop(event: DragEvent, day: number) {
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
       <div v-for="n in startOffset" :key="`empty-${n}`" class="cell" />
       <div
-        v-for="day in visibleDays"
+        v-for="(day, dayIdx) in visibleDays"
         :key="day"
         class="cell day"
         :class="{
@@ -372,7 +404,7 @@ function onDrop(event: DragEvent, day: number) {
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         </div>
         <div class="placed-tickets">
-          <div v-for="(info, slotIdx) in daySlots(day)" :key="slotIdx" class="slot-row">
+          <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div
               v-if="info"
               class="ticket-pill"
