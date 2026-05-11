@@ -587,7 +587,10 @@ h2 {
   padding: 0.3rem 0.6rem;
   border-radius: 5px;
   font-size: 0.75rem;
-  white-space: nowrap;
+  max-width: 180px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
   pointer-events: none;
   z-index: 10;
   opacity: 0;
