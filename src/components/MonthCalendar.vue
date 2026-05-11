@@ -424,6 +424,7 @@ function onDrop(event: DragEvent, day: number) {
             <div
               v-if="dayMarkers.getMarker(props.year, props.month, day)?.note"
               class="day-marker-tooltip"
+              :class="{ 'always-visible': options.showAllTooltips }"
             >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
@@ -609,7 +610,8 @@ h2 {
   border-top-color: rgba(80, 80, 80, 0.85);
 }
 
-.day-number-wrap:hover .day-marker-tooltip {
+.day-number-wrap:hover .day-marker-tooltip,
+.day-marker-tooltip.always-visible {
   opacity: 1;
 }
 

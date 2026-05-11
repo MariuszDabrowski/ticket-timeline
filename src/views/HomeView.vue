@@ -174,6 +174,10 @@ function onTicketListDrop(event: DragEvent) {
             <input type="checkbox" v-model="options.showAmericanHolidays" />
             American Holidays
           </label>
+          <label class="option">
+            <input type="checkbox" v-model="options.showAllTooltips" />
+            Show Day Notes
+          </label>
         </div>
       </section>
 
