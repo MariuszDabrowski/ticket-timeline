@@ -656,7 +656,7 @@ h2 {
 .day-header {
   display: flex;
   flex-direction: column;
-  padding: 0.25rem 0 0 0.25rem;
+  padding: 0.25rem 0 0.3rem 0.25rem;
   overflow: visible;
 }
 
