@@ -424,9 +424,17 @@ function effectiveVacationSlots(day: number, rowIdx: number): (DayVacationInfo |
   return slots
 }
 
+function lightenColor(hex: string, amount: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgb(${Math.round(r + (255 - r) * amount)}, ${Math.round(g + (255 - g) * amount)}, ${Math.round(b + (255 - b) * amount)})`
+}
+
 function vacationStyle(color: string): Record<string, string> {
+  const light = lightenColor(color, 0.45)
   return {
-    background: `repeating-linear-gradient(45deg, ${color}bb, ${color}bb 5px, ${color}66 5px, ${color}66 10px)`,
+    background: `repeating-linear-gradient(45deg, ${color}, ${color} 5px, ${light} 5px, ${light} 10px)`,
   }
 }
 
