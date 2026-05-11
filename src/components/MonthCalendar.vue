@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
@@ -201,6 +201,22 @@ const totalSlots = computed(() => {
   return extraPreview.value ? base + 1 : base
 })
 
+// Prevent layout jitter during drag: slot count may only grow, never shrink,
+// so day cell heights stay stable and don't shift the element under the cursor.
+const frozenSlots = ref(0)
+watchEffect(() => {
+  if (dragState.moveDrag || dragState.resizeDrag) {
+    if (totalSlots.value > frozenSlots.value) frozenSlots.value = totalSlots.value
+  } else {
+    frozenSlots.value = 0
+  }
+})
+const stableSlots = computed(() =>
+  (dragState.moveDrag || dragState.resizeDrag)
+    ? Math.max(totalSlots.value, frozenSlots.value)
+    : totalSlots.value
+)
+
 interface DayTicketInfo {
   ticket: Ticket
   placement: Placement
@@ -221,7 +237,7 @@ function colPos(day: number): number {
 
 function daySlots(day: number): (DayTicketInfo | null)[] {
   const thisDate = calDate(day)
-  const slots: (DayTicketInfo | null)[] = Array(totalSlots.value).fill(null)
+  const slots: (DayTicketInfo | null)[] = Array(stableSlots.value).fill(null)
   const col = colPos(day)
 
   for (const placement of ticketsStore.getPlacementsForMonth(props.year, props.month)) {
@@ -252,7 +268,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
   const ep = extraPreview.value
   if (ep) {
     const firstEmpty = slots.indexOf(null)
-    const previewSlot = firstEmpty !== -1 ? firstEmpty : totalSlots.value - 1
+    const previewSlot = firstEmpty !== -1 ? firstEmpty : stableSlots.value - 1
     if (
       compareCalendarDates(ep.startDate, thisDate) <= 0 &&
       compareCalendarDates(thisDate, ep.endDate) <= 0
