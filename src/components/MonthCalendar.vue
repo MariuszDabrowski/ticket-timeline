@@ -669,11 +669,13 @@ h2 {
 .ticket-pill.is-start {
   border-radius: 999px 0 0 999px;
   padding-left: 0.1rem;
+  margin-left: 0.25rem;
 }
 
 .ticket-pill.is-end {
   border-radius: 0 999px 999px 0;
   padding-right: 0.1rem;
+  margin-right: 0.25rem;
 }
 
 .ticket-pill.is-start.is-end {
