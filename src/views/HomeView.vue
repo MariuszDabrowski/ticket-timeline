@@ -19,7 +19,7 @@ const MONTH_NAMES = [
 
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth()
-const selectedMonths = ref<number[]>([currentMonth, currentMonth + 1])
+const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentMonth + i).filter((m) => m <= 11))
 
 const collapsed = ref<Record<string, boolean>>({
   options: false,

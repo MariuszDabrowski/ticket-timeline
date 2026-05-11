@@ -30,13 +30,9 @@ export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
 
 
 export const useTicketsStore = defineStore('tickets', () => {
-  const tickets = ref<Ticket[]>([
-    { id: 0, number: 'TT-1', title: 'Set up project scaffolding', assignedTo: 0, link: '' },
-    { id: 1, number: 'TT-2', title: 'Implement sidebar layout', assignedTo: 0, link: '' },
-    { id: 2, number: 'TT-3', title: 'Add drag and drop support', assignedTo: 1, link: '' },
-  ])
+  const tickets = ref<Ticket[]>([])
   const placements = ref<Placement[]>([])
-  let nextId = 3
+  let nextId = 0
 
   function addTicket(ticket: Omit<Ticket, 'id'>) {
     tickets.value.push({ id: nextId++, ...ticket })
