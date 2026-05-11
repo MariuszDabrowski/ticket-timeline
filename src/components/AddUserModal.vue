@@ -18,14 +18,13 @@ function handleSubmit() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" @keydown.esc="emit('cancel')">
       <h3>Add Person</h3>
       <input
         v-model="name"
         type="text"
         placeholder="Name"
-        @keydown.enter="handleSubmit"
-        @keydown.esc="emit('cancel')"
+        @keydown.enter.prevent="handleSubmit"
         autofocus
       />
       <div class="actions">

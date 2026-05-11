@@ -29,17 +29,17 @@ function handleSubmit() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" @keydown.enter.prevent="handleSubmit">
       <h3>Add Ticket</h3>
 
       <div class="field">
         <label>Ticket Number</label>
-        <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.esc="emit('cancel')" autofocus />
+        <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" autofocus />
       </div>
 
       <div class="field">
         <label>Title</label>
-        <input v-model="title" type="text" placeholder="Ticket title" @keydown.esc="emit('cancel')" />
+        <input v-model="title" type="text" placeholder="Ticket title" @keydown.enter.prevent="handleSubmit" />
       </div>
 
       <div class="field">
@@ -54,7 +54,7 @@ function handleSubmit() {
 
       <div class="field">
         <label>Ticket Link</label>
-        <input v-model="link" type="url" placeholder="https://..." @keydown.esc="emit('cancel')" />
+        <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
       <div class="actions">
