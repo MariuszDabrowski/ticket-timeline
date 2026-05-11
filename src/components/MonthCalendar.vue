@@ -407,7 +407,9 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   padding: 1rem;
-  border-right: 1px solid #ccc;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin: 1rem;
   min-width: 560px;
   flex-shrink: 0;
 }
@@ -420,14 +422,17 @@ h2 {
 
 .grid {
   display: grid;
-  row-gap: 2px;
-  column-gap: 0;
+  gap: 0;
+  border-top: 1px solid #ddd;
+  border-left: 1px solid #ddd;
 }
 
 .cell {
   padding: 0.25rem 0;
   font-size: 0.85rem;
   min-height: 80px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .header {
@@ -438,7 +443,6 @@ h2 {
 }
 
 .day {
-  border-top: 1px solid #ccc;
   display: grid;
   grid-template-rows: 2.6rem 1fr;
 }
