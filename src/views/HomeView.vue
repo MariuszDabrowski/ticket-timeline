@@ -53,6 +53,12 @@ function removeMonth(abs: number) {
   tickets.removePlacementsForMonth(year, month)
 }
 
+function trimToSelection() {
+  if (selectedMonths.value.length === 0) return
+  visibleStart.value = Math.min(...selectedMonths.value)
+  visibleEnd.value = Math.max(...selectedMonths.value)
+}
+
 const sortedMonths = computed(() =>
   [...selectedMonths.value].sort((a, b) => a - b).map(absToYearMonth)
 )
@@ -182,6 +188,11 @@ function onTicketListDrop(event: DragEvent) {
             </div>
           </template>
           <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
+          <button
+            v-if="selectedMonths.length > 0"
+            class="load-more-btn trim-btn"
+            @click="trimToSelection"
+          >Hide unselected</button>
         </div>
       </section>
 
@@ -332,7 +343,6 @@ function onTicketListDrop(event: DragEvent) {
   border: none;
   padding: 0;
   font-size: 0.78rem;
-  color: #888;
   cursor: pointer;
   text-align: left;
   color: inherit;
@@ -341,6 +351,12 @@ function onTicketListDrop(event: DragEvent) {
 
 .load-more-btn:hover {
   opacity: 1;
+}
+
+.trim-btn {
+  margin-top: 0.25rem;
+  opacity: 0.4;
+  font-style: italic;
 }
 
 .year-label {
