@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getSavedProjects, STORAGE_KEY } from './ExportModal.vue'
-import type { ProjectData } from './ExportModal.vue'
+import { getSavedProjects, STORAGE_KEY } from '../utils/projectStorage'
+import type { ProjectData } from '../utils/projectStorage'
 
 const emit = defineEmits<{
   load: [data: ProjectData]

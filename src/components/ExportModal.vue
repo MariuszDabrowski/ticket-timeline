@@ -1,38 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Ticket, Placement } from '../stores/tickets'
-import type { Person } from '../stores/people'
-import type { VacationEntry } from '../stores/vacations'
-
-export interface ProjectData {
-  name: string
-  tickets: Ticket[]
-  placements: Placement[]
-  people: Person[]
-  vacations: VacationEntry[]
-  selectedMonths: number[]
-}
-
-interface SavedProject {
-  id: string
-  name: string
-  savedAt: string
-  data: Omit<ProjectData, 'name'>
-}
-
-export const STORAGE_KEY = 'ticket-timeline-projects'
-
-export function getSavedProjects(): SavedProject[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
-  }
-}
-
-function setSavedProjects(projects: SavedProject[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
-}
+import {
+  getSavedProjects,
+  setSavedProjects,
+} from '../utils/projectStorage'
+import type { ProjectData, SavedProject } from '../utils/projectStorage'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'> }>()
 const emit = defineEmits<{ close: [] }>()
