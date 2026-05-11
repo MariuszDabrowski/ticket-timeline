@@ -635,6 +635,10 @@ h2 {
   overflow: visible;
 }
 
+.cell:not(.day) {
+  opacity: 0.3;
+}
+
 .header {
   font-weight: bold;
   text-align: center;

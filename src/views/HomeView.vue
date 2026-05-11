@@ -374,7 +374,7 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .sidebar {
-  width: 280px;
+  width: 230px;
   flex-shrink: 0;
   border-right: 1px solid #ccc;
   padding: 1rem;
