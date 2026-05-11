@@ -576,6 +576,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
               <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.number }}</span>
+              <span class="ticket-tooltip">{{ info.ticket.number }}<template v-if="info.ticket.title">: {{ info.ticket.title }}</template></span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -614,7 +615,7 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   padding: 1rem;
-  border: 1px solid #ddd;
+  border: 1px dashed #bbb;
   border-radius: 8px;
   margin: 1rem;
   min-width: fit-content;
@@ -824,12 +825,10 @@ h2 {
 .vacation-label {
   padding: 0 0.3rem;
   font-size: 0.72rem;
-  font-weight: bold;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .ticket-pill {
@@ -869,6 +868,42 @@ h2 {
 
 .ticket-pill.is-preview {
   opacity: 0.5;
+}
+
+.ticket-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(60, 60, 60, 0.92);
+  color: #fff;
+  padding: 0.3rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: normal;
+  width: max-content;
+  max-width: 200px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ticket-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(60, 60, 60, 0.92);
+}
+
+.ticket-pill:hover .ticket-tooltip {
+  opacity: 1;
 }
 
 .ticket-label {

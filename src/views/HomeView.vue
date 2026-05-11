@@ -292,7 +292,7 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">+ Upload Epic CSV</button>
-          <ul class="ticket-list">
+          <ol class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span
                 class="ticket-pill"
@@ -305,7 +305,7 @@ function onTicketListDrop(event: DragEvent) {
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
               >{{ ticket.number }}</span>
             </li>
-          </ul>
+          </ol>
         </div>
       </section>
     </aside>
@@ -542,8 +542,9 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .ticket-list {
-  list-style: none;
+  list-style: decimal;
   margin-top: 0.5rem;
+  padding-left: 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
