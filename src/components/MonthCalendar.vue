@@ -5,6 +5,7 @@ import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
+import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
@@ -109,18 +110,30 @@ function ticketColor(assignedTo: number | null): string {
 }
 
 function effectivePlacement(placement: Placement): Placement {
+  let result = placement
+
   if (dragState.resizeDrag?.ticketId === placement.ticketId && dragState.resizePreviewDate) {
     const previewDate = dragState.resizePreviewDate
     if (dragState.resizeDrag.side === 'start' && compareCalendarDates(previewDate, placement.endDate) <= 0)
-      return { ...placement, startDate: previewDate }
-    if (dragState.resizeDrag.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0)
-      return { ...placement, endDate: previewDate }
-  }
-  if (dragState.moveDrag?.ticketId === placement.ticketId && dragState.movePreviewDate) {
+      result = { ...placement, startDate: previewDate }
+    else if (dragState.resizeDrag.side === 'end' && compareCalendarDates(previewDate, placement.startDate) >= 0)
+      result = { ...placement, endDate: previewDate }
+  } else if (dragState.moveDrag?.ticketId === placement.ticketId && dragState.movePreviewDate) {
     const newStart = dragState.movePreviewDate
-    return { ...placement, startDate: newStart, endDate: addDays(newStart, dragState.moveDrag.span) }
+    const newEnd = options.hideWeekends
+      ? addWorkingDays(newStart, dragState.moveDrag.span)
+      : addDays(newStart, dragState.moveDrag.span)
+    result = { ...placement, startDate: newStart, endDate: newEnd }
   }
-  return placement
+
+  if (options.hideWeekends) {
+    const snappedStart = snapToWeekday(result.startDate, 'forward')
+    let snappedEnd = snapToWeekday(result.endDate, 'backward')
+    if (compareCalendarDates(snappedEnd, snappedStart) < 0) snappedEnd = snappedStart
+    result = { ...result, startDate: snappedStart, endDate: snappedEnd }
+  }
+
+  return result
 }
 
 // Slot assignment based on effective placements so overlapping tickets drop to new slots during preview
@@ -277,10 +290,10 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
   event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
-  dragState.startMoveDrag(
-    info.ticket.id,
-    spanInDays(info.placement.startDate, info.placement.endDate),
-  )
+  const span = options.hideWeekends
+    ? workingDaysBetween(info.placement.startDate, info.placement.endDate)
+    : spanInDays(info.placement.startDate, info.placement.endDate)
+  dragState.startMoveDrag(info.ticket.id, span)
 }
 
 function onDrop(event: DragEvent, day: number) {
