@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
@@ -11,6 +11,8 @@ import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
+
+const vFocus = { mounted: (el: HTMLElement) => nextTick(() => el.focus()) }
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -83,6 +85,21 @@ function handleRemovePerson(id: number) {
     if (t.assignedTo === id) tickets.updateTicket(t.id, { assignedTo: null })
   })
   people.removePerson(id)
+}
+
+const editingPersonId = ref<number | null>(null)
+const editingPersonName = ref('')
+
+function startEditingPerson(id: number, name: string) {
+  editingPersonId.value = id
+  editingPersonName.value = name
+}
+
+function commitPersonName() {
+  if (editingPersonId.value !== null && editingPersonName.value.trim()) {
+    people.updatePersonName(editingPersonId.value, editingPersonName.value.trim())
+  }
+  editingPersonId.value = null
 }
 
 const tickets = useTicketsStore()
@@ -206,7 +223,21 @@ function onTicketListDrop(event: DragEvent) {
           <ul class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
               <span class="color-dot" :style="{ background: person.color }" />
-              <span class="person-name">{{ person.name }}</span>
+              <input
+                v-if="editingPersonId === person.id"
+                class="person-name-input"
+                v-model="editingPersonName"
+                @blur="commitPersonName"
+                @keydown.enter="commitPersonName"
+                @keydown.escape="editingPersonId = null"
+                v-focus
+              />
+              <span
+                v-else
+                class="person-name"
+                title="Click to rename"
+                @click="startEditingPerson(person.id, person.name)"
+              >{{ person.name }}</span>
               <button class="remove-person-btn" @click="handleRemovePerson(person.id)" title="Remove person">×</button>
             </li>
           </ul>
@@ -431,6 +462,24 @@ function onTicketListDrop(event: DragEvent) {
 
 .person-name {
   flex: 1;
+  cursor: pointer;
+}
+
+.person-name:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.person-name-input {
+  flex: 1;
+  font-size: 0.9rem;
+  border: none;
+  border-bottom: 1px solid #888;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  outline: none;
+  min-width: 0;
 }
 
 .remove-person-btn {

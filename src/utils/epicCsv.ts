@@ -45,6 +45,12 @@ function parseCSV(text: string): string[][] {
   return rows
 }
 
+function parseCompletedDate(str: string): { year: number; month: number; day: number } | null {
+  const match = str.match(/^(\d{4})\/(\d{2})\/(\d{2})/)
+  if (!match) return null
+  return { year: +match[1]!, month: +match[2]! - 1, day: +match[3]! }
+}
+
 function nameFromEmail(email: string): string {
   const local = email.split('@')[0] ?? email
   return local
@@ -66,6 +72,8 @@ export function importEpicCSV(
   const idIdx = header.indexOf('id')
   const nameIdx = header.indexOf('name')
   const ownersIdx = header.indexOf('owners')
+  const completedIdx = header.indexOf('is_completed')
+  const completedAtIdx = header.indexOf('completed_at')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
   // Map email → person ID, reusing existing people matched by name
@@ -97,7 +105,7 @@ export function importEpicCSV(
     const firstEmail = (row[ownersIdx] ?? '').split(/[,;]/)[0]?.trim() ?? ''
     const assignedTo = firstEmail ? (emailToPersonId.get(firstEmail) ?? null) : null
 
-    ticketsStore.addTicket({
+    const ticketId = ticketsStore.addTicket({
       number,
       title,
       assignedTo,
@@ -105,5 +113,13 @@ export function importEpicCSV(
         ? `https://app.shortcut.com/${workspaceSlug}/story/${number}`
         : '',
     })
+
+    const isCompleted = (row[completedIdx] ?? '').toLowerCase() === 'true'
+    const completedDate = completedAtIdx !== -1
+      ? parseCompletedDate(row[completedAtIdx] ?? '')
+      : null
+    if (isCompleted && completedDate) {
+      ticketsStore.placeTicket(ticketId, completedDate)
+    }
   }
 }

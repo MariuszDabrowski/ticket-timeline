@@ -36,5 +36,10 @@ export const usePeopleStore = defineStore('people', () => {
     if (idx !== -1) people.value.splice(idx, 1)
   }
 
-  return { people, addPerson, removePerson }
+  function updatePersonName(id: number, name: string) {
+    const person = people.value.find((p) => p.id === id)
+    if (person) person.name = name
+  }
+
+  return { people, addPerson, removePerson, updatePersonName }
 })

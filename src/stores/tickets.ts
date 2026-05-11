@@ -34,8 +34,10 @@ export const useTicketsStore = defineStore('tickets', () => {
   const placements = ref<Placement[]>([])
   let nextId = 0
 
-  function addTicket(ticket: Omit<Ticket, 'id'>) {
-    tickets.value.push({ id: nextId++, ...ticket })
+  function addTicket(ticket: Omit<Ticket, 'id'>): number {
+    const id = nextId++
+    tickets.value.push({ id, ...ticket })
+    return id
   }
 
   function placeTicket(ticketId: number, date: CalendarDate) {
