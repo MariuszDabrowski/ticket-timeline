@@ -290,6 +290,9 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     }
   }
 
+  // Trim trailing empty slots so each cell is only as tall as its content.
+  // Slots between used indices are kept (a ticket in slot 2 still needs slots 0 and 1).
+  while (slots.length > 0 && slots[slots.length - 1] === null) slots.pop()
   return slots
 }
 
