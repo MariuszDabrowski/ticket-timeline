@@ -755,6 +755,7 @@ h2 {
 
 .vacation-pill {
   display: flex;
+  align-items: center;
   height: 100%;
   border-radius: 0;
   cursor: default;
