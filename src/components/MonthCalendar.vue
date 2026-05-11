@@ -304,11 +304,12 @@ h2 {
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  row-gap: 2px;
+  column-gap: 0;
 }
 
 .cell {
-  padding: 0.25rem;
+  padding: 0.25rem 0;
   font-size: 0.85rem;
   min-height: 80px;
 }
@@ -317,6 +318,7 @@ h2 {
   font-weight: bold;
   text-align: center;
   min-height: unset;
+  padding: 0.25rem;
 }
 
 .day {
@@ -333,6 +335,7 @@ h2 {
 
 .day-number {
   font-size: 0.85rem;
+  padding: 0 0.25rem;
 }
 
 .placed-tickets {
