@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, toRaw } from 'vue'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
@@ -162,11 +162,11 @@ const showExport = ref(false)
 const showImport = ref(false)
 
 const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
-  tickets: tickets.tickets,
-  placements: tickets.placements,
-  people: people.people,
-  vacations: vacations.entries,
-  selectedMonths: selectedMonths.value,
+  tickets: toRaw(tickets.tickets),
+  placements: toRaw(tickets.placements),
+  people: toRaw(people.people),
+  vacations: toRaw(vacations.entries),
+  selectedMonths: toRaw(selectedMonths.value),
 }))
 
 function handleImport(data: ProjectData) {

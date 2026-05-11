@@ -18,6 +18,10 @@ const existingProject = computed(() =>
 type SaveStatus = 'idle' | 'saved' | 'updated'
 const saveStatus = ref<SaveStatus>('idle')
 
+function snapshot(): Omit<ProjectData, 'name'> {
+  return JSON.parse(JSON.stringify(props.data))
+}
+
 function saveToStorage() {
   const name = projectName.value.trim()
   if (!name) return
@@ -27,7 +31,7 @@ function saveToStorage() {
     id: idx !== -1 ? projects[idx]!.id : crypto.randomUUID(),
     name,
     savedAt: new Date().toISOString(),
-    data: props.data,
+    data: snapshot(),
   }
   if (idx !== -1) {
     projects[idx] = entry
@@ -42,7 +46,7 @@ function saveToStorage() {
 
 function downloadJSON() {
   const name = projectName.value.trim() || 'project'
-  const payload: ProjectData = { name, ...props.data }
+  const payload: ProjectData = { name, ...snapshot() }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
