@@ -25,9 +25,28 @@ const peopleStore = usePeopleStore()
 
 const dragOverDay = ref<number | null>(null)
 
+// Tracks an in-progress resize handle drag so we can show a live preview
+const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
+const resizePreviewDay = ref<number | null>(null)
+
 function ticketColor(assignedTo: number | null): string {
   if (assignedTo === null) return '#ccc'
   return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
+}
+
+// Returns the effective placement for display, applying any live resize preview
+function effectivePlacement(placement: Placement): Placement {
+  if (
+    resizeDrag.value?.ticketId === placement.ticketId &&
+    resizePreviewDay.value !== null
+  ) {
+    if (resizeDrag.value.side === 'start') {
+      return { ...placement, startDay: Math.min(resizePreviewDay.value, placement.endDay) }
+    } else {
+      return { ...placement, endDay: Math.max(resizePreviewDay.value, placement.startDay) }
+    }
+  }
+  return placement
 }
 
 interface DayTicketInfo {
@@ -38,12 +57,14 @@ interface DayTicketInfo {
 }
 
 function dayTicketInfos(day: number): DayTicketInfo[] {
-  return ticketsStore
-    .getPlacementsForDay(props.year, props.month, day)
+  return ticketsStore.placements
+    .filter((p) => p.year === props.year && p.month === props.month)
     .map((placement) => {
+      const eff = effectivePlacement(placement)
+      if (eff.startDay > day || day > eff.endDay) return null
       const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
       if (!ticket) return null
-      return { ticket, placement, isStart: placement.startDay === day, isEnd: placement.endDay === day }
+      return { ticket, placement: eff, isStart: eff.startDay === day, isEnd: eff.endDay === day }
     })
     .filter((x): x is DayTicketInfo => x !== null)
 }
@@ -51,6 +72,7 @@ function dayTicketInfos(day: number): DayTicketInfo[] {
 function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = day
+  if (resizeDrag.value) resizePreviewDay.value = day
 }
 
 function onDragLeave(event: DragEvent) {
@@ -61,6 +83,13 @@ function onDragLeave(event: DragEvent) {
 function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | 'end') {
   event.stopPropagation()
   event.dataTransfer?.setData('resizeHandle', `${side}:${ticketId}`)
+  resizeDrag.value = { ticketId, side }
+  resizePreviewDay.value = null
+}
+
+function clearResizeDrag() {
+  resizeDrag.value = null
+  resizePreviewDay.value = null
 }
 
 function onDrop(event: DragEvent, day: number) {
@@ -71,6 +100,7 @@ function onDrop(event: DragEvent, day: number) {
   if (resizeHandle) {
     const [side, id] = resizeHandle.split(':')
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', day)
+    clearResizeDrag()
     return
   }
 
@@ -91,7 +121,7 @@ function onDrop(event: DragEvent, day: number) {
         v-for="day in daysInMonth"
         :key="day"
         class="cell day"
-        :class="{ 'drag-over': dragOverDay === day }"
+        :class="{ 'drag-over': dragOverDay === day && !resizeDrag }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
         @drop="onDrop($event, day)"
@@ -102,7 +132,7 @@ function onDrop(event: DragEvent, day: number) {
             v-for="info in dayTicketInfos(day)"
             :key="info.ticket.id"
             class="ticket-pill"
-            :class="{ 'is-start': info.isStart, 'is-end': info.isEnd }"
+            :class="{ 'is-start': info.isStart, 'is-end': info.isEnd, 'is-preview': resizeDrag?.ticketId === info.ticket.id }"
             :style="{ background: ticketColor(info.ticket.assignedTo) }"
             :title="info.ticket.title"
           >
@@ -111,6 +141,7 @@ function onDrop(event: DragEvent, day: number) {
               class="resize-handle"
               draggable="true"
               @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
+              @dragend="clearResizeDrag"
             >‹</button>
             <span v-if="info.isStart" class="ticket-label">{{ info.ticket.number }}</span>
             <button
@@ -118,6 +149,7 @@ function onDrop(event: DragEvent, day: number) {
               class="resize-handle"
               draggable="true"
               @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
+              @dragend="clearResizeDrag"
             >›</button>
           </div>
         </div>
@@ -186,9 +218,9 @@ h2 {
   font-weight: bold;
   color: #fff;
   overflow: hidden;
-  /* middle segment: flat edges, full width */
   border-radius: 0;
   padding: 0.1rem 0;
+  transition: opacity 0.1s;
 }
 
 .ticket-pill.is-start {
@@ -203,6 +235,10 @@ h2 {
 
 .ticket-pill.is-start.is-end {
   border-radius: 999px;
+}
+
+.ticket-pill.is-preview {
+  opacity: 0.65;
 }
 
 .ticket-label {
