@@ -39,7 +39,7 @@ interface Row {
 const rows = ref<Row[]>(
   props.groups.map((g) => {
     const person = matchPerson(g.personName)
-    return { group: g, person, selected: false }
+    return { group: g, person, selected: person !== null }
   })
 )
 
