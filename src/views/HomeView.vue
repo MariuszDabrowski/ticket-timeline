@@ -409,15 +409,17 @@ function onTicketListDrop(event: DragEvent) {
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
-      <div class="months-row" :class="{ vertical: options.verticalLayout }" ref="monthsRowRef">
-        <SummaryTile :vertical="options.verticalLayout" />
-        <MonthCalendar
-          v-for="m in sortedMonths"
-          :key="`${m.year}-${m.month}`"
-          :year="m.year"
-          :month="m.month"
-        />
-        <div class="months-row-end" />
+      <div class="months-row" ref="monthsRowRef">
+        <SummaryTile />
+        <div class="months-stack" :class="{ vertical: options.verticalLayout }">
+          <MonthCalendar
+            v-for="m in sortedMonths"
+            :key="`${m.year}-${m.month}`"
+            :year="m.year"
+            :month="m.month"
+          />
+          <div class="months-row-end" />
+        </div>
       </div>
     </main>
     </div>
@@ -872,7 +874,12 @@ section {
   align-items: flex-start;
 }
 
-.months-row.vertical {
+.months-stack {
+  display: flex;
+  align-items: flex-start;
+}
+
+.months-stack.vertical {
   flex-direction: column;
   align-items: stretch;
 }
