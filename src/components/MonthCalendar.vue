@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect, onUnmounted } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
-import { useCalendarLayoutStore } from '../stores/calendarLayout'
 import { useDayMarkersStore } from '../stores/dayMarkers'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
@@ -40,9 +39,7 @@ const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
 const options = useOptionsStore()
-const layoutStore = useCalendarLayoutStore()
 const vacationsStore = useVacationsStore()
-const storeKey = computed(() => `${props.year}-${props.month}`)
 
 function isWeekend(day: number): boolean {
   const dow = new Date(props.year, props.month, day).getDay()
@@ -89,12 +86,11 @@ const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length
 
 const holidayMap = computed(() => {
   const map = new Map<number, string>()
-  const all = [
-    ...(options.showCanadianHolidays ? getCanadianHolidays(props.year) : []),
-    ...(options.showAmericanHolidays ? getAmericanHolidays(props.year) : []),
-  ]
-  for (const h of all) {
-    if (h.date.month === props.month) map.set(h.date.day, h.name)
+  for (const h of (options.showCanadianHolidays ? getCanadianHolidays(props.year) : [])) {
+    if (h.date.month === props.month) map.set(h.date.day, `🇨🇦 ${h.name}`)
+  }
+  for (const h of (options.showAmericanHolidays ? getAmericanHolidays(props.year) : [])) {
+    if (h.date.month === props.month) map.set(h.date.day, `🇺🇸 ${h.name}`)
   }
   return map
 })
@@ -133,8 +129,8 @@ function spanInDays(start: CalendarDate, end: CalendarDate): number {
 }
 
 function ticketColor(assignedTo: number | null): string {
-  if (assignedTo === null) return '#ccc'
-  return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
+  if (assignedTo === null) return '#555'
+  return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#555'
 }
 
 function effectivePlacement(placement: Placement): Placement {
@@ -402,24 +398,16 @@ const vacationSlotsPerRow = computed<Record<number, number>>(() => {
   return result
 })
 
-watchEffect(() => {
-  layoutStore.register(storeKey.value, ticketSlotsPerRow.value, vacationSlotsPerRow.value)
-})
-
-onUnmounted(() => {
-  layoutStore.unregister(storeKey.value)
-})
-
 function effectiveDaySlots(day: number, rowIdx: number): (DayTicketInfo | null)[] {
   const slots = daySlots(day)
-  const maxForRow = layoutStore.maxTicketSlotsPerRow[rowIdx] ?? slots.length
+  const maxForRow = ticketSlotsPerRow.value[rowIdx] ?? slots.length
   while (slots.length < maxForRow) slots.push(null)
   return slots
 }
 
 function effectiveVacationSlots(day: number, rowIdx: number): (DayVacationInfo | null)[] {
   const slots = vacationDaySlots(day)
-  const maxForRow = layoutStore.maxVacationSlotsPerRow[rowIdx] ?? slots.length
+  const maxForRow = vacationSlotsPerRow.value[rowIdx] ?? slots.length
   while (slots.length < maxForRow) slots.push(null)
   return slots
 }
@@ -544,7 +532,6 @@ function onDrop(event: DragEvent, day: number) {
                 'row-start': info.isRowStart,
               }"
               :style="{ background: ticketColor(info.ticket.assignedTo) }"
-              :title="info.ticket.title"
               draggable="true"
               @click.stop="editingTicket = info.ticket"
               @dragstart="onTicketDragStart($event, info)"
@@ -624,7 +611,7 @@ h2 {
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  padding: 1.1rem 1.25rem 0.85rem;
+  padding: 1.1rem 0 0.85rem;
 }
 
 .month-name {
@@ -846,6 +833,11 @@ h2 {
   border-radius: 999px;
 }
 
+.vacation-pill.is-start .vacation-label,
+.vacation-pill.row-start .vacation-label {
+  padding-left: 0.6rem;
+}
+
 .vacation-label {
   padding: 0 0.3rem;
   font-size: 0.72rem;
@@ -951,6 +943,10 @@ h2 {
   border-radius: 50%;
   background: inherit;
   z-index: 1;
+}
+
+.ticket-pill.row-start .ticket-label {
+  padding-left: 0.6rem;
 }
 
 .ticket-pill.row-start::before {
