@@ -207,7 +207,7 @@ const headline = computed(() => {
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -234,7 +234,7 @@ const headline = computed(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 0.45;
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 0.4rem;

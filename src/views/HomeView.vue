@@ -474,7 +474,7 @@ function onTicketListDrop(event: DragEvent) {
   padding: 5px 1rem;
   font-family: 'Nunito', sans-serif;
   font-size: 0.76rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.03em;
   line-height: 1;
   border: 1px solid rgba(0, 0, 0, 0.55);
@@ -515,7 +515,7 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 section {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.25rem 0;
 }
 

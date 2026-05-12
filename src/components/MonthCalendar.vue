@@ -624,14 +624,14 @@ h2 {
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   padding: 1.1rem 1.25rem 0.85rem;
 }
 
 .year-sup {
-  font-size: 0.55em;
+  font-size: 15.6px;
   font-weight: 300;
-  vertical-align: super;
+  vertical-align: baseline;
   opacity: 0.6;
   letter-spacing: 0.02em;
 }
@@ -639,16 +639,16 @@ h2 {
 .grid {
   display: grid;
   gap: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cell {
   padding: 0.25rem 0;
   font-size: 0.85rem;
   min-height: 125px;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   overflow: visible;
 }
 
@@ -670,7 +670,7 @@ h2 {
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.5);
+  color: #fff;
   min-height: unset;
   padding: 0.5rem 0.25rem;
   background: rgba(255, 255, 255, 0.04);
@@ -715,13 +715,13 @@ h2 {
   flex-shrink: 0;
   font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
+  color: #fff;
   transition: background 0.1s, color 0.1s;
 }
 
 .day-number:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
 }
 
 .day-number.has-marker {
