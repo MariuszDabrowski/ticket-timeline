@@ -464,34 +464,47 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .header-btn {
-  padding: 0.28rem 0.9rem;
+  padding: 0.3rem 1rem;
   font-size: 0.76rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.55);
   border-radius: 5px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  background: linear-gradient(180deg, #2e2e2e 0%, #1c1c1c 100%);
+  color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 0 10px rgba(255, 255, 255, 0.04),
+    0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: background 0.15s, box-shadow 0.15s, color 0.15s;
 }
 
 .header-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, #383838 0%, #262626 100%);
+  color: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 14px rgba(255, 255, 255, 0.07),
+    0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .header-btn-primary {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 14px rgba(255, 255, 255, 0.07),
+    0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .header-btn-primary:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: linear-gradient(180deg, #424242 0%, #2c2c2c 100%);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 0 18px rgba(255, 255, 255, 0.1),
+    0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .below-header {
