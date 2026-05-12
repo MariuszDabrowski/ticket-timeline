@@ -121,7 +121,7 @@ function handleImport() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  width: 440px;
+  width: 520px;
   max-width: calc(100vw - 2rem);
 }
 
@@ -154,9 +154,11 @@ h3 {
   border: 2px dashed rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   padding: 1.5rem;
+  min-height: 7rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.35);
@@ -185,7 +187,8 @@ h3 {
 
 .file-name {
   font-weight: 500;
-  word-break: break-all;
+  word-break: break-word;
+  text-align: center;
 }
 
 .field {
@@ -260,10 +263,6 @@ button:hover {
   box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-button.primary {
-  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
-  border-color: rgba(255, 255, 255, 0.15);
-}
 
 button:disabled {
   opacity: 0.4;

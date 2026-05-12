@@ -79,6 +79,7 @@ const showAddPerson = ref(false)
 function handleAddPerson(name: string) {
   people.addPerson(name)
   showAddPerson.value = false
+  collapsed.value.people = false
 }
 
 function handleRemovePerson(id: number) {
@@ -230,6 +231,7 @@ function handleHiBobConfirm(
     const personId = people.addPerson(name)
     matches.push({ personId, group })
   }
+  if (newPeople.length > 0) collapsed.value.people = false
   vacations.setVacations(
     matches.flatMap(({ personId, group }) =>
       group.events.map((ev) => ({
