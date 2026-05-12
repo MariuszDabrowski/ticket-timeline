@@ -224,8 +224,10 @@ button:hover {
 }
 
 button:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: default;
+  pointer-events: none;
+  outline: none;
 }
 
 .delete-btn {

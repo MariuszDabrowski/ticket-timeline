@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, toRaw } from 'vue'
 import { toPng } from 'html-to-image'
+
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
@@ -13,7 +14,6 @@ import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
 import ExportModal from '../components/ExportModal.vue'
 import ImportModal from '../components/ImportModal.vue'
-import NeuroCanvas from '../components/NeuroCanvas.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
@@ -183,15 +183,21 @@ function handleImport(data: ProjectData) {
   showImport.value = false
 }
 
-const panelRef = ref<HTMLElement | null>(null)
+const monthsRowRef = ref<HTMLElement | null>(null)
 
-async function handleExportImage() {
-  if (!panelRef.value) return
-  const dataUrl = await toPng(panelRef.value, { pixelRatio: 2 })
-  const a = document.createElement('a')
-  a.href = dataUrl
-  a.download = 'ticket-timeline.png'
-  a.click()
+async function handleExportImage(includeSummary: boolean) {
+  if (!monthsRowRef.value) return
+  const summaryEl = monthsRowRef.value.firstElementChild as HTMLElement | null
+  if (!includeSummary && summaryEl) summaryEl.style.display = 'none'
+  try {
+    const dataUrl = await toPng(monthsRowRef.value, { pixelRatio: 2 })
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = 'ticket-timeline.png'
+    a.click()
+  } finally {
+    if (!includeSummary && summaryEl) summaryEl.style.display = ''
+  }
 }
 
 const showHiBob = ref(false)
@@ -238,7 +244,6 @@ function onTicketListDrop(event: DragEvent) {
 <template>
   <div class="layout">
     <header class="app-header">
-      <NeuroCanvas />
       <span class="app-logo">Ticket Timeline</span>
       <div class="header-actions">
         <button class="header-btn" @click="showImport = true">Import</button>
@@ -373,9 +378,9 @@ function onTicketListDrop(event: DragEvent) {
     </aside>
 
 
-    <main class="panel" ref="panelRef">
+    <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
-      <div class="months-row">
+      <div class="months-row" ref="monthsRowRef">
         <SummaryTile />
         <MonthCalendar
           v-for="m in sortedMonths"
@@ -383,6 +388,7 @@ function onTicketListDrop(event: DragEvent) {
           :year="m.year"
           :month="m.month"
         />
+        <div class="months-row-end" />
       </div>
     </main>
     </div>
@@ -420,7 +426,7 @@ function onTicketListDrop(event: DragEvent) {
     v-if="showExport"
     :data="exportData"
     @close="showExport = false"
-    @export-image="handleExportImage"
+    @export-image="(v) => handleExportImage(v)"
   />
 
   <ImportModal
@@ -831,8 +837,7 @@ section {
   align-items: flex-start;
 }
 
-.months-row::after {
-  content: '';
+.months-row-end {
   width: 1.5rem;
   flex-shrink: 0;
 }

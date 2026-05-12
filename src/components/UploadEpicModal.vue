@@ -196,7 +196,7 @@ h3 {
 
 label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
@@ -208,14 +208,14 @@ label {
 .hint {
   font-weight: normal;
   font-size: 12px;
-  opacity: 0.5;
+  opacity: 0.7;
   text-transform: none;
   letter-spacing: 0;
 }
 
 .hint strong {
   font-weight: 600;
-  opacity: 0.8;
+  opacity: 1;
 }
 
 input[type='text'] {
@@ -266,7 +266,9 @@ button.primary {
 }
 
 button:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: default;
+  pointer-events: none;
+  outline: none;
 }
 </style>

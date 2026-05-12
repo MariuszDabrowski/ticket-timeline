@@ -7,7 +7,9 @@ import {
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'> }>()
-const emit = defineEmits<{ close: []; exportImage: [] }>()
+const emit = defineEmits<{ close: []; exportImage: [includeSummary: boolean] }>()
+
+const includeSummary = ref(true)
 
 const projectName = ref('My Project')
 
@@ -104,11 +106,15 @@ function fmtDate(iso: string) {
           <div class="option-body">
             <div class="option-title">Export as Image</div>
             <div class="option-desc">
-              Downloads a <code>.png</code> screenshot of the full calendar panel.
+              Downloads a <code>.png</code> of the full calendar at 2× resolution.
             </div>
+            <label class="summary-toggle">
+              <input type="checkbox" v-model="includeSummary" />
+              Include project brief
+            </label>
           </div>
           <div class="option-action">
-            <button class="btn" @click="emit('exportImage')">Export</button>
+            <button class="btn" @click="emit('exportImage', includeSummary)">Export</button>
           </div>
         </div>
 
@@ -226,6 +232,16 @@ h3 {
   gap: 0.25rem;
 }
 
+.summary-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  opacity: 0.8;
+  cursor: pointer;
+  margin-top: 0.15rem;
+}
+
 .option-title {
   font-size: 0.88rem;
   font-weight: 600;
@@ -275,8 +291,10 @@ h3 {
 }
 
 .btn:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: default;
+  pointer-events: none;
+  outline: none;
 }
 
 .btn.primary {
