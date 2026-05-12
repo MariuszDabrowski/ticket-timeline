@@ -85,7 +85,7 @@ h3 {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -98,7 +98,7 @@ input {
   border-radius: 5px;
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -123,7 +123,7 @@ button {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1;
   transition: box-shadow 0.25s ease;

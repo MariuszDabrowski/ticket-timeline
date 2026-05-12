@@ -226,7 +226,7 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.25s ease;
 }
@@ -286,7 +286,7 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.25s ease;
 }
@@ -320,7 +320,7 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.25s ease;
 }

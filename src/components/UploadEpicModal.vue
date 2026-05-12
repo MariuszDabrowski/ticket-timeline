@@ -130,7 +130,7 @@ h3 {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -143,11 +143,11 @@ h3 {
   gap: 0.4rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .instructions strong {
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
 }
 
 .drop-zone {
@@ -169,7 +169,7 @@ h3 {
 .drop-zone.drag-over {
   border-color: rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .drop-zone.has-file {
@@ -225,7 +225,7 @@ input[type='text'] {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -250,7 +250,7 @@ button {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1;
   transition: box-shadow 0.25s ease;

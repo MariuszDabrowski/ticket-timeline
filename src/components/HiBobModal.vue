@@ -112,7 +112,7 @@ h3 {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -124,17 +124,17 @@ h3 {
   padding: 0.75rem 1rem;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .instructions strong {
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
 }
 
 .instructions-title {
   font-weight: 600;
   margin-bottom: 0.4rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
 }
 
 ol {
@@ -151,7 +151,7 @@ ol {
   padding: 2rem;
   text-align: center;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -179,7 +179,7 @@ ol {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1;
   transition: box-shadow 0.25s ease;
@@ -213,7 +213,7 @@ button {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1;
   transition: box-shadow 0.25s ease;
