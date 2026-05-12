@@ -135,7 +135,8 @@ function fmtDate(iso: string) {
 }
 
 .modal {
-  background: var(--color-background, #1a1a1a);
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 1.5rem;
   width: 520px;
@@ -143,11 +144,16 @@ function fmtDate(iso: string) {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  color: #fff;
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .field {
@@ -158,7 +164,7 @@ h3 {
 
 .field-label {
   font-size: 0.75rem;
-  opacity: 0.55;
+  opacity: 0.75;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -169,7 +175,7 @@ h3 {
   border: 1px solid rgba(128, 128, 128, 0.35);
   border-radius: 5px;
   background: transparent;
-  color: inherit;
+  color: #fff;
   outline: none;
 }
 
@@ -213,7 +219,7 @@ h3 {
 
 .option-desc {
   font-size: 0.78rem;
-  opacity: 0.6;
+  opacity: 0.8;
   line-height: 1.5;
 }
 
