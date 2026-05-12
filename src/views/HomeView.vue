@@ -667,8 +667,6 @@ section {
 }
 
 .person-name:hover {
-  text-decoration: underline;
-  text-decoration-style: dotted;
 }
 
 .person-name-input {
@@ -818,6 +816,7 @@ section {
 .months-row {
   display: flex;
   align-items: flex-start;
+  padding-right: 1.5rem;
 }
 
 .option {

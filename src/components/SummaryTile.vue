@@ -215,7 +215,7 @@ const headline = computed(() => {
 .headline {
   font-size: 14px;
   line-height: 1.55;
-  opacity: 0.75;
+  opacity: 0.95;
 }
 
 .divider {
@@ -263,7 +263,7 @@ const headline = computed(() => {
 }
 
 .stat-desc {
-  opacity: 0.5;
+  opacity: 0.75;
   font-size: 14px;
 }
 
@@ -271,7 +271,7 @@ const headline = computed(() => {
   display: flex;
   gap: 0.4rem;
   font-size: 14px;
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 .sep {
@@ -334,7 +334,7 @@ const headline = computed(() => {
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
   font-size: 13px;
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .team-list {
@@ -363,7 +363,7 @@ const headline = computed(() => {
 }
 
 .team-count {
-  opacity: 0.55;
+  opacity: 0.8;
   font-size: 13px;
 }
 </style>

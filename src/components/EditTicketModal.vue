@@ -230,8 +230,8 @@ button:disabled {
 
 .delete-btn {
   background: transparent;
-  border-color: rgba(231, 76, 60, 0.35);
-  color: rgba(231, 76, 60, 0.75);
+  border-color: rgba(231, 76, 60, 0.6);
+  color: rgba(231, 76, 60, 1);
   box-shadow: none;
 }
 

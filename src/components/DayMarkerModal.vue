@@ -148,7 +148,7 @@ label {
 }
 
 .swatch.selected {
-  border-color: rgba(255, 255, 255, 0.9);
+  border-color: #fff;
   outline: 2px solid rgba(255, 255, 255, 0.3);
   outline-offset: 1px;
 }

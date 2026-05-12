@@ -124,7 +124,7 @@ h3 {
   padding: 0.75rem 1rem;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
 }
 
 .instructions strong {

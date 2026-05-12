@@ -260,11 +260,7 @@ h3 {
 }
 
 .btn.primary {
-  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.btn.primary:not(:disabled):hover {
-  background: #444;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border-color: rgba(0, 0, 0, 0.55);
 }
 </style>

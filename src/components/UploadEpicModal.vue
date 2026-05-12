@@ -143,7 +143,7 @@ h3 {
   gap: 0.4rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
 }
 
 .instructions strong {
@@ -169,7 +169,7 @@ h3 {
 .drop-zone.drag-over {
   border-color: rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
 }
 
 .drop-zone.has-file {
