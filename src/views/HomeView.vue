@@ -227,8 +227,8 @@ function onTicketListDrop(event: DragEvent) {
     <header class="app-header">
       <span class="app-logo">📅 Ticket Timeline</span>
       <div class="header-actions">
-        <button class="header-btn" @click="showImport = true">⬆ Import</button>
-        <button class="header-btn" @click="showExport = true">⬇ Export</button>
+        <button class="header-btn" @click="showImport = true">Import</button>
+        <button class="header-btn header-btn-primary" @click="showExport = true">Export</button>
       </div>
     </header>
     <div class="below-header">
@@ -444,42 +444,54 @@ function onTicketListDrop(event: DragEvent) {
   height: 52px;
   padding: 0 1.25rem;
   flex-shrink: 0;
-  background: linear-gradient(90deg, #16161e 0%, #1e1e2a 60%, #1a1a26 100%);
+  background: linear-gradient(90deg, #191919 0%, #212121 60%, #1d1d1d 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 2px 12px rgba(0, 0, 0, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 2px 14px rgba(0, 0, 0, 0.55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .app-logo {
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.88);
   letter-spacing: 0.02em;
 }
 
 .header-actions {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .header-btn {
-  padding: 0.3rem 0.85rem;
-  font-size: 0.78rem;
+  padding: 0.28rem 0.9rem;
+  font-size: 0.76rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .header-btn:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.header-btn-primary {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.header-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
 }
 
 .below-header {
