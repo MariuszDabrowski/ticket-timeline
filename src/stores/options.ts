@@ -6,7 +6,5 @@ export const useOptionsStore = defineStore('options', () => {
   const showCanadianHolidays = ref(true)
   const showAmericanHolidays = ref(true)
   const showAllTooltips = ref(false)
-  const verticalLayout = ref(false)
-
-  return { hideWeekends, showCanadianHolidays, showAmericanHolidays, showAllTooltips, verticalLayout }
+  return { hideWeekends, showCanadianHolidays, showAmericanHolidays, showAllTooltips }
 })
