@@ -216,24 +216,41 @@ h3 {
 }
 
 .action-btn {
-  padding: 0.25rem 0.6rem;
-  font-size: 0.78rem;
-  border: 1px solid rgba(128, 128, 128, 0.35);
-  border-radius: 4px;
+  padding: 4px 0.65rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+.action-btn:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .action-btn.primary {
-  background: #333;
-  color: #fff;
-  border-color: #444;
+  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .action-btn.danger {
-  color: #e74c3c;
-  border-color: #e74c3c;
+  background: transparent;
+  border-color: rgba(231, 76, 60, 0.35);
+  color: rgba(231, 76, 60, 0.75);
+  box-shadow: none;
+}
+
+.action-btn.danger:hover {
+  border-color: rgba(231, 76, 60, 0.7);
+  color: rgba(231, 76, 60, 1);
+  box-shadow: none;
 }
 
 .divider {
@@ -259,13 +276,23 @@ h3 {
 
 .file-btn {
   flex-shrink: 0;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.82rem;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 5px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+.file-btn:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .file-btn input {
@@ -283,12 +310,22 @@ h3 {
 }
 
 .btn {
-  padding: 0.35rem 0.85rem;
-  font-size: 0.85rem;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 5px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+.btn:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 </style>
