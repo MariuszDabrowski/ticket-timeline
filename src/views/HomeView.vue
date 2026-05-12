@@ -322,6 +322,10 @@ function onTicketListDrop(event: DragEvent) {
             <input type="checkbox" v-model="options.showAllTooltips" />
             Show Day Notes
           </label>
+          <label class="option">
+            <input type="checkbox" v-model="options.verticalLayout" />
+            Vertical Layout
+          </label>
         </div>
       </section>
 
@@ -405,8 +409,8 @@ function onTicketListDrop(event: DragEvent) {
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
-      <div class="months-row" ref="monthsRowRef">
-        <SummaryTile />
+      <div class="months-row" :class="{ vertical: options.verticalLayout }" ref="monthsRowRef">
+        <SummaryTile :vertical="options.verticalLayout" />
         <MonthCalendar
           v-for="m in sortedMonths"
           :key="`${m.year}-${m.month}`"
@@ -866,6 +870,11 @@ section {
 .months-row {
   display: flex;
   align-items: flex-start;
+}
+
+.months-row.vertical {
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .months-row-end {

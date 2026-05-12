@@ -4,6 +4,8 @@ import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
 
+const props = defineProps<{ vertical?: boolean }>()
+
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 
@@ -115,7 +117,7 @@ const headline = computed(() => {
 </script>
 
 <template>
-  <div class="summary-tile">
+  <div class="summary-tile" :class="{ vertical: props.vertical }">
     <div class="tile-header">
       <span class="tile-label">Project Brief</span>
     </div>
@@ -195,6 +197,11 @@ const headline = computed(() => {
   gap: 0.75rem;
   align-self: flex-start;
   font-size: 0.85rem;
+}
+
+.summary-tile.vertical {
+  margin: 1rem 1rem 0 2rem;
+  width: auto;
 }
 
 .tile-header {
