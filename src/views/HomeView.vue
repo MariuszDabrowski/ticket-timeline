@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, toRaw } from 'vue'
+import { toPng } from 'html-to-image'
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import { usePeopleStore } from '../stores/people'
@@ -182,6 +183,17 @@ function handleImport(data: ProjectData) {
   showImport.value = false
 }
 
+const panelRef = ref<HTMLElement | null>(null)
+
+async function handleExportImage() {
+  if (!panelRef.value) return
+  const dataUrl = await toPng(panelRef.value, { pixelRatio: 2 })
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = 'ticket-timeline.png'
+  a.click()
+}
+
 const showHiBob = ref(false)
 const hibobGroups = ref<ICSPersonGroup[]>([])
 
@@ -361,7 +373,7 @@ function onTicketListDrop(event: DragEvent) {
     </aside>
 
 
-    <main class="panel">
+    <main class="panel" ref="panelRef">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row">
         <SummaryTile />
@@ -408,6 +420,7 @@ function onTicketListDrop(event: DragEvent) {
     v-if="showExport"
     :data="exportData"
     @close="showExport = false"
+    @export-image="handleExportImage"
   />
 
   <ImportModal
@@ -816,7 +829,12 @@ section {
 .months-row {
   display: flex;
   align-items: flex-start;
-  padding-right: 1.5rem;
+}
+
+.months-row::after {
+  content: '';
+  width: 1.5rem;
+  flex-shrink: 0;
 }
 
 .option {

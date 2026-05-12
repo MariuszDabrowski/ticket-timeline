@@ -7,7 +7,7 @@ import {
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'> }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; exportImage: [] }>()
 
 const projectName = ref('My Project')
 
@@ -95,6 +95,20 @@ function fmtDate(iso: string) {
               <template v-else-if="existingProject">Update</template>
               <template v-else>Save</template>
             </button>
+          </div>
+        </div>
+
+        <!-- Export as Image -->
+        <div class="option-card">
+          <div class="option-icon">🖼️</div>
+          <div class="option-body">
+            <div class="option-title">Export as Image</div>
+            <div class="option-desc">
+              Downloads a <code>.png</code> screenshot of the full calendar panel.
+            </div>
+          </div>
+          <div class="option-action">
+            <button class="btn" @click="emit('exportImage')">Export</button>
           </div>
         </div>
 
