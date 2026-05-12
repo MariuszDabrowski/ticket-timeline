@@ -98,7 +98,7 @@ input {
   border-radius: 5px;
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.7);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -122,15 +122,15 @@ button {
   border: 1px solid rgba(0, 0, 0, 0.55);
   border-radius: 2px;
   cursor: pointer;
-  background: linear-gradient(180deg, #363636 0%, #222222 100%);
-  color: rgba(255, 255, 255, 0.85);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1;
   transition: box-shadow 0.25s ease;
 }
 
 button:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 button:disabled {
