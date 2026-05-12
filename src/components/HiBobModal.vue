@@ -86,7 +86,7 @@ function onFileInput(e: Event) {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,8 +94,9 @@ function onFileInput(e: Event) {
 }
 
 .modal {
-  background: var(--color-background, #fff);
-  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -107,21 +108,33 @@ function onFileInput(e: Event) {
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .instructions {
-  background: rgba(128, 128, 128, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   padding: 0.75rem 1rem;
   font-size: 0.82rem;
   line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.instructions strong {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .instructions-title {
   font-weight: 600;
   margin-bottom: 0.4rem;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 ol {
@@ -133,11 +146,12 @@ ol {
 }
 
 .drop-zone {
-  border: 2px dashed #aaa;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   padding: 2rem;
   text-align: center;
   font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -146,8 +160,8 @@ ol {
 }
 
 .drop-zone.over {
-  border-color: #3498db;
-  background: rgba(52, 152, 219, 0.06);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .or {
@@ -156,13 +170,22 @@ ol {
 }
 
 .file-btn {
-  padding: 0.35rem 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  font-size: 0.85rem;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+.file-btn:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .file-btn input {
@@ -170,7 +193,7 @@ ol {
 }
 
 .error {
-  color: #c0392b;
+  color: rgba(231, 76, 60, 0.9);
   font-size: 0.82rem;
 }
 
@@ -180,12 +203,21 @@ ol {
 }
 
 button {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+button:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 </style>

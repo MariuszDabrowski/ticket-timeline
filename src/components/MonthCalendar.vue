@@ -432,7 +432,7 @@ function darkenColor(hex: string, amount: number): string {
 }
 
 function vacationStyle(color: string): Record<string, string> {
-  const dark = darkenColor(color, 0.35)
+  const dark = darkenColor(color, 0.18)
   return {
     background: `repeating-linear-gradient(45deg, ${color}, ${color} 5px, ${dark} 5px, ${dark} 10px)`,
   }
@@ -532,23 +532,6 @@ function onDrop(event: DragEvent, day: number) {
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         </div>
         <div class="placed-tickets">
-          <div v-for="(info, slotIdx) in effectiveVacationSlots(day, dayRowIndex(dayIdx))" :key="`vac-${slotIdx}`" class="slot-row">
-            <div
-              v-if="info"
-              class="vacation-pill"
-              :class="{
-                'is-start': info.isStart,
-                'is-end': info.isEnd,
-                'row-end': info.isRowEnd,
-                'row-start': info.isRowStart,
-              }"
-              :style="vacationStyle(info.color)"
-              :title="`${info.personName} – vacation`"
-            >
-              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
-            </div>
-            <div v-else class="slot-spacer" />
-          </div>
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div
               v-if="info"
@@ -576,7 +559,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
               <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.number }}</span>
-              <span class="ticket-tooltip">{{ info.ticket.number }}<template v-if="info.ticket.title">: {{ info.ticket.title }}</template></span>
+              <span v-if="info.ticket.title" class="ticket-tooltip">{{ info.ticket.title }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -584,6 +567,23 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
                 @dragend="dragState.clearResizeDrag"
               >›</button>
+            </div>
+            <div v-else class="slot-spacer" />
+          </div>
+          <div v-for="(info, slotIdx) in effectiveVacationSlots(day, dayRowIndex(dayIdx))" :key="`vac-${slotIdx}`" class="slot-row">
+            <div
+              v-if="info"
+              class="vacation-pill"
+              :class="{
+                'is-start': info.isStart,
+                'is-end': info.isEnd,
+                'row-end': info.isRowEnd,
+                'row-start': info.isRowStart,
+              }"
+              :style="vacationStyle(info.color)"
+              :title="`${info.personName} – vacation`"
+            >
+              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -614,33 +614,33 @@ function onDrop(event: DragEvent, day: number) {
 
 <style scoped>
 .month-calendar {
-  padding: 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
-  border-radius: 8px;
+  border-radius: 12px;
   margin: 1rem;
   min-width: fit-content;
   flex-shrink: 0;
 }
 
 h2 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 1.1rem 1.25rem 0.85rem;
 }
 
 .grid {
   display: grid;
   gap: 0;
-  border-top: 1px solid #ddd;
-  border-left: 1px solid #ddd;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .cell {
   padding: 0.25rem 0;
   font-size: 0.85rem;
   min-height: 125px;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   overflow: visible;
 }
 
@@ -652,39 +652,38 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
 
-@media (prefers-color-scheme: light) {
-  .cell:not(.day):not(.header)::before {
-    background: rgba(255, 255, 255, 0.55);
-  }
-}
-
 .header {
-  font-weight: bold;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.5);
   min-height: unset;
-  padding: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .day {
   display: grid;
-  grid-template-rows: 2.6rem 1fr;
+  grid-template-rows: 4rem 1fr;
   overflow: visible;
 }
 
 .day.drag-over {
-  background: #f0f4ff;
-  outline: 2px dashed #99b;
+  background: rgba(100, 120, 255, 0.1);
+  outline: 1px dashed rgba(150, 150, 255, 0.4);
 }
 
 .day-header {
   display: flex;
   flex-direction: column;
-  padding: 0.25rem 0 0 0.25rem;
-  overflow: visible;
+  padding: 0.4rem 0 0 0.4rem;
+  overflow: hidden;
 }
 
 .day-number {
@@ -700,17 +699,21 @@ h2 {
 .day-number {
   cursor: pointer;
   border-radius: 50%;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.7rem;
+  height: 1.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.1s;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 0.1s, color 0.1s;
 }
 
 .day-number:hover {
-  background: rgba(128, 128, 128, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .day-number.has-marker {
@@ -722,10 +725,11 @@ h2 {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(80, 80, 80, 0.85);
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 0.3rem 0.6rem;
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 0.75rem;
   width: max-content;
   max-width: 250px;
@@ -745,7 +749,7 @@ h2 {
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(80, 80, 80, 0.85);
+  border-top-color: rgba(40, 40, 40, 0.95);
 }
 
 .day-number-wrap:hover .day-marker-tooltip,
@@ -753,34 +757,24 @@ h2 {
   opacity: 1;
 }
 
-.day.is-today {
-  background: rgba(39, 174, 96, 0.18);
-}
-
 .day.is-today .day-number {
-  background: #27ae60;
+  background: #e05252;
   color: #fff;
+  font-weight: 700;
 }
 
 .day.is-holiday {
-  background: rgba(200, 160, 0, 0.18);
+  background: rgba(240, 175, 85, 0.05);
 }
 
 .holiday-label {
-  font-size: 0.65rem;
-  color: #9a7a1a;
+  font-size: 0.72rem;
+  color: rgba(240, 175, 85, 0.85);
   font-weight: 500;
-  padding: 0 0.25rem;
+  padding: 0 0.3rem 0.35rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-shrink: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .holiday-label {
-    color: #c8a030;
-  }
 }
 
 .placed-tickets {
@@ -806,6 +800,7 @@ h2 {
   cursor: default;
   opacity: 0.9;
   min-height: 1.1rem;
+  line-height: 1;
 }
 
 .vacation-pill.is-start {
@@ -825,6 +820,7 @@ h2 {
 .vacation-label {
   padding: 0 0.3rem;
   font-size: 0.72rem;
+  font-weight: bold;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
@@ -837,6 +833,7 @@ h2 {
   height: 100%;
   font-size: 0.72rem;
   font-weight: bold;
+  line-height: 1;
   color: #fff;
   overflow: visible;
   position: relative;
@@ -936,7 +933,7 @@ h2 {
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 50%;
-  background: var(--color-background, #ffffff);
+  background: #1a1a1a;
   z-index: 1;
 }
 

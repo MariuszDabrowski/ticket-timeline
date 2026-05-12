@@ -92,7 +92,7 @@ function onKeydown(event: KeyboardEvent) {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,38 +100,63 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 .modal {
-  background: #fff;
-  border-radius: 6px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-width: 320px;
+  width: 420px;
+  max-width: calc(100vw - 2rem);
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 label {
-  font-size: 0.8rem;
-  color: #555;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 input,
 select {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.45rem 0.65rem;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
   width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus,
+select:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+select option {
+  background: #1a1a1a;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .actions {
@@ -142,22 +167,26 @@ select {
 }
 
 button {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: #fff;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
 }
 
-button:last-child {
-  background: #333;
-  color: #fff;
-  border-color: #333;
+button:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 </style>

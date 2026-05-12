@@ -106,7 +106,7 @@ function handleImport() {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,8 +114,9 @@ function handleImport() {
 }
 
 .modal {
-  background: var(--color-background, #fff);
-  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -125,8 +126,13 @@ function handleImport() {
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .instructions {
@@ -137,10 +143,15 @@ h3 {
   gap: 0.4rem;
   font-size: 0.875rem;
   line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.instructions strong {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .drop-zone {
-  border: 2px dashed #ccc;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   padding: 1.5rem;
   display: flex;
@@ -148,7 +159,7 @@ h3 {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #888;
+  color: rgba(255, 255, 255, 0.35);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
   user-select: none;
@@ -156,14 +167,14 @@ h3 {
 
 .drop-zone:hover,
 .drop-zone.drag-over {
-  border-color: #666;
-  background: rgba(100, 100, 200, 0.05);
-  color: inherit;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .drop-zone.has-file {
-  border-color: #2ecc71;
-  color: #2ecc71;
+  border-color: rgba(46, 204, 113, 0.6);
+  color: rgba(46, 204, 113, 0.9);
 }
 
 .upload-icon,
@@ -184,26 +195,43 @@ h3 {
 }
 
 label {
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.25rem;
 }
 
 .hint {
   font-weight: normal;
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 12px;
+  opacity: 0.5;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.hint strong {
+  font-weight: 600;
+  opacity: 0.8;
 }
 
 input[type='text'] {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+  padding: 0.45rem 0.65rem;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type='text']:focus {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .actions {
@@ -213,23 +241,31 @@ input[type='text'] {
 }
 
 button {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+button:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 button.primary {
-  background: #333;
-  color: #fff;
-  border-color: #333;
+  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 </style>

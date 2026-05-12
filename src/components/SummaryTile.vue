@@ -145,18 +145,12 @@ const headline = computed(() => {
           <div class="timeline-row">
             <div class="timeline-point">
               <span class="timeline-marker start-marker" />
-              <div>
-                <div class="timeline-tag">Start</div>
-                <div class="timeline-date">{{ fmt(projectStart) }}</div>
-              </div>
+              <div class="timeline-date">{{ fmt(projectStart) }}</div>
             </div>
             <div class="timeline-line" />
             <div class="timeline-point">
               <span class="timeline-marker end-marker" />
-              <div>
-                <div class="timeline-tag">End</div>
-                <div class="timeline-date">{{ fmt(projectEnd) }}</div>
-              </div>
+              <div class="timeline-date">{{ fmt(projectEnd) }}</div>
             </div>
           </div>
           <div v-if="durationWeeks !== null" class="duration-chip">
@@ -193,7 +187,7 @@ const headline = computed(() => {
   padding: 1rem;
   border: 1px dashed rgba(255, 255, 255, 0.25);
   border-radius: 8px;
-  margin: 1rem;
+  margin: 84px 1rem 1rem;
   width: 280px;
   flex-shrink: 0;
   display: flex;
@@ -210,12 +204,16 @@ const headline = computed(() => {
 }
 
 .tile-label {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .headline {
-  font-size: 0.82rem;
+  font-size: 14px;
   line-height: 1.55;
   opacity: 0.75;
 }
@@ -232,20 +230,24 @@ const headline = computed(() => {
 }
 
 .section-label {
-  font-size: 0.7rem;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   opacity: 0.45;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-bottom: 0.35rem;
 }
 
 .section-count {
   font-weight: normal;
   text-transform: none;
   letter-spacing: 0;
+  text-decoration: none;
 }
 
 .stat-row {
@@ -262,13 +264,13 @@ const headline = computed(() => {
 
 .stat-desc {
   opacity: 0.5;
-  font-size: 0.78rem;
+  font-size: 14px;
 }
 
 .sub-stats {
   display: flex;
   gap: 0.4rem;
-  font-size: 0.78rem;
+  font-size: 14px;
   opacity: 0.7;
 }
 
@@ -315,15 +317,13 @@ const headline = computed(() => {
 }
 
 .timeline-tag {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 11px;
   opacity: 0.45;
   line-height: 1;
 }
 
 .timeline-date {
-  font-size: 0.8rem;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -333,7 +333,7 @@ const headline = computed(() => {
   background: rgba(128, 128, 128, 0.12);
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
-  font-size: 0.75rem;
+  font-size: 13px;
   opacity: 0.8;
 }
 
@@ -348,7 +348,7 @@ const headline = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.82rem;
+  font-size: 14px;
 }
 
 .team-dot {
@@ -364,6 +364,6 @@ const headline = computed(() => {
 
 .team-count {
   opacity: 0.55;
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 </style>

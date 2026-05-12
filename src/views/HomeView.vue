@@ -12,6 +12,7 @@ import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
 import ExportModal from '../components/ExportModal.vue'
 import ImportModal from '../components/ImportModal.vue'
+import NeuroCanvas from '../components/NeuroCanvas.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
@@ -64,11 +65,11 @@ const sortedMonths = computed(() =>
 )
 
 const collapsed = ref<Record<string, boolean>>({
-  options: false,
+  options: true,
   months: false,
-  people: false,
-  tickets: false,
-  sync: false,
+  people: true,
+  tickets: true,
+  sync: true,
 })
 
 const people = usePeopleStore()
@@ -225,6 +226,7 @@ function onTicketListDrop(event: DragEvent) {
 <template>
   <div class="layout">
     <header class="app-header">
+      <NeuroCanvas />
       <span class="app-logo">Ticket Timeline</span>
       <div class="header-actions">
         <button class="header-btn" @click="showImport = true">Import</button>
@@ -233,6 +235,29 @@ function onTicketListDrop(event: DragEvent) {
     </header>
     <div class="below-header">
     <aside class="sidebar">
+      <section>
+        <button class="section-header" @click="collapsed.months = !collapsed.months">
+          <span>Months</span>
+          <span class="chevron" :class="{ rotated: collapsed.months }">›</span>
+        </button>
+        <div v-show="!collapsed.months" class="section-body">
+          <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
+          <template v-for="group in monthsByYear" :key="group.year">
+            <span class="year-label">{{ group.year }}</span>
+            <label v-for="abs in group.months" :key="abs" class="month-option">
+              <input type="checkbox" :value="abs" v-model="selectedMonths" />
+              {{ MONTH_NAMES[absToYearMonth(abs).month] }}
+            </label>
+          </template>
+          <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
+          <button
+            v-if="selectedMonths.length > 0"
+            class="load-more-btn trim-btn"
+            @click="trimToSelection"
+          >Hide unselected</button>
+        </div>
+      </section>
+
       <section>
         <button class="section-header" @click="collapsed.options = !collapsed.options">
           <span>Options</span>
@@ -255,29 +280,6 @@ function onTicketListDrop(event: DragEvent) {
             <input type="checkbox" v-model="options.showAllTooltips" />
             Show Day Notes
           </label>
-        </div>
-      </section>
-
-      <section>
-        <button class="section-header" @click="collapsed.months = !collapsed.months">
-          <span>Months</span>
-          <span class="chevron" :class="{ rotated: collapsed.months }">›</span>
-        </button>
-        <div v-show="!collapsed.months" class="section-body">
-          <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
-          <template v-for="group in monthsByYear" :key="group.year">
-            <span class="year-label">{{ group.year }}</span>
-            <label v-for="abs in group.months" :key="abs" class="month-option">
-              <input type="checkbox" :value="abs" v-model="selectedMonths" />
-              {{ MONTH_NAMES[absToYearMonth(abs).month] }}
-            </label>
-          </template>
-          <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
-          <button
-            v-if="selectedMonths.length > 0"
-            class="load-more-btn trim-btn"
-            @click="trimToSelection"
-          >Hide unselected</button>
         </div>
       </section>
 
@@ -312,21 +314,6 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section>
-        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
-          <span>Sync</span>
-          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
-        </button>
-        <div v-show="!collapsed.sync" class="section-body">
-          <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
-          <button
-            v-if="vacations.entries.length > 0"
-            class="add-btn clear-sync-btn"
-            @click="vacations.clearVacations()"
-          >Clear Synced Data</button>
-        </div>
-      </section>
-
       <section
         class="ticket-section"
         :class="{ 'drop-target': ticketListIsOver }"
@@ -347,14 +334,28 @@ function onTicketListDrop(event: DragEvent) {
                 class="ticket-pill"
                 :class="{ dragging: draggingTicketId === ticket.id }"
                 :style="{ background: ticketColor(ticket.assignedTo) }"
-                :title="ticket.title"
                 draggable="true"
                 @click.stop="editingTicket = ticket"
                 @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-              >{{ ticket.number }}</span>
+              >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
             </li>
           </ol>
+        </div>
+      </section>
+
+      <section>
+        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
+          <span>Sync</span>
+          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
+        </button>
+        <div v-show="!collapsed.sync" class="section-body">
+          <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
+          <button
+            v-if="vacations.entries.length > 0"
+            class="add-btn clear-sync-btn"
+            @click="vacations.clearVacations()"
+          >Clear Synced Data</button>
         </div>
       </section>
     </aside>
@@ -438,6 +439,8 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .app-header {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -447,11 +450,13 @@ function onTicketListDrop(event: DragEvent) {
   background: linear-gradient(90deg, #191919 0%, #2a2a2a 60%, #242424 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 2px 14px rgba(0, 0, 0, 0.55);
+    0 2px 14px rgba(0, 0, 0, 0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .app-logo {
+  position: relative;
+  z-index: 1;
   font-size: 20px;
   font-weight: 800;
   color: rgba(255, 255, 255, 0.88);
@@ -459,6 +464,8 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .header-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 0.4rem;
 }
@@ -711,8 +718,8 @@ section {
 }
 
 .ticket-section.drop-target {
-  background: rgba(100, 120, 255, 0.08);
-  outline: 1px dashed rgba(150, 150, 255, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  outline: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
 .ticket-list {
@@ -727,10 +734,43 @@ section {
 }
 
 .ticket-list li {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.4rem;
   counter-increment: ticket-counter;
+}
+
+.sidebar-pill-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  width: 180px;
+  white-space: normal;
+  line-height: 1.45;
+  background: rgba(30, 30, 30, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sidebar-pill-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  border: 5px solid transparent;
+  border-top-color: rgba(30, 30, 30, 0.97);
+}
+
+.ticket-pill:hover .sidebar-pill-tooltip {
+  opacity: 1;
 }
 
 .ticket-list li::before {
@@ -743,6 +783,7 @@ section {
 }
 
 .ticket-pill {
+  position: relative;
   display: inline-block;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
@@ -751,8 +792,7 @@ section {
   color: #fff;
   cursor: grab;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   max-width: 100%;
 }
 
@@ -762,13 +802,16 @@ section {
 
 .ticket-pill.dragging {
   opacity: 0.4;
-  outline: 2px dashed currentColor;
-  outline-offset: 2px;
+}
+
+.ticket-pill.dragging .sidebar-pill-tooltip {
+  display: none;
 }
 
 .panel {
   flex: 1;
   overflow: auto;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 .months-row {

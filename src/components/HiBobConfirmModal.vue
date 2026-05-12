@@ -111,7 +111,7 @@ function confirm() {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,8 +119,9 @@ function confirm() {
 }
 
 .modal {
-  background: var(--color-background, #fff);
-  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -131,13 +132,22 @@ function confirm() {
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .subtitle {
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.subtitle strong {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .list {
@@ -146,7 +156,7 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border: 1px solid rgba(128,128,128,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
   padding: 0.5rem;
 }
@@ -157,7 +167,7 @@ h3 {
 }
 
 .row.unmatched {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .row-label {
@@ -167,6 +177,7 @@ h3 {
   font-size: 0.83rem;
   cursor: pointer;
   user-select: none;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .row.unmatched .row-label {
@@ -186,7 +197,7 @@ h3 {
 }
 
 .meta {
-  opacity: 0.65;
+  color: rgba(255, 255, 255, 0.45);
   font-size: 0.78rem;
 }
 
@@ -198,21 +209,30 @@ h3 {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 button {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+button:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 button.primary {
-  background: #333;
-  color: #fff;
-  border-color: #333;
+  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 </style>

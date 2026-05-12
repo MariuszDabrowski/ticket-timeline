@@ -74,7 +74,7 @@ const note = ref(props.existing?.note ?? '')
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,19 +82,25 @@ const note = ref(props.existing?.note ?? '')
 }
 
 .modal {
-  background: var(--color-background, #fff);
-  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  width: 320px;
+  width: 340px;
   max-width: calc(100vw - 2rem);
 }
 
 h3 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .field {
@@ -104,13 +110,19 @@ h3 {
 }
 
 label {
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .hint {
   font-weight: normal;
-  opacity: 0.6;
+  font-size: 12px;
+  opacity: 0.5;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .swatches {
@@ -136,18 +148,26 @@ label {
 }
 
 .swatch.selected {
-  border-color: #fff;
-  outline: 2px solid #333;
+  border-color: rgba(255, 255, 255, 0.9);
+  outline: 2px solid rgba(255, 255, 255, 0.3);
   outline-offset: 1px;
 }
 
 input {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+  padding: 0.45rem 0.65rem;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .actions {
@@ -163,28 +183,34 @@ input {
 }
 
 button {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
 }
 
-button.primary {
-  background: #333;
-  color: #fff;
-  border-color: #333;
+button:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .clear-btn {
-  color: #c0392b;
-  border-color: #c0392b;
+  background: transparent;
+  border-color: rgba(231, 76, 60, 0.35);
+  color: rgba(231, 76, 60, 0.75);
+  box-shadow: none;
 }
 
 .clear-btn:hover {
-  background: #c0392b;
-  color: #fff;
+  border-color: rgba(231, 76, 60, 0.7);
+  color: rgba(231, 76, 60, 1);
+  box-shadow: none;
 }
 </style>
