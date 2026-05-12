@@ -187,7 +187,7 @@ const headline = computed(() => {
   padding: 1rem;
   border: 1px dashed rgba(255, 255, 255, 0.25);
   border-radius: 8px;
-  margin: 84px 1rem 1rem;
+  margin: 68px 1rem 1rem 2rem;
   width: 280px;
   flex-shrink: 0;
   display: flex;
@@ -208,8 +208,6 @@ const headline = computed(() => {
   font-weight: 800;
   text-transform: uppercase;
   color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .headline {
@@ -238,8 +236,6 @@ const headline = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
   margin-bottom: 0.35rem;
 }
 
@@ -302,11 +298,11 @@ const headline = computed(() => {
 }
 
 .start-marker {
-  background: #27ae60;
+  background: #e74c3c;
 }
 
 .end-marker {
-  background: #e74c3c;
+  background: #27ae60;
 }
 
 .timeline-line {

@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: [matches: { personId: number; group: ICSPersonGroup }[]]
+  confirm: [matches: { personId: number; group: ICSPersonGroup }[], newPeople: { name: string; group: ICSPersonGroup }[]]
   cancel: []
 }>()
 
@@ -39,7 +39,7 @@ interface Row {
 const rows = ref<Row[]>(
   props.groups.map((g) => {
     const person = matchPerson(g.personName)
-    return { group: g, person, selected: person !== null }
+    return { group: g, person, selected: false }
   })
 )
 
@@ -58,7 +58,10 @@ function confirm() {
   const matches = rows.value
     .filter((r) => r.selected && r.person !== null)
     .map((r) => ({ personId: r.person!.id, group: r.group }))
-  emit('confirm', matches)
+  const newPeople = rows.value
+    .filter((r) => r.selected && r.person === null)
+    .map((r) => ({ name: r.group.personName, group: r.group }))
+  emit('confirm', matches, newPeople)
 }
 </script>
 
@@ -77,22 +80,22 @@ function confirm() {
           v-for="row in rows"
           :key="row.group.personName"
           class="row"
-          :class="{ unmatched: !row.person }"
+
         >
           <label class="row-label">
-            <input
-              type="checkbox"
-              v-model="row.selected"
-              :disabled="!row.person"
-            />
+            <input type="checkbox" v-model="row.selected" />
             <span class="dot" v-if="row.person" :style="{ background: row.person.color }" />
+            <span class="dot dot-new" v-else />
             <span class="name">{{ row.group.personName }}</span>
             <span class="meta">
               <template v-if="row.person">
                 → {{ row.person.name }} · {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
               </template>
+              <template v-else-if="row.selected">
+                <span class="will-add">Will be added to sidebar</span>
+              </template>
               <template v-else>
-                <span class="no-match">No match in sidebar</span>
+                <span class="no-match">Not in sidebar — check to add</span>
               </template>
             </span>
           </label>
@@ -101,7 +104,7 @@ function confirm() {
 
       <div class="actions">
         <button @click="emit('cancel')">Cancel</button>
-        <button class="primary" @click="confirm">Complete Sync</button>
+        <button @click="confirm">Complete Sync</button>
       </div>
     </div>
   </div>
@@ -166,10 +169,6 @@ h3 {
   padding: 0.3rem 0.4rem;
 }
 
-.row.unmatched {
-  opacity: 0.4;
-}
-
 .row-label {
   display: flex;
   align-items: center;
@@ -178,10 +177,6 @@ h3 {
   cursor: pointer;
   user-select: none;
   color: #fff;
-}
-
-.row.unmatched .row-label {
-  cursor: default;
 }
 
 .dot {
@@ -201,8 +196,19 @@ h3 {
   font-size: 0.78rem;
 }
 
+.dot-new {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
 .no-match {
   font-style: italic;
+  opacity: 0.5;
+}
+
+.will-add {
+  font-style: italic;
+  color: #6dd5fa;
 }
 
 .actions {
@@ -223,17 +229,13 @@ button {
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
   line-height: 1;
   transition: box-shadow 0.25s ease;
 }
 
 button:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-button.primary {
-  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
-  border-color: rgba(255, 255, 255, 0.15);
-}
 </style>

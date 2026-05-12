@@ -615,7 +615,7 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   border-radius: 12px;
-  margin: 1rem;
+  margin: 0 1rem 1rem;
   min-width: fit-content;
   flex-shrink: 0;
 }
@@ -630,10 +630,10 @@ h2 {
 .month-name {
   background: linear-gradient(
     to right,
-    #b49fea 20%,
-    #6dd5fa 30%,
-    #56bde8 70%,
-    #a98fe8 80%
+    #a78bfa 20%,
+    #38bdf8 35%,
+    #22d3ee 65%,
+    #818cf8 80%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -700,6 +700,7 @@ h2 {
   display: grid;
   grid-template-rows: 4rem 1fr;
   overflow: visible;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .day.drag-over {
@@ -797,7 +798,7 @@ h2 {
 
 .holiday-label {
   font-size: 0.72rem;
-  color: rgba(240, 175, 85, 0.85);
+  color: rgba(240, 175, 85, 1);
   font-weight: 500;
   padding: 0 0.3rem 0.35rem;
   white-space: nowrap;

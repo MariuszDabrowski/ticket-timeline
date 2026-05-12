@@ -91,7 +91,7 @@ function fmtDate(iso: string) {
             </div>
           </div>
           <div class="option-action">
-            <button class="btn primary" @click="saveToStorage" :disabled="!projectName.trim()">
+            <button class="btn" @click="saveToStorage" :disabled="!projectName.trim()">
               <template v-if="saveStatus === 'saved'">✓ Saved</template>
               <template v-else-if="saveStatus === 'updated'">✓ Updated</template>
               <template v-else-if="existingProject">Update</template>
@@ -282,12 +282,12 @@ h3 {
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s ease;
 }
 
 .btn:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .btn:disabled {
@@ -297,8 +297,4 @@ h3 {
   outline: none;
 }
 
-.btn.primary {
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  border-color: rgba(0, 0, 0, 0.55);
-}
 </style>

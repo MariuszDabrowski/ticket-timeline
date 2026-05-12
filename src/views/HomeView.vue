@@ -85,6 +85,7 @@ function handleRemovePerson(id: number) {
   tickets.tickets.forEach((t) => {
     if (t.assignedTo === id) tickets.updateTicket(t.id, { assignedTo: null })
   })
+  vacations.removeVacationsForPerson(id)
   people.removePerson(id)
 }
 
@@ -187,15 +188,28 @@ const monthsRowRef = ref<HTMLElement | null>(null)
 
 async function handleExportImage(includeSummary: boolean) {
   if (!monthsRowRef.value) return
-  const summaryEl = monthsRowRef.value.firstElementChild as HTMLElement | null
+  const row = monthsRowRef.value
+  const panel = row.parentElement as HTMLElement
+
+  const summaryEl = row.firstElementChild as HTMLElement | null
   if (!includeSummary && summaryEl) summaryEl.style.display = 'none'
+
+  // Temporarily remove overflow clipping so html-to-image renders the full content width
+  const prevOverflow = panel.style.overflow
+  panel.style.overflow = 'visible'
+
   try {
-    const dataUrl = await toPng(monthsRowRef.value, { pixelRatio: 2 })
+    const dataUrl = await toPng(row, {
+      pixelRatio: 2,
+      width: row.scrollWidth,
+      height: row.scrollHeight,
+    })
     const a = document.createElement('a')
     a.href = dataUrl
     a.download = 'ticket-timeline.png'
     a.click()
   } finally {
+    panel.style.overflow = prevOverflow
     if (!includeSummary && summaryEl) summaryEl.style.display = ''
   }
 }
@@ -208,7 +222,14 @@ function handleHiBobParsed(groups: ICSPersonGroup[]) {
   showHiBob.value = false
 }
 
-function handleHiBobConfirm(matches: { personId: number; group: ICSPersonGroup }[]) {
+function handleHiBobConfirm(
+  matches: { personId: number; group: ICSPersonGroup }[],
+  newPeople: { name: string; group: ICSPersonGroup }[],
+) {
+  for (const { name, group } of newPeople) {
+    const personId = people.addPerson(name)
+    matches.push({ personId, group })
+  }
   vacations.setVacations(
     matches.flatMap(({ personId, group }) =>
       group.events.map((ev) => ({
@@ -246,8 +267,8 @@ function onTicketListDrop(event: DragEvent) {
     <header class="app-header">
       <span class="app-logo">Ticket Timeline</span>
       <div class="header-actions">
-        <button class="header-btn" @click="showImport = true">Import</button>
-        <button class="header-btn" @click="showExport = true">Export</button>
+        <button class="header-btn" @click="showImport = true"><span class="icon">upload</span> Import</button>
+        <button class="header-btn" @click="showExport = true"><span class="icon">download</span> Export</button>
       </div>
     </header>
     <div class="below-header">
@@ -445,7 +466,7 @@ function onTicketListDrop(event: DragEvent) {
     v-if="hibobGroups.length > 0"
     :groups="hibobGroups"
     :people="people.people"
-    @confirm="handleHiBobConfirm"
+    @confirm="(matches, newPeople) => handleHiBobConfirm(matches, newPeople)"
     @cancel="hibobGroups = []"
   />
 </template>
@@ -464,12 +485,12 @@ function onTicketListDrop(event: DragEvent) {
   align-items: center;
   justify-content: space-between;
   height: 52px;
-  padding: 0 1.25rem;
+  padding: 0 1rem;
   flex-shrink: 0;
   background: linear-gradient(90deg, #191919 0%, #2a2a2a 60%, #242424 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 2px 14px rgba(0, 0, 0, 0.3);
+    0 2px 14px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -496,6 +517,9 @@ function onTicketListDrop(event: DragEvent) {
   font-weight: 400;
   letter-spacing: 0.03em;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   border: 1px solid rgba(0, 0, 0, 0.55);
   border-radius: 2px;
   cursor: pointer;
@@ -504,8 +528,13 @@ function onTicketListDrop(event: DragEvent) {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 14px rgba(255, 255, 255, 0.07),
-    0 2px 5px rgba(0, 0, 0, 0.45);
+    0 2px 5px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s ease;
+}
+
+.header-btn .icon {
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .header-btn:hover {
@@ -513,7 +542,7 @@ function onTicketListDrop(event: DragEvent) {
     inset 0 0 0 100px rgba(255, 255, 255, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.13),
     0 0 18px rgba(255, 255, 255, 0.1),
-    0 2px 5px rgba(0, 0, 0, 0.45);
+    0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .below-header {
@@ -560,8 +589,6 @@ section {
 }
 
 .section-header > span:not(.chevron) {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .chevron {
@@ -643,7 +670,7 @@ section {
   color: rgba(255, 255, 255, 0.7);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.2);
+    0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease, color 0.2s ease;
   letter-spacing: 0px;
   line-height: 1;
@@ -653,7 +680,7 @@ section {
   box-shadow:
     inset 0 0 0 100px rgba(255, 255, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.3);
+    0 1px 3px rgba(0, 0, 0, 0.1);
   color: rgba(255, 255, 255, 0.95);
 }
 

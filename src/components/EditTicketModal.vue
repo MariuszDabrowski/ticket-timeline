@@ -211,7 +211,7 @@ button {
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 2px 5px rgba(0, 0, 0, 0.45);
+    0 2px 5px rgba(0, 0, 0, 0.1);
   line-height: 1;
   transition: box-shadow 0.25s ease;
 }
@@ -220,7 +220,7 @@ button:hover {
   box-shadow:
     inset 0 0 0 100px rgba(255, 255, 255, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    0 2px 5px rgba(0, 0, 0, 0.45);
+    0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 button:disabled {
