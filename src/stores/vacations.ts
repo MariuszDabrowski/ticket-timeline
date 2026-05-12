@@ -36,10 +36,18 @@ export const useVacationsStore = defineStore('vacations', () => {
     entries.value = entries.value.filter((e) => e.personId !== personId)
   }
 
+  function addVacations(incoming: Omit<VacationEntry, 'id'>[]) {
+    const affectedIds = new Set(incoming.map((e) => e.personId))
+    entries.value = [
+      ...entries.value.filter((e) => !affectedIds.has(e.personId)),
+      ...incoming.map((e) => ({ ...e, id: nextId++ })),
+    ]
+  }
+
   function loadData(loaded: VacationEntry[]) {
     entries.value = loaded
     nextId = loaded.length > 0 ? Math.max(...loaded.map((e) => e.id)) + 1 : 0
   }
 
-  return { entries, setVacations, clearVacations, getVacationsForMonth, removeVacationsForPerson, loadData }
+  return { entries, setVacations, clearVacations, getVacationsForMonth, removeVacationsForPerson, addVacations, loadData }
 })

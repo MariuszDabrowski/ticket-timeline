@@ -234,7 +234,7 @@ function handleHiBobConfirm(
     matches.push({ personId, group })
   }
   if (newPeople.length > 0) collapsed.value.people = false
-  vacations.setVacations(
+  vacations.addVacations(
     matches.flatMap(({ personId, group }) =>
       group.events.map((ev) => ({
         personId,
