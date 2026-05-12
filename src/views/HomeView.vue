@@ -441,34 +441,45 @@ function onTicketListDrop(event: DragEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 48px;
-  padding: 0 1rem;
-  border-bottom: 1px solid #ccc;
+  height: 52px;
+  padding: 0 1.25rem;
   flex-shrink: 0;
+  background: linear-gradient(90deg, #16161e 0%, #1e1e2a 60%, #1a1a26 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 12px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .app-logo {
-  font-size: 0.95rem;
-  font-weight: bold;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
 }
 
 .header-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .header-btn {
-  padding: 0.3rem 0.75rem;
-  font-size: 0.82rem;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 5px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.75);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .header-btn:hover {
-  background: rgba(128, 128, 128, 0.12);
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .below-header {
