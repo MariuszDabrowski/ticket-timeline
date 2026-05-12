@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+
+const props = defineProps<{ vertical?: boolean }>()
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
@@ -116,7 +118,7 @@ const headline = computed(() => {
 </script>
 
 <template>
-  <div class="summary-tile">
+  <div class="summary-tile" :class="{ sticky: props.vertical }">
     <div class="tile-header">
       <span class="tile-label">Project Brief</span>
     </div>
@@ -196,6 +198,11 @@ const headline = computed(() => {
   gap: 0.75rem;
   align-self: flex-start;
   font-size: 0.85rem;
+}
+
+.summary-tile.sticky {
+  position: sticky;
+  top: 1rem;
 }
 
 

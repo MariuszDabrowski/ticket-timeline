@@ -410,7 +410,7 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <SummaryTile />
+        <SummaryTile :vertical="options.verticalLayout" />
         <div class="months-stack" :class="{ vertical: options.verticalLayout }">
           <MonthCalendar
             v-for="m in sortedMonths"
