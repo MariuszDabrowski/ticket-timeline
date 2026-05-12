@@ -498,7 +498,7 @@ function onDrop(event: DragEvent, day: number) {
 
 <template>
   <div class="month-calendar">
-    <h2>{{ monthName }} <sup class="year-sup">{{ year }}</sup></h2>
+    <h2><span class="month-name">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
       <div v-for="n in startOffset" :key="`empty-${n}`" class="cell" />
@@ -624,8 +624,28 @@ h2 {
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  color: #fff;
   padding: 1.1rem 1.25rem 0.85rem;
+}
+
+.month-name {
+  background: linear-gradient(
+    to right,
+    #b49fea 20%,
+    #6dd5fa 30%,
+    #56bde8 70%,
+    #a98fe8 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+}
+
+@keyframes textShine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 .year-sup {
