@@ -120,7 +120,9 @@ function ticketColor(assignedTo: number | null): string {
 
 const unplacedTickets = computed(() => {
   const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
-  return tickets.tickets.filter((t) => !placedIds.has(t.id))
+  return tickets.tickets
+    .filter((t) => !placedIds.has(t.id))
+    .sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }))
 })
 
 const showUploadEpic = ref(false)
@@ -529,7 +531,7 @@ function onTicketListDrop(event: DragEvent) {
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 14px rgba(255, 255, 255, 0.07),
+    0 0 1px rgba(255, 255, 255, 0.07),
     0 2px 5px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s ease;
 }
@@ -542,8 +544,8 @@ function onTicketListDrop(event: DragEvent) {
 .header-btn:hover {
   box-shadow:
     inset 0 0 0 100px rgba(255, 255, 255, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    0 0 18px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 1px rgba(255, 255, 255, 0.07),
     0 2px 5px rgba(0, 0, 0, 0.1);
 }
 

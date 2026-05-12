@@ -241,10 +241,6 @@ h3 {
   box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.action-btn.primary {
-  background: linear-gradient(180deg, #444 0%, #2a2a2a 100%);
-  border-color: rgba(255, 255, 255, 0.15);
-}
 
 .action-btn.danger {
   background: transparent;
