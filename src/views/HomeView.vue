@@ -35,8 +35,8 @@ const currentAbs = currentYear * 12 + currentMonth
 const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentAbs + i))
 
 // Range of months visible as checkboxes in the sidebar
-const visibleStart = ref(currentYear * 12)        // Jan of current year
-const visibleEnd   = ref(currentYear * 12 + 11)   // Dec of current year
+const visibleStart = ref(currentAbs)              // first pre-selected month
+const visibleEnd   = ref(currentAbs + 3 + 3)     // last pre-selected + 3 unselected
 function absToYearMonth(abs: number) {
   return { year: Math.floor(abs / 12), month: abs % 12 }
 }
@@ -110,8 +110,8 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
 }
 
 function ticketColor(assignedTo: number | null): string {
-  if (assignedTo === null) return '#ccc'
-  return people.people.find((p) => p.id === assignedTo)?.color ?? '#ccc'
+  if (assignedTo === null) return '#555'
+  return people.people.find((p) => p.id === assignedTo)?.color ?? '#555'
 }
 
 const unplacedTickets = computed(() => {
@@ -225,10 +225,10 @@ function onTicketListDrop(event: DragEvent) {
 <template>
   <div class="layout">
     <header class="app-header">
-      <span class="app-logo">📅 Ticket Timeline</span>
+      <span class="app-logo">Ticket Timeline</span>
       <div class="header-actions">
         <button class="header-btn" @click="showImport = true">Import</button>
-        <button class="header-btn header-btn-primary" @click="showExport = true">Export</button>
+        <button class="header-btn" @click="showExport = true">Export</button>
       </div>
     </header>
     <div class="below-header">
@@ -287,7 +287,7 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: collapsed.people }">›</span>
         </button>
         <div v-show="!collapsed.people" class="section-body">
-          <button class="add-btn" @click="showAddPerson = true">+ Add Person</button>
+          <button class="add-btn" @click="showAddPerson = true">Add Person</button>
           <ul class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
               <span class="color-dot" :style="{ background: person.color }" />
@@ -318,12 +318,12 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
         </button>
         <div v-show="!collapsed.sync" class="section-body">
-          <button class="add-btn" @click="showHiBob = true">↓ HiBob Vacation Days</button>
+          <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
           <button
             v-if="vacations.entries.length > 0"
             class="add-btn clear-sync-btn"
             @click="vacations.clearVacations()"
-          >✕ Clear Synced Data</button>
+          >Clear Synced Data</button>
         </div>
       </section>
 
@@ -339,8 +339,8 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: collapsed.tickets }">›</span>
         </button>
         <div v-show="!collapsed.tickets" class="section-body">
-          <button class="add-btn" @click="showAddTicket = true">+ Add Ticket</button>
-          <button class="add-btn" @click="showUploadEpic = true">+ Upload Epic CSV</button>
+          <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
+          <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
           <ol class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span
@@ -444,7 +444,7 @@ function onTicketListDrop(event: DragEvent) {
   height: 52px;
   padding: 0 1.25rem;
   flex-shrink: 0;
-  background: linear-gradient(90deg, #191919 0%, #212121 60%, #1d1d1d 100%);
+  background: linear-gradient(90deg, #191919 0%, #2a2a2a 60%, #242424 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 2px 14px rgba(0, 0, 0, 0.55);
@@ -452,8 +452,8 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .app-logo {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 800;
   color: rgba(255, 255, 255, 0.88);
   letter-spacing: 0.02em;
 }
@@ -464,44 +464,26 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .header-btn {
-  padding: 0.3rem 1rem;
+  padding: 5px 1rem;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.76rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.03em;
   border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 5px;
+  border-radius: 2px;
   cursor: pointer;
-  background: linear-gradient(180deg, #2e2e2e 0%, #1c1c1c 100%);
-  color: rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, #363636 0%, #222222 100%);
+  color: #fff;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 0 10px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 14px rgba(255, 255, 255, 0.07),
     0 2px 5px rgba(0, 0, 0, 0.45);
-  transition: background 0.15s, box-shadow 0.15s, color 0.15s;
+  transition: box-shadow 0.25s ease;
 }
 
 .header-btn:hover {
-  background: linear-gradient(180deg, #383838 0%, #262626 100%);
-  color: rgba(255, 255, 255, 0.88);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 14px rgba(255, 255, 255, 0.07),
-    0 2px 5px rgba(0, 0, 0, 0.45);
-}
-
-.header-btn-primary {
-  background: linear-gradient(180deg, #363636 0%, #222222 100%);
-  color: rgba(255, 255, 255, 0.88);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 14px rgba(255, 255, 255, 0.07),
-    0 2px 5px rgba(0, 0, 0, 0.45);
-}
-
-.header-btn-primary:hover {
-  background: linear-gradient(180deg, #424242 0%, #2c2c2c 100%);
-  color: #fff;
-  box-shadow:
+    inset 0 0 0 100px rgba(255, 255, 255, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.13),
     0 0 18px rgba(255, 255, 255, 0.1),
     0 2px 5px rgba(0, 0, 0, 0.45);
@@ -516,12 +498,17 @@ function onTicketListDrop(event: DragEvent) {
 .sidebar {
   width: 230px;
   flex-shrink: 0;
-  border-right: 1px solid #ccc;
-  padding: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #141414;
+  padding: 0.5rem 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+}
+
+section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0;
 }
 
 .section-header {
@@ -531,24 +518,32 @@ function onTicketListDrop(event: DragEvent) {
   width: 100%;
   background: none;
   border: none;
-  padding: 0;
-  font-size: 0.85rem;
-  font-weight: bold;
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  margin-bottom: 0.5rem;
-  color: inherit;
+  color: rgba(255, 255, 255, 0.75);
+  transition: color 0.15s;
+}
+
+.section-header:hover {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .section-header > span:not(.chevron) {
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .chevron {
-  font-size: 1rem;
+  font-size: 20px;
   line-height: 1;
-  transition: transform 0.15s;
+  transition: transform 0.2s ease;
   transform: rotate(90deg);
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .chevron.rotated {
@@ -558,76 +553,109 @@ function onTicketListDrop(event: DragEvent) {
 .section-body {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .load-more-btn {
   background: none;
   border: none;
-  padding: 0;
-  font-size: 0.78rem;
+  padding: 0.15rem 1rem;
+  font-size: 14px;
   cursor: pointer;
   text-align: left;
-  color: inherit;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.55);
+  width: 100%;
+  transition: color 0.15s;
 }
 
 .load-more-btn:hover {
-  opacity: 1;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .trim-btn {
-  margin-top: 0.25rem;
-  opacity: 0.4;
-  font-style: italic;
 }
 
 .year-label {
-  font-size: 0.72rem;
-  font-weight: bold;
-  opacity: 0.45;
-  margin-top: 0.25rem;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0.4rem 1rem 0.2rem;
   display: block;
 }
 
 .month-option {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
+  gap: 0.5rem;
+  font-size: 14px;
   cursor: pointer;
+  padding: 0.15rem 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.15s, background 0.15s;
+  border-radius: 0;
+}
+
+.month-option:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .add-btn {
-  font-size: 0.85rem;
+  font-size: 14px;
   cursor: pointer;
-  background: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.3rem 0.6rem;
-  width: 100%;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  padding: 10px 0.75rem 8px;
+  margin: 0.15rem 1rem;
+  width: calc(100% - 2rem);
   text-align: left;
-  color: inherit;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s ease, color 0.2s ease;
+  letter-spacing: 0px;
+  line-height: 1;
+}
+
+.add-btn:hover {
+  box-shadow:
+    inset 0 0 0 100px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .people-list {
   list-style: none;
-  margin-top: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  margin-top: 0.4rem;
 }
 
 .person {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 0.6rem;
+  font-size: 14px;
+  padding: 0.15rem 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  transition: background 0.15s, color 0.15s;
+}
+
+.person:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .person-name {
   flex: 1;
   cursor: pointer;
+  border-bottom: 1px solid transparent;
 }
 
 .person-name:hover {
@@ -637,12 +665,15 @@ function onTicketListDrop(event: DragEvent) {
 
 .person-name-input {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: inherit;
   border: none;
-  border-bottom: 1px solid #888;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   background: transparent;
   color: inherit;
   padding: 0;
+  margin: 0;
   outline: none;
   min-width: 0;
 }
@@ -652,12 +683,12 @@ function onTicketListDrop(event: DragEvent) {
   background: none;
   border: none;
   cursor: pointer;
-  color: #999;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 1rem;
   line-height: 1;
   padding: 0 0.1rem;
   opacity: 0;
-  transition: opacity 0.1s, color 0.1s;
+  transition: opacity 0.15s, color 0.15s;
 }
 
 .person:hover .remove-person-btn {
@@ -665,33 +696,50 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .remove-person-btn:hover {
-  color: #c0392b;
+  color: #e74c3c;
 }
 
 .color-dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .ticket-section {
-  border-radius: 4px;
-  transition: background 0.1s, outline 0.1s;
+  transition: background 0.1s;
 }
 
 .ticket-section.drop-target {
-  background: #f0f4ff;
-  outline: 2px dashed #99b;
+  background: rgba(100, 120, 255, 0.08);
+  outline: 1px dashed rgba(150, 150, 255, 0.4);
 }
 
 .ticket-list {
-  list-style: decimal;
+  list-style: none;
+  counter-reset: ticket-counter;
+  padding: 0.25rem 1rem 0.25rem 1rem;
   margin-top: 0.5rem;
-  padding-left: 1.2rem;
   display: flex;
   flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.ticket-list li {
+  display: flex;
+  align-items: center;
   gap: 0.4rem;
+  counter-increment: ticket-counter;
+}
+
+.ticket-list li::before {
+  content: counter(ticket-counter) '.';
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  min-width: 1rem;
+  text-align: right;
 }
 
 .ticket-pill {
@@ -731,10 +779,54 @@ function onTicketListDrop(event: DragEvent) {
 .option {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  gap: 0.5rem;
+  font-size: 14px;
   cursor: pointer;
   user-select: none;
+  padding: 0.15rem 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.15s;
+}
+
+/* Custom checkboxes */
+.option input[type='checkbox'],
+.month-option input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.option input[type='checkbox']:checked,
+.month-option input[type='checkbox']:checked {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.option input[type='checkbox']:checked::after,
+.month-option input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: 2px solid #141414;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.option input[type='checkbox']:hover,
+.month-option input[type='checkbox']:hover {
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .empty {
@@ -744,12 +836,10 @@ function onTicketListDrop(event: DragEvent) {
 }
 
 .clear-sync-btn {
-  color: #c0392b;
-  border-color: #c0392b;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .clear-sync-btn:hover {
-  opacity: 1;
+  color: rgba(231, 76, 60, 0.9);
 }
 </style>
