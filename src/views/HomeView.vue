@@ -12,6 +12,7 @@ import UploadEpicModal from '../components/UploadEpicModal.vue'
 import HiBobModal from '../components/HiBobModal.vue'
 import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
+import AddLabelModal from '../components/AddLabelModal.vue'
 import ExportModal from '../components/ExportModal.vue'
 import ImportModal from '../components/ImportModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
@@ -107,6 +108,23 @@ function commitPersonName() {
 
 const tickets = useTicketsStore()
 const showAddTicket = ref(false)
+const showAddLabel = ref(false)
+const editingLabel = ref<Ticket | null>(null)
+
+function handleAddLabel(text: string, color: string) {
+  tickets.addTicket({ number: '', title: text, assignedTo: null, link: '', isLabel: true, labelColor: color })
+  showAddLabel.value = false
+}
+
+function handleSaveLabel(text: string, color: string) {
+  if (editingLabel.value) tickets.updateTicket(editingLabel.value.id, { title: text, labelColor: color })
+  editingLabel.value = null
+}
+
+function handleDeleteLabel() {
+  if (editingLabel.value) tickets.deleteTicket(editingLabel.value.id)
+  editingLabel.value = null
+}
 
 function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string }) {
   tickets.addTicket(ticket)
@@ -121,8 +139,13 @@ function ticketColor(assignedTo: number | null): string {
 const unplacedTickets = computed(() => {
   const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
   return tickets.tickets
-    .filter((t) => !placedIds.has(t.id))
+    .filter((t) => !t.isLabel && !placedIds.has(t.id))
     .sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }))
+})
+
+const unplacedLabels = computed(() => {
+  const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
+  return tickets.tickets.filter((t) => t.isLabel && !placedIds.has(t.id))
 })
 
 const showUploadEpic = ref(false)
@@ -370,6 +393,7 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
+          <button class="add-btn" @click="showAddLabel = true">Add Label</button>
           <ol class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span
@@ -381,6 +405,17 @@ function onTicketListDrop(event: DragEvent) {
                 @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
               >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+            </li>
+            <li v-for="label in unplacedLabels" :key="label.id">
+              <span
+                class="ticket-pill label-pill"
+                :class="{ dragging: draggingTicketId === label.id }"
+                :style="{ background: label.labelColor }"
+                draggable="true"
+                @click.stop="editingLabel = label"
+                @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
+                @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+              >{{ label.title }}<div class="sidebar-pill-tooltip">{{ label.title }}</div></span>
             </li>
           </ol>
         </div>
@@ -432,6 +467,21 @@ function onTicketListDrop(event: DragEvent) {
     :people="people.people"
     @submit="handleAddTicket"
     @cancel="showAddTicket = false"
+  />
+
+  <AddLabelModal
+    v-if="showAddLabel"
+    @save="handleAddLabel"
+    @delete="() => {}"
+    @cancel="showAddLabel = false"
+  />
+
+  <AddLabelModal
+    v-if="editingLabel"
+    :existing="editingLabel"
+    @save="handleSaveLabel"
+    @delete="handleDeleteLabel"
+    @cancel="editingLabel = null"
   />
 
   <UploadEpicModal

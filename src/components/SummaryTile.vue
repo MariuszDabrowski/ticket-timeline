@@ -22,9 +22,15 @@ function fmtShort(d: CalendarDate): string {
   return `${MONTH_NAMES[d.month]} ${d.day}`
 }
 
-const placedIds = computed(() => new Set(ticketsStore.placements.map((p) => p.ticketId)))
-const totalCount = computed(() => ticketsStore.tickets.length)
-const scheduledCount = computed(() => ticketsStore.placements.length)
+const nonLabelTickets = computed(() => ticketsStore.tickets.filter((t) => !t.isLabel))
+const nonLabelPlacedIds = computed(() => new Set(
+  ticketsStore.placements
+    .filter((p) => nonLabelTickets.value.some((t) => t.id === p.ticketId))
+    .map((p) => p.ticketId)
+))
+const placedIds = nonLabelPlacedIds
+const totalCount = computed(() => nonLabelTickets.value.length)
+const scheduledCount = computed(() => nonLabelPlacedIds.value.size)
 const backlogCount = computed(() => totalCount.value - scheduledCount.value)
 
 const projectStart = computed<CalendarDate | null>(() => {
@@ -59,13 +65,13 @@ interface PersonStat {
 const teamStats = computed<PersonStat[]>(() => {
   const counts = new Map<number | null, number>()
   for (const placement of ticketsStore.placements) {
-    const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
+    const ticket = nonLabelTickets.value.find((t) => t.id === placement.ticketId)
     if (!ticket) continue
     const key = ticket.assignedTo
     counts.set(key, (counts.get(key) ?? 0) + 1)
   }
   // Also count unplaced tickets
-  for (const ticket of ticketsStore.tickets) {
+  for (const ticket of nonLabelTickets.value) {
     if (!placedIds.value.has(ticket.id)) {
       const key = ticket.assignedTo
       counts.set(key, (counts.get(key) ?? 0) + 1)
@@ -110,9 +116,9 @@ const headline = computed(() => {
   parts.push(
     scheduledCount.value === totalCount.value
       ? `All ${totalCount.value} tickets scheduled across ${who}.`
-      : `${scheduledCount.value} of ${totalCount.value} tickets scheduled across ${who}${backlogCount.value > 0 ? `, ${backlogCount.value} in the backlog` : ''}.`
+      : `${scheduledCount.value} of ${totalCount.value} tickets scheduled across ${who}${backlogCount.value > 0 ? `, with ${backlogCount.value} in the backlog` : ''}.`
   )
-  return parts.join(' ')
+  return parts.join('\n')
 })
 </script>
 
@@ -219,6 +225,7 @@ const headline = computed(() => {
   font-size: 14px;
   line-height: 1.55;
   opacity: 0.95;
+  white-space: pre-line;
 }
 
 .divider {
@@ -303,11 +310,11 @@ const headline = computed(() => {
 }
 
 .start-marker {
-  background: #e74c3c;
+  background: #27ae60;
 }
 
 .end-marker {
-  background: #27ae60;
+  background: #e74c3c;
 }
 
 .timeline-line {

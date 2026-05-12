@@ -7,6 +7,8 @@ export interface Ticket {
   title: string
   assignedTo: number | null
   link: string
+  isLabel?: boolean
+  labelColor?: string
 }
 
 export interface CalendarDate {

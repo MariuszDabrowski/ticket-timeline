@@ -10,6 +10,7 @@ import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
+import AddLabelModal from './AddLabelModal.vue'
 import DayMarkerModal from './DayMarkerModal.vue'
 
 const props = defineProps<{
@@ -97,6 +98,7 @@ const holidayMap = computed(() => {
 
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
+const editingLabel = ref<Ticket | null>(null)
 const dayMarkers = useDayMarkersStore()
 const markerDay = ref<number | null>(null)
 
@@ -128,9 +130,10 @@ function spanInDays(start: CalendarDate, end: CalendarDate): number {
   )
 }
 
-function ticketColor(assignedTo: number | null): string {
-  if (assignedTo === null) return '#555'
-  return peopleStore.people.find((p) => p.id === assignedTo)?.color ?? '#555'
+function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
+  if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
+  if (ticket.assignedTo === null) return '#555'
+  return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.color ?? '#555'
 }
 
 function effectivePlacement(placement: Placement): Placement {
@@ -531,9 +534,9 @@ function onDrop(event: DragEvent, day: number) {
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
               }"
-              :style="{ background: ticketColor(info.ticket.assignedTo) }"
+              :style="{ background: ticketColor(info.ticket) }"
               draggable="true"
-              @click.stop="editingTicket = info.ticket"
+              @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
               @dragstart="onTicketDragStart($event, info)"
               @dragend="dragState.clearMoveDrag"
             >
@@ -586,6 +589,14 @@ function onDrop(event: DragEvent, day: number) {
     @submit="handleEditSubmit"
     @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
+  />
+
+  <AddLabelModal
+    v-if="editingLabel"
+    :existing="editingLabel"
+    @save="(text, color) => { ticketsStore.updateTicket(editingLabel!.id, { title: text, labelColor: color }); editingLabel = null }"
+    @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); editingLabel = null }"
+    @cancel="editingLabel = null"
   />
 
   <DayMarkerModal
