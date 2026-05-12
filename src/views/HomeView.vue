@@ -459,7 +459,7 @@ function onTicketListDrop(event: DragEvent) {
   z-index: 1;
   font-size: 20px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
   letter-spacing: 0.02em;
 }
 
@@ -532,12 +532,12 @@ section {
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
   transition: color 0.15s;
 }
 
 .section-header:hover {
-  color: rgba(255, 255, 255, 0.95);
+  color: #fff;
 }
 
 .section-header > span:not(.chevron) {
