@@ -29,8 +29,8 @@ function onKeydown(event: KeyboardEvent) {
     ) ?? []
   )
   if (focusable.length === 0) return
-  const first = focusable[0]
-  const last = focusable[focusable.length - 1]
+  const first = focusable[0]!
+  const last = focusable[focusable.length - 1]!
   if (event.shiftKey && document.activeElement === first) {
     event.preventDefault(); last.focus()
   } else if (!event.shiftKey && document.activeElement === last) {

@@ -24,7 +24,7 @@ export function parseICS(content: string): ICSVacationEvent[] {
     const summary = block.match(/SUMMARY:([^\r\n]+)/)?.[1]?.trim() ?? ''
     if (!summary.includes('Out of Office')) continue
 
-    const personName = summary.split(' - Out of Office')[0].trim()
+    const personName = summary.split(' - Out of Office')[0]!.trim()
     if (!personName) continue
 
     const dtstart = block.match(/DTSTART(?:[^:]*):([^\r\n]+)/)?.[1]?.trim() ?? ''
