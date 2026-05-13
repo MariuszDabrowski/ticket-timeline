@@ -1,5 +1,6 @@
 import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
+import { compareCalendarDates } from '../stores/tickets'
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
@@ -45,7 +46,7 @@ function parseCSV(text: string): string[][] {
   return rows
 }
 
-function parseCompletedDate(str: string): { year: number; month: number; day: number } | null {
+function parseDate(str: string): { year: number; month: number; day: number } | null {
   const match = str.match(/^(\d{4})\/(\d{2})\/(\d{2})/)
   if (!match) return null
   return { year: +match[1]!, month: +match[2]! - 1, day: +match[3]! }
@@ -73,6 +74,7 @@ export function importEpicCSV(
   const nameIdx = header.indexOf('name')
   const ownersIdx = header.indexOf('owners')
   const completedIdx = header.indexOf('is_completed')
+  const startedAtIdx = header.indexOf('started_at')
   const completedAtIdx = header.indexOf('completed_at')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
@@ -115,11 +117,16 @@ export function importEpicCSV(
     })
 
     const isCompleted = (row[completedIdx] ?? '').toLowerCase() === 'true'
-    const completedDate = completedAtIdx !== -1
-      ? parseCompletedDate(row[completedAtIdx] ?? '')
-      : null
+    const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
+    const completedDate = completedAtIdx !== -1 ? parseDate(row[completedAtIdx] ?? '') : null
     if (isCompleted && completedDate) {
-      ticketsStore.placeTicket(ticketId, completedDate)
+      const startDate = startedDate && compareCalendarDates(startedDate, completedDate) <= 0
+        ? startedDate
+        : completedDate
+      ticketsStore.placeTicket(ticketId, startDate)
+      if (compareCalendarDates(startDate, completedDate) !== 0) {
+        ticketsStore.moveTicket(ticketId, startDate, completedDate)
+      }
     }
   }
 }
