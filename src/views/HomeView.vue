@@ -669,6 +669,10 @@ section {
   color: #fff;
 }
 
+.section-header::after {
+  display: none;
+}
+
 .section-header > span:not(.chevron) {
   text-decoration: underline;
   text-decoration-color: transparent;
