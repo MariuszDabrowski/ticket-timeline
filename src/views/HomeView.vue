@@ -311,8 +311,8 @@ function onTicketListDrop(event: DragEvent) {
         Ticket Timeline
       </span>
       <div class="header-actions">
-        <button class="header-btn" @click="showImport = true"><span class="icon">upload</span> Import</button>
-        <button class="header-btn" @click="showExport = true"><span class="icon">download</span> Export</button>
+        <button class="header-btn" @click="showImport = true">Import</button>
+        <button class="header-btn" @click="showExport = true">Export</button>
       </div>
     </header>
     <div class="below-header">
