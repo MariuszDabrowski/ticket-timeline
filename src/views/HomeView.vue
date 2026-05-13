@@ -662,7 +662,7 @@ section {
   border: none;
   padding: 0.5rem 1rem;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
