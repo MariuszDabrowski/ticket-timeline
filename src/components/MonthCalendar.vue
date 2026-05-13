@@ -944,7 +944,7 @@ h2 {
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
-  transition: background 0.15s, opacity 0.1s;
+  transition: background 0.15s, opacity 0.35s ease;
 }
 
 .ticket-pill.is-hovered {

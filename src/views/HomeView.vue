@@ -521,7 +521,7 @@ function onTicketListDrop(event: DragEvent) {
                     />
                     <span class="filter-dot" :style="{ background: person.color }" />
                     <span class="filter-name" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
-                    <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
+                    <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.3 : 0.8 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
                   </label>
                 </template>
                 <template v-if="ticketStates.length > 0">
@@ -534,7 +534,7 @@ function onTicketListDrop(event: DragEvent) {
                       @change="options.toggleStateVisibility(state)"
                     />
                     <span class="filter-name" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
-                    <span class="filter-count" :style="{ opacity: !calendarCountByState.get(state) ? 0.25 : 0.45 }">{{ calendarCountByState.get(state) ?? 0 }}</span>
+                    <span class="filter-count" :style="{ opacity: !calendarCountByState.get(state) ? 0.3 : 0.8 }">{{ calendarCountByState.get(state) ?? 0 }}</span>
                   </label>
                 </template>
               </template>
@@ -1139,12 +1139,13 @@ section {
 
 .filter-group-label {
   display: block;
-  font-size: 0.68rem;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.45;
-  padding: 0 1rem 0.2rem;
+  letter-spacing: 0.05em;
+  color: #fff;
+  padding: 0 1rem;
+  margin-bottom: 0.35rem;
 }
 
 .filter-option {
@@ -1155,13 +1156,13 @@ section {
   cursor: pointer;
   user-select: none;
   padding: 0.15rem 1rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.9);
   transition: color 0.15s;
 }
 
 .filter-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1171,8 +1172,8 @@ section {
 }
 
 .filter-count {
-  font-size: 11px;
-  opacity: 0.45;
+  font-size: 13px;
+  opacity: 0.8;
   flex-shrink: 0;
 }
 
