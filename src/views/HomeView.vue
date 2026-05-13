@@ -1097,7 +1097,7 @@ section {
 .filter-divider {
   height: 1px;
   background: rgba(128, 128, 128, 0.2);
-  margin-bottom: 0.35rem;
+  margin: 0.5rem 1rem 0.75rem;
 }
 
 /* Custom checkboxes */
