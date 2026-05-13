@@ -210,23 +210,27 @@ const ticketStates = computed(() => {
   return [...seen].sort()
 })
 
-const placedTicketCountByPerson = computed(() => {
+const calendarCountByPerson = computed(() => {
   const counts = new Map<number, number>()
-  for (const ticket of tickets.tickets) {
-    if (ticket.isLabel || ticket.assignedTo === null) continue
+  for (const placement of tickets.placements) {
+    const ticket = tickets.tickets.find((t) => t.id === placement.ticketId)
+    if (!ticket || ticket.isLabel || ticket.assignedTo === null) continue
     counts.set(ticket.assignedTo, (counts.get(ticket.assignedTo) ?? 0) + 1)
   }
   return counts
 })
 
-const placedTicketCountByState = computed(() => {
+const calendarCountByState = computed(() => {
   const counts = new Map<string, number>()
-  for (const ticket of tickets.tickets) {
-    if (ticket.isLabel || !ticket.state) continue
+  for (const placement of tickets.placements) {
+    const ticket = tickets.tickets.find((t) => t.id === placement.ticketId)
+    if (!ticket || ticket.isLabel || !ticket.state) continue
     counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1)
   }
   return counts
 })
+
+const hasCalendarTickets = computed(() => tickets.placements.length > 0)
 
 const openPanel = ref<'brief' | 'filters' | null>('brief')
 function togglePanel(key: 'brief' | 'filters') {
@@ -503,35 +507,38 @@ function onTicketListDrop(event: DragEvent) {
               <span class="panel-chevron" :class="{ rotated: openPanel === 'filters' }">›</span>
             </button>
             <div v-show="openPanel === 'filters'" class="panel-body panel-body--filters">
-              <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
-              <div class="filter-divider" />
-              <template v-if="people.people.length > 0">
-                <span class="filter-group-label">People</span>
-                <label v-for="person in people.people" :key="person.id" class="filter-option">
-                  <input
-                    type="checkbox"
-                    :checked="!!placedTicketCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
-                    :disabled="!placedTicketCountByPerson.get(person.id)"
-                    @change="options.togglePersonVisibility(person.id)"
-                  />
-                  <span class="filter-dot" :style="{ background: person.color }" />
-                  <span class="filter-name" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
-                  <span class="filter-count" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ placedTicketCountByPerson.get(person.id) ?? 0 }}</span>
-                </label>
+              <template v-if="hasCalendarTickets">
+                <p class="filter-hint">Uncheck items to hide their tickets from the calendar. Counts reflect tickets currently on the calendar.</p>
+                <div class="filter-divider" />
+                <template v-if="people.people.length > 0">
+                  <span class="filter-group-label">People</span>
+                  <label v-for="person in people.people" :key="person.id" class="filter-option">
+                    <input
+                      type="checkbox"
+                      :checked="!!calendarCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
+                      :disabled="!calendarCountByPerson.get(person.id)"
+                      @change="options.togglePersonVisibility(person.id)"
+                    />
+                    <span class="filter-dot" :style="{ background: person.color }" />
+                    <span class="filter-name" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
+                    <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
+                  </label>
+                </template>
+                <template v-if="ticketStates.length > 0">
+                  <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
+                  <label v-for="state in ticketStates" :key="state" class="filter-option">
+                    <input
+                      type="checkbox"
+                      :checked="!!calendarCountByState.get(state) && !options.hiddenStates.has(state)"
+                      :disabled="!calendarCountByState.get(state)"
+                      @change="options.toggleStateVisibility(state)"
+                    />
+                    <span class="filter-name" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
+                    <span class="filter-count" :style="{ opacity: !calendarCountByState.get(state) ? 0.25 : 0.45 }">{{ calendarCountByState.get(state) ?? 0 }}</span>
+                  </label>
+                </template>
               </template>
-              <template v-if="ticketStates.length > 0">
-                <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
-                <label v-for="state in ticketStates" :key="state" class="filter-option">
-                  <input
-                    type="checkbox"
-                    :checked="!!placedTicketCountByState.get(state) && !options.hiddenStates.has(state)"
-                    :disabled="!placedTicketCountByState.get(state)"
-                    @change="options.toggleStateVisibility(state)"
-                  />
-                  <span class="filter-name" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
-                  <span class="filter-count" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.25 : 0.45 }">{{ placedTicketCountByState.get(state) ?? 0 }}</span>
-                </label>
-              </template>
+              <p v-else class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
             </div>
           </div>
 
@@ -1171,6 +1178,10 @@ section {
   opacity: 0.4;
   padding: 0 1rem 0.35rem;
   line-height: 1.4;
+}
+
+.filter-hint--empty {
+  padding-bottom: 0.5rem;
 }
 
 .filter-divider {
