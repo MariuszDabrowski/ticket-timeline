@@ -1,1 +1,21 @@
 @import './base.css';
+
+/* Global button hover fade via ::after overlay — works on any gradient background */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  transition: background 0.2s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+button:hover:not(:disabled)::after {
+  background: rgba(255, 255, 255, 0.07);
+}

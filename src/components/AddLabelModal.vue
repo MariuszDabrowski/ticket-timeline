@@ -180,10 +180,6 @@ button {
   transition: box-shadow 0.25s ease;
 }
 
-button:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 button:disabled {
   opacity: 0.4;
   cursor: default;
@@ -197,7 +193,4 @@ button:disabled {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.delete-btn:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 </style>

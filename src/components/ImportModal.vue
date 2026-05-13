@@ -239,9 +239,6 @@ h3 {
   transition: box-shadow 0.25s ease;
 }
 
-.action-btn:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
 
 .action-btn.danger {
@@ -295,9 +292,6 @@ h3 {
   transition: box-shadow 0.25s ease;
 }
 
-.file-btn:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
 .file-btn input {
   display: none;
@@ -329,7 +323,4 @@ h3 {
   transition: box-shadow 0.25s ease;
 }
 
-.btn:hover {
-  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 </style>
