@@ -1008,4 +1008,24 @@ section {
     padding-left: 2rem;
   }
 }
+
+@media (max-width: 920px) {
+  .below-header {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-y: visible;
+  }
+
+  .panel {
+    overflow: visible;
+    flex: none;
+  }
+}
 </style>
