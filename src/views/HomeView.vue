@@ -67,7 +67,7 @@ const sortedMonths = computed(() =>
 
 const collapsed = ref<Record<string, boolean>>({
   options: true,
-  months: false,
+  months: true,
   people: true,
   tickets: true,
   labels: true,
