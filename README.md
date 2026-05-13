@@ -4,7 +4,7 @@ A visual planning tool for mapping tickets and vacations across a calendar. Buil
 
 ## Features
 
-- **Calendar view** — display multiple months side by side or stacked vertically
+- **Calendar view** — display multiple months stacked vertically, with selectable month range
 - **Tickets** — drag tickets from the sidebar onto calendar days, resize them across weeks, and edit details (number, title, assignee, link)
 - **Labels** — color-coded spans for marking milestones or phases, separate from ticket stats
 - **People** — add team members with custom colors; assignments are reflected in ticket pill colors
