@@ -1264,10 +1264,12 @@ section {
     margin: 0;
     position: static;
     order: -1;
+    padding: 0 2rem;
   }
 
   .panel-section {
     border: none;
+    border-radius: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
@@ -1303,6 +1305,10 @@ section {
   .panel {
     overflow: visible;
     flex: none;
+  }
+
+  .summary-column {
+    padding: 0;
   }
 
   .months-stack {

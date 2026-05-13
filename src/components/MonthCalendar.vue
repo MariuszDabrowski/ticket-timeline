@@ -558,6 +558,7 @@ function onDrop(event: DragEvent, day: number) {
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
                 'is-hovered': dragState.hoveredTicketId === info.ticket.id,
+                'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
               }"
               :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
@@ -933,44 +934,50 @@ h2 {
   background: var(--tc) !important;
 }
 
+.ticket-pill.is-dimmed {
+  opacity: 0.25;
+}
+
 .ticket-pill.is-start.is-hovered::before {
   content: 'S';
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
-  right: calc(100% + 3px);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 15px;
-  height: 15px;
+  right: calc(100% + 2px);
+  top: 0;
+  width: 1.4rem;
+  height: 1.4rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  font-size: 8px;
-  font-weight: 800;
+  background: var(--tc);
+  border: 2px solid #fff;
+  font-size: 9px;
+  font-weight: 900;
   color: #fff;
-  text-align: center;
-  line-height: 12px;
   pointer-events: none;
   z-index: 5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .ticket-pill.is-end.is-hovered::after {
   content: 'F';
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
-  left: calc(100% + 3px);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 15px;
-  height: 15px;
+  left: calc(100% + 2px);
+  top: 0;
+  width: 1.4rem;
+  height: 1.4rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  font-size: 8px;
-  font-weight: 800;
+  background: var(--tc);
+  border: 2px solid #fff;
+  font-size: 9px;
+  font-weight: 900;
   color: #fff;
-  text-align: center;
-  line-height: 12px;
   pointer-events: none;
   z-index: 5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .ticket-pill:active {
