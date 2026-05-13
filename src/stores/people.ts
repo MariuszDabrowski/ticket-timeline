@@ -24,10 +24,10 @@ export const usePeopleStore = defineStore('people', () => {
   const people = ref<Person[]>([])
   let nextId = 0
 
-  function addPerson(name: string): number {
+  function addPerson(name: string, color?: string): number {
     const id = nextId++
-    const color = COLORS[people.value.length % COLORS.length]!
-    people.value.push({ id, name, color })
+    const assignedColor = color ?? COLORS[people.value.length % COLORS.length]!
+    people.value.push({ id, name, color: assignedColor })
     return id
   }
 
@@ -36,9 +36,13 @@ export const usePeopleStore = defineStore('people', () => {
     if (idx !== -1) people.value.splice(idx, 1)
   }
 
-  function updatePersonName(id: number, name: string) {
+  function updatePerson(id: number, data: { name?: string; color?: string }) {
     const person = people.value.find((p) => p.id === id)
-    if (person) person.name = name
+    if (person) Object.assign(person, data)
+  }
+
+  function updatePersonName(id: number, name: string) {
+    updatePerson(id, { name })
   }
 
   function loadData(loaded: Person[]) {
@@ -46,5 +50,5 @@ export const usePeopleStore = defineStore('people', () => {
     nextId = loaded.length > 0 ? Math.max(...loaded.map((p) => p.id)) + 1 : 0
   }
 
-  return { people, addPerson, removePerson, updatePersonName, loadData }
+  return { people, addPerson, removePerson, updatePerson, updatePersonName, loadData }
 })

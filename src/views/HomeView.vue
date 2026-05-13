@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, toRaw } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -23,7 +23,6 @@ import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
 
-const vFocus = { mounted: (el: HTMLElement) => nextTick(() => el.focus()) }
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -77,11 +76,22 @@ const collapsed = ref<Record<string, boolean>>({
 
 const people = usePeopleStore()
 const showAddPerson = ref(false)
+const editingPerson = ref<typeof people.people[0] | null>(null)
 
-function handleAddPerson(name: string) {
-  people.addPerson(name)
+function handleAddPerson(name: string, color: string) {
+  people.addPerson(name, color)
   showAddPerson.value = false
   collapsed.value.people = false
+}
+
+function handleEditPersonSave(name: string, color: string) {
+  if (editingPerson.value) people.updatePerson(editingPerson.value.id, { name, color })
+  editingPerson.value = null
+}
+
+function handleEditPersonDelete() {
+  if (editingPerson.value) handleRemovePerson(editingPerson.value.id)
+  editingPerson.value = null
 }
 
 function handleRemovePerson(id: number) {
@@ -90,21 +100,6 @@ function handleRemovePerson(id: number) {
   })
   vacations.removeVacationsForPerson(id)
   people.removePerson(id)
-}
-
-const editingPersonId = ref<number | null>(null)
-const editingPersonName = ref('')
-
-function startEditingPerson(id: number, name: string) {
-  editingPersonId.value = id
-  editingPersonName.value = name
-}
-
-function commitPersonName() {
-  if (editingPersonId.value !== null && editingPersonName.value.trim()) {
-    people.updatePersonName(editingPersonId.value, editingPersonName.value.trim())
-  }
-  editingPersonId.value = null
 }
 
 const tickets = useTicketsStore()
@@ -359,20 +354,9 @@ function onTicketListDrop(event: DragEvent) {
           <ul v-if="people.people.length > 0" class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
               <span class="color-dot" :style="{ background: person.color }" />
-              <input
-                v-if="editingPersonId === person.id"
-                class="person-name-input"
-                v-model="editingPersonName"
-                @blur="commitPersonName"
-                @keydown.enter="commitPersonName"
-                @keydown.escape="editingPersonId = null"
-                v-focus
-              />
               <span
-                v-else
                 class="person-name"
-                title="Click to rename"
-                @click="startEditingPerson(person.id, person.name)"
+                @click="editingPerson = person"
               >{{ person.name }}</span>
               <button class="remove-person-btn" @click="handleRemovePerson(person.id)" title="Remove person">×</button>
             </li>
@@ -472,6 +456,14 @@ function onTicketListDrop(event: DragEvent) {
     v-if="showAddPerson"
     @submit="handleAddPerson"
     @cancel="showAddPerson = false"
+  />
+
+  <AddUserModal
+    v-if="editingPerson"
+    :existing="editingPerson"
+    @submit="handleEditPersonSave"
+    @delete="handleEditPersonDelete"
+    @cancel="editingPerson = null"
   />
 
   <AddTicketModal
@@ -782,20 +774,6 @@ section {
 .person-name:hover {
 }
 
-.person-name-input {
-  flex: 1;
-  font-size: 14px;
-  font-family: inherit;
-  line-height: inherit;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  min-width: 0;
-}
 
 .remove-person-btn {
   flex-shrink: 0;

@@ -1,57 +1,76 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import type { Person } from '../stores/people'
+
+const props = defineProps<{
+  existing?: Person
+}>()
 
 const emit = defineEmits<{
-  submit: [name: string]
+  submit: [name: string, color: string]
+  delete: []
   cancel: []
 }>()
 
-const name = ref('')
-const modalRef = ref<HTMLElement | null>(null)
+const COLORS = [
+  '#e74c3c',
+  '#3498db',
+  '#2ecc71',
+  '#f39c12',
+  '#9b59b6',
+  '#1abc9c',
+  '#e67e22',
+  '#e91e63',
+  '#00bcd4',
+  '#8bc34a',
+]
 
-onMounted(() => {
-  modalRef.value?.querySelector<HTMLElement>('input, select, button')?.focus()
-})
+const name = ref(props.existing?.name ?? '')
+const selectedColor = ref(props.existing?.color ?? COLORS[0]!)
 
 function handleSubmit() {
   const trimmed = name.value.trim()
   if (!trimmed) return
-  emit('submit', trimmed)
-  name.value = ''
-}
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') { emit('cancel'); return }
-  if (event.key !== 'Tab') return
-  const focusable = Array.from(
-    modalRef.value?.querySelectorAll<HTMLElement>(
-      'input:not([disabled]), select:not([disabled]), button:not([disabled])'
-    ) ?? []
-  )
-  if (focusable.length === 0) return
-  const first = focusable[0]!
-  const last = focusable[focusable.length - 1]!
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault(); last.focus()
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault(); first.focus()
-  }
+  emit('submit', trimmed, selectedColor.value)
 }
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="modalRef" @keydown="onKeydown">
-      <h3>Add Person</h3>
-      <input
-        v-model="name"
-        type="text"
-        placeholder="Name"
-        @keydown.enter.prevent="handleSubmit"
-      />
+    <div class="modal" @keydown.escape.prevent="emit('cancel')">
+      <h3>{{ props.existing ? 'Edit Person' : 'Add Person' }}</h3>
+
+      <div class="field">
+        <label>Name</label>
+        <input
+          v-model="name"
+          type="text"
+          placeholder="Name"
+          @keydown.enter.prevent="handleSubmit"
+          autofocus
+        />
+      </div>
+
+      <div class="field">
+        <label>Color</label>
+        <div class="swatches">
+          <button
+            v-for="color in COLORS"
+            :key="color"
+            class="swatch"
+            :style="{ background: color }"
+            :class="{ selected: selectedColor === color }"
+            @click="selectedColor = color"
+          />
+        </div>
+      </div>
+
       <div class="actions">
-        <button @click="emit('cancel')">Cancel</button>
-        <button @click="handleSubmit" :disabled="!name.trim()">Add</button>
+        <button v-if="props.existing" class="delete-btn" @click="emit('delete')">Delete</button>
+        <div class="actions-right">
+          <button @click="emit('cancel')">Cancel</button>
+          <button @click="handleSubmit" :disabled="!name.trim()">{{ props.existing ? 'Save' : 'Add' }}</button>
+        </div>
       </div>
     </div>
   </div>
@@ -75,8 +94,8 @@ function onKeydown(event: KeyboardEvent) {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  width: 340px;
+  gap: 1.25rem;
+  width: 420px;
   max-width: calc(100vw - 2rem);
 }
 
@@ -90,17 +109,59 @@ h3 {
   text-underline-offset: 3px;
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.swatch {
+  width: 1.6rem;
+  height: 1.6rem;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.swatch:hover {
+  transform: scale(1.15);
+}
+
+.swatch.selected {
+  border-color: #fff;
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 1px;
+}
+
 input {
   padding: 0.45rem 0.65rem;
   font-size: 14px;
   font-family: inherit;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 5px;
-  width: 100%;
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
   outline: none;
   transition: border-color 0.15s;
+  width: 100%;
 }
 
 input:focus {
@@ -109,8 +170,14 @@ input:focus {
 
 .actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actions-right {
+  display: flex;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 button {
@@ -136,5 +203,17 @@ button:hover {
 button:disabled {
   opacity: 0.35;
   cursor: default;
+  pointer-events: none;
+}
+
+.delete-btn {
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
+  border-color: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.delete-btn:hover {
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 </style>
