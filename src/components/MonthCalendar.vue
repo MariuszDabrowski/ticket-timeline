@@ -149,8 +149,8 @@ function assignedName(ticket: Ticket): string {
 
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
   if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
-  if (ticket.assignedTo === null) return '#555'
-  return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.color ?? '#555'
+  if (ticket.assignedTo === null) return '#555555'
+  return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.color ?? '#555555'
 }
 
 function effectivePlacement(placement: Placement): Placement {
@@ -450,9 +450,11 @@ function darkenColor(hex: string, amount: number): string {
 }
 
 function withAlpha(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
+  let h = hex.startsWith('#') ? hex.slice(1) : hex
+  if (h.length === 3) h = h[0]!+h[0]+h[1]!+h[1]+h[2]!+h[2]
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
@@ -967,9 +969,10 @@ h2 {
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 900;
   color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   pointer-events: none;
   z-index: 5;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
