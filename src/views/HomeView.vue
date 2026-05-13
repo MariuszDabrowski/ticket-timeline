@@ -210,6 +210,27 @@ const ticketStates = computed(() => {
   return [...seen].sort()
 })
 
+const placedTicketCountByPerson = computed(() => {
+  const counts = new Map<number, number>()
+  for (const p of tickets.placements) {
+    const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
+    if (!ticket || ticket.isLabel) continue
+    const key = ticket.assignedTo
+    if (key !== null) counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return counts
+})
+
+const placedTicketCountByState = computed(() => {
+  const counts = new Map<string, number>()
+  for (const p of tickets.placements) {
+    const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
+    if (!ticket || ticket.isLabel || !ticket.state) continue
+    counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1)
+  }
+  return counts
+})
+
 const vacations = useVacationsStore()
 const showExport = ref(false)
 const showImport = ref(false)
@@ -477,7 +498,8 @@ function onTicketListDrop(event: DragEvent) {
                 @change="options.togglePersonVisibility(person.id)"
               />
               <span class="filter-dot" :style="{ background: person.color }" />
-              {{ person.name }}
+              <span class="filter-name">{{ person.name }}</span>
+              <span v-if="placedTicketCountByPerson.get(person.id)" class="filter-count">{{ placedTicketCountByPerson.get(person.id) }}</span>
             </label>
           </template>
           <template v-if="ticketStates.length > 0">
@@ -492,7 +514,8 @@ function onTicketListDrop(event: DragEvent) {
                 :checked="!options.hiddenStates.has(state)"
                 @change="options.toggleStateVisibility(state)"
               />
-              {{ state }}
+              <span class="filter-name">{{ state }}</span>
+              <span v-if="placedTicketCountByState.get(state)" class="filter-count">{{ placedTicketCountByState.get(state) }}</span>
             </label>
           </template>
           <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
@@ -1048,6 +1071,16 @@ section {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.filter-name {
+  flex: 1;
+}
+
+.filter-count {
+  font-size: 11px;
+  opacity: 0.45;
   flex-shrink: 0;
 }
 
