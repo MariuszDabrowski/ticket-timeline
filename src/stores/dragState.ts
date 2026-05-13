@@ -43,8 +43,11 @@ export const useDragStateStore = defineStore('dragState', () => {
     resizePreviewDate.value = null
   }
 
+  const hoveredTicketId = ref<number | null>(null)
+
   return {
     moveDrag, movePreviewDate, startMoveDrag, updateMovePreview, clearMoveDrag,
     resizeDrag, resizePreviewDate, startResizeDrag, updateResizePreview, clearResizeDrag,
+    hoveredTicketId,
   }
 })

@@ -557,9 +557,12 @@ function onDrop(event: DragEvent, day: number) {
                 'is-preview': info.isPreview,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
+                'is-hovered': dragState.hoveredTicketId === info.ticket.id,
               }"
               :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
+              @mouseenter="dragState.hoveredTicketId = info.ticket.id"
+              @mouseleave="dragState.hoveredTicketId = null"
               @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
               @dragstart="onTicketDragStart($event, info)"
               @dragend="dragState.clearMoveDrag"
@@ -858,12 +861,12 @@ h2 {
 .vacation-pill.row-end::after {
   content: '';
   position: absolute;
-  right: -0.45rem;
+  right: -0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 0.7rem;
+  width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50%;
+  border-radius: 0 50% 50% 0;
   background: var(--vac-color);
   z-index: 1;
 }
@@ -871,12 +874,12 @@ h2 {
 .vacation-pill.row-start::before {
   content: '';
   position: absolute;
-  left: -0.45rem;
+  left: -0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 0.7rem;
+  width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50%;
+  border-radius: 50% 0 0 50%;
   background: #1a1a1a;
   z-index: 1;
 }
@@ -926,7 +929,7 @@ h2 {
   transition: background 0.15s, opacity 0.1s;
 }
 
-.ticket-pill:hover {
+.ticket-pill.is-hovered {
   background: var(--tc) !important;
 }
 
@@ -1001,12 +1004,12 @@ h2 {
 .ticket-pill.row-end::after {
   content: '';
   position: absolute;
-  right: -0.45rem;
+  right: -0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 0.7rem;
+  width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50%;
+  border-radius: 0 50% 50% 0;
   background: inherit;
   z-index: 1;
 }
@@ -1018,12 +1021,12 @@ h2 {
 .ticket-pill.row-start::before {
   content: '';
   position: absolute;
-  left: -0.45rem;
+  left: -0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 0.7rem;
+  width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50%;
+  border-radius: 50% 0 0 50%;
   background: #1a1a1a;
   z-index: 1;
 }

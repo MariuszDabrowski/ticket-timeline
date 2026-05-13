@@ -501,7 +501,7 @@ function onTicketListDrop(event: DragEvent) {
           <div class="months-row-end" />
         </div>
         <div class="summary-column">
-          <div v-if="people.people.length > 0 || ticketStates.length > 0" class="panel-section">
+          <div class="panel-section">
             <button class="panel-header" @click="togglePanel('filters')">
               <span>Filters</span>
               <span class="panel-chevron" :class="{ rotated: openPanel === 'filters' }">›</span>
@@ -538,7 +538,8 @@ function onTicketListDrop(event: DragEvent) {
                   </label>
                 </template>
               </template>
-              <p v-else class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
+              <p v-else-if="people.people.length > 0 || ticketStates.length > 0" class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
+              <p v-else class="filter-hint filter-hint--empty">Add tickets to the calendar to get started.</p>
             </div>
           </div>
 
