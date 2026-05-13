@@ -460,6 +460,7 @@ function onTicketListDrop(event: DragEvent) {
 
   <AddUserModal
     v-if="editingPerson"
+    :key="`edit-person-${editingPerson.id}`"
     :existing="editingPerson"
     @submit="handleEditPersonSave"
     @delete="handleEditPersonDelete"

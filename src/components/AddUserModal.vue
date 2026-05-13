@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { Person } from '../stores/people'
 
 const props = defineProps<{
@@ -25,8 +25,17 @@ const COLORS = [
   '#8bc34a',
 ]
 
-const name = ref(props.existing?.name ?? '')
-const selectedColor = ref(props.existing?.color ?? COLORS[0]!)
+const name = ref('')
+const selectedColor = ref(COLORS[0]!)
+
+watch(
+  () => props.existing,
+  (existing) => {
+    name.value = existing?.name ?? ''
+    selectedColor.value = existing?.color ?? COLORS[0]!
+  },
+  { immediate: true },
+)
 
 function handleSubmit() {
   const trimmed = name.value.trim()
