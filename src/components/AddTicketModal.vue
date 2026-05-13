@@ -76,7 +76,7 @@ function handleSubmit() {
         <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field">
+      <div class="field schedule-field">
         <label>Schedule <span class="label-hint">— optional</span></label>
         <div class="date-row">
           <input v-model="startDateStr" type="date" />
@@ -196,6 +196,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .date-error {
   font-size: 12px;
   color: #e74c3c;
+}
+
+.schedule-field {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .schedule-field {
+    display: flex;
+  }
 }
 
 .actions {

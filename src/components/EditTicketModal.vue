@@ -92,7 +92,7 @@ function handleSubmit() {
         <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field">
+      <div class="field schedule-field">
         <div class="schedule-label-row">
           <label>Schedule</label>
           <button v-if="startDateStr || endDateStr" type="button" class="clear-btn" @click="clearDates">
@@ -262,6 +262,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .date-error {
   font-size: 12px;
   color: #e74c3c;
+}
+
+.schedule-field {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .schedule-field {
+    display: flex;
+  }
 }
 
 .actions {
