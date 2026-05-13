@@ -570,7 +570,7 @@ function onDrop(event: DragEvent, day: number) {
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
               }"
-              :style="vacationStyle(info.color)"
+              :style="{ ...vacationStyle(info.color), '--vac-color': info.color }"
               :title="`${info.personName} – vacation`"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
@@ -828,6 +828,33 @@ h2 {
   opacity: 0.9;
   min-height: 1.1rem;
   line-height: 1;
+  position: relative;
+}
+
+.vacation-pill.row-end::after {
+  content: '';
+  position: absolute;
+  right: -0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--vac-color);
+  z-index: 1;
+}
+
+.vacation-pill.row-start::before {
+  content: '';
+  position: absolute;
+  left: -0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #1a1a1a;
+  z-index: 1;
 }
 
 .vacation-pill.is-start {
