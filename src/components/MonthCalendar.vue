@@ -658,6 +658,7 @@ h2 {
   gap: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: #181818;
 }
 
 .cell {
