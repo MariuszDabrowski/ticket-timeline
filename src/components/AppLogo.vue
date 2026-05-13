@@ -55,32 +55,38 @@
 }
 
 .dash-1 {
-  animation: wind1 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: wind1 1.8s linear infinite;
 }
 
 .dash-2 {
-  animation: wind2 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: wind2 2.3s linear infinite;
 }
 
 .dash-3 {
-  animation: wind3 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: wind3 1.5s linear infinite;
 }
 
 @keyframes wind1 {
-  0%, 100% { transform: scaleX(1); }
-  30%       { transform: scaleX(1.25); }
-  65%       { transform: scaleX(0.78); }
+  0%   { transform: scaleX(1);    animation-timing-function: ease-in-out; }
+  22%  { transform: scaleX(1.3);  animation-timing-function: ease-in-out; }
+  48%  { transform: scaleX(0.7);  animation-timing-function: ease-in-out; }
+  72%  { transform: scaleX(1.2);  animation-timing-function: ease-in-out; }
+  100% { transform: scaleX(1); }
 }
 
 @keyframes wind2 {
-  0%, 100% { transform: scaleX(1); }
-  40%      { transform: scaleX(0.65); }
-  72%      { transform: scaleX(1.38); }
+  0%   { transform: scaleX(1);    animation-timing-function: ease-in-out; }
+  28%  { transform: scaleX(0.6);  animation-timing-function: ease-in-out; }
+  55%  { transform: scaleX(1.38); animation-timing-function: ease-in-out; }
+  82%  { transform: scaleX(0.82); animation-timing-function: ease-in-out; }
+  100% { transform: scaleX(1); }
 }
 
 @keyframes wind3 {
-  0%, 100% { transform: scaleX(1); }
-  35%      { transform: scaleX(1.34); }
-  68%      { transform: scaleX(0.84); }
+  0%   { transform: scaleX(1);    animation-timing-function: ease-in-out; }
+  30%  { transform: scaleX(1.4);  animation-timing-function: ease-in-out; }
+  58%  { transform: scaleX(0.65); animation-timing-function: ease-in-out; }
+  82%  { transform: scaleX(1.15); animation-timing-function: ease-in-out; }
+  100% { transform: scaleX(1); }
 }
 </style>
