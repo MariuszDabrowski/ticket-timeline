@@ -212,13 +212,11 @@ const headline = computed(() => {
     width: auto;
     align-self: stretch;
     margin: 0;
-    top: 0;
+    position: static;
     border-radius: 0;
     border-left: none;
     border-right: none;
     border-top: none;
-    background: #141414;
-    z-index: 10;
   }
 }
 
