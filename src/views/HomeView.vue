@@ -212,20 +212,17 @@ const ticketStates = computed(() => {
 
 const placedTicketCountByPerson = computed(() => {
   const counts = new Map<number, number>()
-  for (const p of tickets.placements) {
-    const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
-    if (!ticket || ticket.isLabel) continue
-    const key = ticket.assignedTo
-    if (key !== null) counts.set(key, (counts.get(key) ?? 0) + 1)
+  for (const ticket of tickets.tickets) {
+    if (ticket.isLabel || ticket.assignedTo === null) continue
+    counts.set(ticket.assignedTo, (counts.get(ticket.assignedTo) ?? 0) + 1)
   }
   return counts
 })
 
 const placedTicketCountByState = computed(() => {
   const counts = new Map<string, number>()
-  for (const p of tickets.placements) {
-    const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
-    if (!ticket || ticket.isLabel || !ticket.state) continue
+  for (const ticket of tickets.tickets) {
+    if (ticket.isLabel || !ticket.state) continue
     counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1)
   }
   return counts
