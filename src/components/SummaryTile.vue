@@ -3,13 +3,11 @@ import { computed } from 'vue'
 
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
-import { useOptionsStore } from '../stores/options'
 import type { CalendarDate } from '../stores/tickets'
 
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
-const options = useOptionsStore()
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -93,14 +91,6 @@ const teamStats = computed<PersonStat[]>(() => {
 })
 
 const activePersonCount = computed(() => teamStats.value.filter((s) => s.id !== null).length)
-
-const ticketStates = computed(() => {
-  const seen = new Set<string>()
-  for (const ticket of ticketsStore.tickets) {
-    if (ticket.state) seen.add(ticket.state)
-  }
-  return [...seen].sort()
-})
 
 const headline = computed(() => {
   if (totalCount.value === 0) return 'No tickets yet — add some to get started.'
@@ -186,52 +176,11 @@ const headline = computed(() => {
           </div>
           <ul class="team-list">
             <li v-for="stat in teamStats" :key="stat.id ?? -1" class="team-row">
-              <label class="team-row-label">
-                <input
-                  v-if="stat.id !== null"
-                  type="checkbox"
-                  class="visibility-checkbox"
-                  :checked="!options.hiddenPersonIds.has(stat.id)"
-                  @change="options.togglePersonVisibility(stat.id!)"
-                />
-                <span v-else class="visibility-checkbox-spacer" />
-                <span
-                  class="team-dot"
-                  :style="{ background: stat.color, opacity: stat.id !== null && options.hiddenPersonIds.has(stat.id) ? 0.35 : 1 }"
-                />
-                <span
-                  class="team-name"
-                  :style="{ opacity: stat.id !== null && options.hiddenPersonIds.has(stat.id) ? 0.4 : 1 }"
-                >{{ stat.name }}</span>
-                <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
-              </label>
+              <span class="team-dot" :style="{ background: stat.color }" />
+              <span class="team-name">{{ stat.name }}</span>
+              <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
             </li>
           </ul>
-          <p class="visibility-hint">Uncheck a person to hide their tickets from the calendar.</p>
-        </div>
-      </template>
-
-      <template v-if="ticketStates.length > 0">
-        <div class="divider" />
-        <div class="section">
-          <div class="section-label">States</div>
-          <ul class="team-list">
-            <li v-for="state in ticketStates" :key="state" class="team-row">
-              <label class="team-row-label">
-                <input
-                  type="checkbox"
-                  class="visibility-checkbox"
-                  :checked="!options.hiddenStates.has(state)"
-                  @change="options.toggleStateVisibility(state)"
-                />
-                <span
-                  class="team-name"
-                  :style="{ opacity: options.hiddenStates.has(state) ? 0.4 : 1 }"
-                >{{ state }}</span>
-              </label>
-            </li>
-          </ul>
-          <p class="visibility-hint">Uncheck a state to hide those tickets from the calendar.</p>
         </div>
       </template>
     </template>
@@ -406,13 +355,6 @@ const headline = computed(() => {
   opacity: 1;
 }
 
-.visibility-hint {
-  font-size: 13px;
-  opacity: 0.45;
-  line-height: 1.4;
-  margin-top: 0.25rem;
-}
-
 .team-list {
   list-style: none;
   display: flex;
@@ -421,27 +363,10 @@ const headline = computed(() => {
 }
 
 .team-row {
-  font-size: 14px;
-}
-
-.team-row-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
-}
-
-.visibility-checkbox {
-  width: 12px;
-  height: 12px;
-  flex-shrink: 0;
-  accent-color: #818cf8;
-  cursor: pointer;
-}
-
-.visibility-checkbox-spacer {
-  width: 12px;
-  flex-shrink: 0;
+  font-size: 14px;
 }
 
 .team-dot {

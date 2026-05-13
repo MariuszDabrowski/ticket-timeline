@@ -66,14 +66,21 @@ const sortedMonths = computed(() =>
   [...selectedMonths.value].sort((a, b) => a - b).map(absToYearMonth)
 )
 
-const collapsed = ref<Record<string, boolean>>({
-  options: true,
-  months: true,
-  people: true,
-  tickets: true,
-  labels: true,
-  sync: true,
-})
+const openSection = ref<string | null>(null)
+
+function toggleSection(key: string) {
+  openSection.value = openSection.value === key ? null : key
+}
+
+const collapsed = computed<Record<string, boolean>>(() => ({
+  options: openSection.value !== 'options',
+  months: openSection.value !== 'months',
+  people: openSection.value !== 'people',
+  tickets: openSection.value !== 'tickets',
+  labels: openSection.value !== 'labels',
+  sync: openSection.value !== 'sync',
+  filters: openSection.value !== 'filters',
+}))
 
 const people = usePeopleStore()
 const showAddPerson = ref(false)
@@ -82,7 +89,7 @@ const editingPerson = ref<typeof people.people[0] | null>(null)
 function handleAddPerson(name: string, color: string) {
   people.addPerson(name, color)
   showAddPerson.value = false
-  collapsed.value.people = false
+  openSection.value = 'people'
 }
 
 function handleEditPersonSave(name: string, color: string) {
@@ -196,6 +203,12 @@ const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
 const options = useOptionsStore()
 const ticketListIsOver = ref(false)
+
+const ticketStates = computed(() => {
+  const seen = new Set<string>()
+  for (const t of tickets.tickets) if (t.state) seen.add(t.state)
+  return [...seen].sort()
+})
 
 const vacations = useVacationsStore()
 const showExport = ref(false)
@@ -318,9 +331,9 @@ function onTicketListDrop(event: DragEvent) {
     <div class="below-header">
     <aside class="sidebar">
       <section>
-        <button class="section-header" @click="collapsed.months = !collapsed.months">
+        <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
-          <span class="chevron" :class="{ rotated: collapsed.months }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.months }">›</span>
         </button>
         <div v-show="!collapsed.months" class="section-body">
           <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
@@ -341,22 +354,14 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section>
-        <button class="section-header" @click="collapsed.options = !collapsed.options">
+        <button class="section-header" @click="toggleSection('options')">
           <span>Options</span>
-          <span class="chevron" :class="{ rotated: collapsed.options }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.options }">›</span>
         </button>
         <div v-show="!collapsed.options" class="section-body">
           <label class="option">
             <input type="checkbox" v-model="options.hideWeekends" />
             Hide Weekends
-          </label>
-          <label class="option">
-            <input type="checkbox" v-model="options.showCanadianHolidays" />
-            Canadian Holidays
-          </label>
-          <label class="option">
-            <input type="checkbox" v-model="options.showAmericanHolidays" />
-            American Holidays
           </label>
           <label class="option">
             <input type="checkbox" v-model="options.showAllTooltips" />
@@ -366,9 +371,9 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section>
-        <button class="section-header" @click="collapsed.people = !collapsed.people">
+        <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
-          <span class="chevron" :class="{ rotated: collapsed.people }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.people }">›</span>
         </button>
         <div v-show="!collapsed.people" class="section-body">
           <button class="add-btn" @click="showAddPerson = true">Add Person</button>
@@ -392,9 +397,9 @@ function onTicketListDrop(event: DragEvent) {
         @dragleave="onTicketListDragLeave"
         @drop="onTicketListDrop"
       >
-        <button class="section-header" @click="collapsed.tickets = !collapsed.tickets">
+        <button class="section-header" @click="toggleSection('tickets')">
           <span>Tickets</span>
-          <span class="chevron" :class="{ rotated: collapsed.tickets }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.tickets }">›</span>
         </button>
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
@@ -416,9 +421,9 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section>
-        <button class="section-header" @click="collapsed.labels = !collapsed.labels">
+        <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
-          <span class="chevron" :class="{ rotated: collapsed.labels }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.labels }">›</span>
         </button>
         <div v-show="!collapsed.labels" class="section-body">
           <button class="add-btn" @click="showAddLabel = true">Add Label</button>
@@ -439,9 +444,9 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section>
-        <button class="section-header" @click="collapsed.sync = !collapsed.sync">
+        <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
-          <span class="chevron" :class="{ rotated: collapsed.sync }">›</span>
+          <span class="chevron" :class="{ rotated: !collapsed.sync }">›</span>
         </button>
         <div v-show="!collapsed.sync" class="section-body">
           <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
@@ -450,6 +455,47 @@ function onTicketListDrop(event: DragEvent) {
             class="add-btn clear-sync-btn"
             @click="vacations.clearVacations()"
           >Clear Synced Data</button>
+        </div>
+      </section>
+
+      <section v-if="people.people.length > 0 || ticketStates.length > 0">
+        <button class="section-header" @click="toggleSection('filters')">
+          <span>Calendar Filters</span>
+          <span class="chevron" :class="{ rotated: !collapsed.filters }">›</span>
+        </button>
+        <div v-show="!collapsed.filters" class="section-body">
+          <template v-if="people.people.length > 0">
+            <span class="filter-group-label">People</span>
+            <label
+              v-for="person in people.people"
+              :key="person.id"
+              class="filter-option"
+            >
+              <input
+                type="checkbox"
+                :checked="!options.hiddenPersonIds.has(person.id)"
+                @change="options.togglePersonVisibility(person.id)"
+              />
+              <span class="filter-dot" :style="{ background: person.color }" />
+              {{ person.name }}
+            </label>
+          </template>
+          <template v-if="ticketStates.length > 0">
+            <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
+            <label
+              v-for="state in ticketStates"
+              :key="state"
+              class="filter-option"
+            >
+              <input
+                type="checkbox"
+                :checked="!options.hiddenStates.has(state)"
+                @change="options.toggleStateVisibility(state)"
+              />
+              {{ state }}
+            </label>
+          </template>
+          <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
         </div>
       </section>
     </aside>
@@ -974,6 +1020,42 @@ section {
   padding: 0.15rem 1rem;
   color: rgba(255, 255, 255, 0.55);
   transition: color 0.15s;
+}
+
+.filter-group-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.45;
+  padding: 0 1rem 0.2rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.15rem 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.15s;
+}
+
+.filter-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.filter-hint {
+  font-size: 13px;
+  opacity: 0.4;
+  padding: 0.5rem 1rem 0;
+  line-height: 1.4;
 }
 
 /* Custom checkboxes */

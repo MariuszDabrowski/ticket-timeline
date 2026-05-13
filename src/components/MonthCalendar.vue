@@ -87,10 +87,10 @@ const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length
 
 const holidayMap = computed(() => {
   const map = new Map<number, string>()
-  for (const h of (options.showCanadianHolidays ? getCanadianHolidays(props.year) : [])) {
+  for (const h of getCanadianHolidays(props.year)) {
     if (h.date.month === props.month) map.set(h.date.day, `🇨🇦 ${h.name}`)
   }
-  for (const h of (options.showAmericanHolidays ? getAmericanHolidays(props.year) : [])) {
+  for (const h of getAmericanHolidays(props.year)) {
     if (h.date.month === props.month) map.set(h.date.day, `🇺🇸 ${h.name}`)
   }
   return map
