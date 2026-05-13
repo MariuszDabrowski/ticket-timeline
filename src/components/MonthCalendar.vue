@@ -170,10 +170,18 @@ function effectivePlacement(placement: Placement): Placement {
   return result
 }
 
+function isTicketVisible(ticketId: number): boolean {
+  const ticket = ticketsStore.tickets.find((t) => t.id === ticketId)
+  if (!ticket) return false
+  if (ticket.assignedTo !== null && options.hiddenPersonIds.has(ticket.assignedTo)) return false
+  return true
+}
+
 // Slot assignment based on effective placements so overlapping tickets drop to new slots during preview
 const slotMap = computed(() => {
   const monthPlacements = ticketsStore
     .getPlacementsForMonth(props.year, props.month)
+    .filter((p) => isTicketVisible(p.ticketId))
     .map((p) => ({ ticketId: p.ticketId, eff: effectivePlacement(p) }))
     .sort((a, b) => compareCalendarDates(a.eff.startDate, b.eff.startDate))
 
@@ -268,6 +276,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
   const col = colPos(day)
 
   for (const placement of ticketsStore.getPlacementsForMonth(props.year, props.month)) {
+    if (!isTicketVisible(placement.ticketId)) continue
     const eff = effectivePlacement(placement)
     if (compareCalendarDates(eff.startDate, thisDate) > 0) continue
     if (compareCalendarDates(thisDate, eff.endDate) > 0) continue

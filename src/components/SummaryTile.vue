@@ -3,11 +3,13 @@ import { computed } from 'vue'
 
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
+import { useOptionsStore } from '../stores/options'
 import type { CalendarDate } from '../stores/tickets'
 
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
+const options = useOptionsStore()
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -174,14 +176,28 @@ const headline = computed(() => {
             Team
             <span class="section-count">{{ activePersonCount }} {{ activePersonCount === 1 ? 'person' : 'people' }}</span>
           </div>
+          <p class="visibility-hint">Uncheck a person to hide their tickets from the calendar.</p>
           <ul class="team-list">
             <li v-for="stat in teamStats" :key="stat.id ?? -1" class="team-row">
-              <span
-                class="team-dot"
-                :style="{ background: stat.color }"
-              />
-              <span class="team-name">{{ stat.name }}</span>
-              <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
+              <label class="team-row-label">
+                <input
+                  v-if="stat.id !== null"
+                  type="checkbox"
+                  class="visibility-checkbox"
+                  :checked="!options.hiddenPersonIds.has(stat.id)"
+                  @change="options.togglePersonVisibility(stat.id!)"
+                />
+                <span v-else class="visibility-checkbox-spacer" />
+                <span
+                  class="team-dot"
+                  :style="{ background: stat.color, opacity: stat.id !== null && options.hiddenPersonIds.has(stat.id) ? 0.35 : 1 }"
+                />
+                <span
+                  class="team-name"
+                  :style="{ opacity: stat.id !== null && options.hiddenPersonIds.has(stat.id) ? 0.4 : 1 }"
+                >{{ stat.name }}</span>
+                <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
+              </label>
             </li>
           </ul>
         </div>
@@ -358,6 +374,13 @@ const headline = computed(() => {
   opacity: 1;
 }
 
+.visibility-hint {
+  font-size: 11px;
+  opacity: 0.45;
+  line-height: 1.4;
+  margin-bottom: 0.15rem;
+}
+
 .team-list {
   list-style: none;
   display: flex;
@@ -366,10 +389,27 @@ const headline = computed(() => {
 }
 
 .team-row {
+  font-size: 14px;
+}
+
+.team-row-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 14px;
+  cursor: pointer;
+}
+
+.visibility-checkbox {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  accent-color: #818cf8;
+  cursor: pointer;
+}
+
+.visibility-checkbox-spacer {
+  width: 12px;
+  flex-shrink: 0;
 }
 
 .team-dot {
@@ -377,10 +417,12 @@ const headline = computed(() => {
   height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
+  transition: opacity 0.15s;
 }
 
 .team-name {
   flex: 1;
+  transition: opacity 0.15s;
 }
 
 .team-count {
