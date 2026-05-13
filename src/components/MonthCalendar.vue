@@ -137,6 +137,16 @@ function spanInDays(start: CalendarDate, end: CalendarDate): number {
   )
 }
 
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+function fmtDate(d: { year: number; month: number; day: number }): string {
+  return `${MONTH_SHORT[d.month]} ${d.day}, ${d.year}`
+}
+
+function assignedName(ticket: Ticket): string {
+  if (ticket.assignedTo === null) return 'Unassigned'
+  return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.name ?? 'Unassigned'
+}
+
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
   if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
   if (ticket.assignedTo === null) return '#555'
@@ -577,7 +587,12 @@ function onDrop(event: DragEvent, day: number) {
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
               <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
-              <span v-if="!info.ticket.isLabel && info.ticket.title" class="ticket-tooltip">{{ info.ticket.title }}</span>
+              <div v-if="!info.ticket.isLabel" class="ticket-tooltip">
+                <div v-if="info.ticket.title" class="tooltip-title">{{ info.ticket.title }}</div>
+                <div class="tooltip-row"><span class="tooltip-label">Start</span><span>{{ fmtDate(info.placement.startDate) }}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Finish</span><span>{{ fmtDate(info.placement.endDate) }}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ assignedName(info.ticket) }}</span></div>
+              </div>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -938,46 +953,36 @@ h2 {
   opacity: 0.25;
 }
 
-.ticket-pill.is-start.is-hovered::before {
-  content: 'S';
+.ticket-pill.is-start.is-hovered::before,
+.ticket-pill.is-end.is-hovered::after {
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: calc(100% + 2px);
   top: 0;
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  background: var(--tc);
-  border: 2px solid #fff;
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  border: 2px solid rgba(255, 255, 255, 0.85);
   font-size: 9px;
   font-weight: 900;
   color: #fff;
   pointer-events: none;
   z-index: 5;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.ticket-pill.is-start.is-hovered::before {
+  content: 'S';
+  right: calc(100% + 2px);
 }
 
 .ticket-pill.is-end.is-hovered::after {
   content: 'F';
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
   left: calc(100% + 2px);
-  top: 0;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: var(--tc);
-  border: 2px solid #fff;
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  pointer-events: none;
-  z-index: 5;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .ticket-pill:active {
@@ -1009,21 +1014,44 @@ h2 {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(60, 60, 60, 0.92);
-  color: #fff;
-  padding: 0.3rem 0.55rem;
-  border-radius: 5px;
-  font-size: 0.75rem;
+  background: rgba(30, 30, 35, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
   font-weight: normal;
   width: max-content;
-  max-width: 250px;
+  max-width: 240px;
   white-space: normal;
-  text-align: center;
-  line-height: 1.4;
+  text-align: left;
+  line-height: 1.5;
   pointer-events: none;
   z-index: 20;
   opacity: 0;
   transition: opacity 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.tooltip-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.tooltip-label {
+  opacity: 0.5;
+  flex-shrink: 0;
+  min-width: 4.5rem;
 }
 
 .ticket-tooltip::after {
