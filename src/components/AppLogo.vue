@@ -18,7 +18,7 @@
     <rect class="dash dash-3" x="80" y="-360" width="160" height="80" rx="40" fill="#818cf8" />
 
     <!-- Minute hand (long) — 5s per revolution -->
-    <g>
+    <g transform="rotate(0 600 -480)">
       <rect x="560" y="-680" width="80" height="200" rx="40" fill="#818cf8" />
       <animateTransform
         attributeName="transform"
@@ -26,12 +26,13 @@
         from="0 600 -480"
         to="360 600 -480"
         dur="5s"
+        begin="0s"
         repeatCount="indefinite"
       />
     </g>
 
     <!-- Hour hand (short) — 10s per revolution (2× slower) -->
-    <g>
+    <g transform="rotate(120 600 -480)">
       <rect x="560" y="-620" width="80" height="140" rx="40" fill="#818cf8" />
       <animateTransform
         attributeName="transform"
@@ -39,6 +40,7 @@
         from="120 600 -480"
         to="480 600 -480"
         dur="10s"
+        begin="0s"
         repeatCount="indefinite"
       />
     </g>
