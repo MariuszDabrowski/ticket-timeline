@@ -885,6 +885,7 @@ section {
   white-space: nowrap;
   overflow: visible;
   max-width: 100%;
+  touch-action: none;
 }
 
 .ticket-pill:active {

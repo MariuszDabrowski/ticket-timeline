@@ -658,7 +658,6 @@ h2 {
   gap: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
-  background: #181818;
 }
 
 .cell {
@@ -900,6 +899,7 @@ h2 {
   padding: 0.1rem 0;
   cursor: grab;
   transition: opacity 0.1s;
+  touch-action: none;
 }
 
 .ticket-pill:active {
@@ -1010,6 +1010,7 @@ h2 {
   padding: 0 0.25rem;
   cursor: ew-resize;
   opacity: 0.7;
+  touch-action: none;
 }
 
 .resize-handle:hover {
