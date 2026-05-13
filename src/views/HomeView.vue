@@ -411,7 +411,6 @@ function onTicketListDrop(event: DragEvent) {
                 class="person-name"
                 @click="editingPerson = person"
               >{{ person.name }}</span>
-              <button class="remove-person-btn" @click="handleRemovePerson(person.id)" title="Remove person">×</button>
             </li>
           </ul>
         </div>
@@ -453,6 +452,7 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.labels }">›</span>
         </button>
         <div v-show="!collapsed.labels" class="section-body">
+          <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
           <button class="add-btn" @click="showAddLabel = true">Add Label</button>
           <ol v-if="unplacedLabels.length > 0" class="ticket-list">
             <li v-for="label in unplacedLabels" :key="label.id">
@@ -843,6 +843,14 @@ section {
   text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
+.label-blurb {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 0.3rem 1rem 0.5rem;
+  margin: 0;
+}
+
 .add-btn {
   font-size: 14px;
   cursor: pointer;
@@ -890,34 +898,6 @@ section {
 .person-name {
   flex: 1;
   cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s;
-}
-
-.person:hover .person-name {
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-
-.remove-person-btn {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0 0.1rem;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
-}
-
-.person:hover .remove-person-btn {
-  opacity: 1;
-}
-
-.remove-person-btn:hover {
-  color: #e74c3c;
 }
 
 .color-dot {

@@ -147,6 +147,11 @@ function assignedName(ticket: Ticket): string {
   return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.name ?? 'Unassigned'
 }
 
+function durationDays(start: { year: number; month: number; day: number }, end: { year: number; month: number; day: number }): number {
+  const ms = new Date(end.year, end.month, end.day).getTime() - new Date(start.year, start.month, start.day).getTime()
+  return Math.round(ms / 86_400_000) + 1
+}
+
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
   if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
   if (ticket.assignedTo === null) return '#555555'
@@ -363,6 +368,8 @@ interface DayVacationInfo {
   personId: number
   color: string
   personName: string
+  startDate: CalendarDate
+  endDate: CalendarDate
   isStart: boolean
   isEnd: boolean
   isRowStart: boolean
@@ -407,6 +414,8 @@ function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
       personId: entry.personId,
       color: person?.color ?? '#aaa',
       personName: person?.name ?? '',
+      startDate: entry.startDate,
+      endDate: entry.endDate,
       isStart,
       isEnd,
       isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
@@ -591,8 +600,8 @@ function onDrop(event: DragEvent, day: number) {
               <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
               <div v-if="!info.ticket.isLabel" class="ticket-tooltip">
                 <div v-if="info.ticket.title" class="tooltip-title">{{ info.ticket.title }}</div>
-                <div class="tooltip-row"><span class="tooltip-label">Start</span><span>{{ fmtDate(info.placement.startDate) }}</span></div>
-                <div class="tooltip-row"><span class="tooltip-label">Finish</span><span>{{ fmtDate(info.placement.endDate) }}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(info.placement.startDate) }} – {{ fmtDate(info.placement.endDate) }}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ durationDays(info.placement.startDate, info.placement.endDate) }} day{{ durationDays(info.placement.startDate, info.placement.endDate) !== 1 ? 's' : '' }}</span></div>
                 <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ assignedName(info.ticket) }}</span></div>
               </div>
               <button
@@ -616,9 +625,13 @@ function onDrop(event: DragEvent, day: number) {
                 'row-start': info.isRowStart,
               }"
               :style="{ ...vacationStyle(info.color), '--vac-color': info.color }"
-              :title="`${info.personName} – vacation`"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
+              <div class="vacation-tooltip">
+                <div class="tooltip-title">{{ info.personName }} — Vacation</div>
+                <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(info.startDate) }} – {{ fmtDate(info.endDate) }}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ durationDays(info.startDate, info.endDate) }} day{{ durationDays(info.startDate, info.endDate) !== 1 ? 's' : '' }}</span></div>
+              </div>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -929,6 +942,46 @@ h2 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.vacation-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 35, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: normal;
+  width: max-content;
+  max-width: 260px;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.vacation-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(60, 60, 60, 0.92);
+}
+
+.vacation-pill:hover .vacation-tooltip {
+  opacity: 1;
 }
 
 .ticket-pill {
