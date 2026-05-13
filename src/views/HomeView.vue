@@ -1011,15 +1011,9 @@ section {
 }
 
 @media (max-width: 920px) {
-  .layout {
-    height: auto;
-    min-height: 100vh;
-  }
-
   .below-header {
     flex-direction: column;
-    overflow: visible;
-    flex: none;
+    overflow: auto;
   }
 
   .sidebar {
@@ -1037,6 +1031,7 @@ section {
 
   .months-stack {
     padding: 0 1rem;
+    overflow-x: auto;
   }
 }
 </style>
