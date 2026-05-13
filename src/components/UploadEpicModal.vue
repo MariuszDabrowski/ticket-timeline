@@ -96,7 +96,7 @@ function handleImport() {
 
       <div class="actions">
         <button @click="emit('cancel')">Cancel</button>
-        <button class="primary" :disabled="!csvText" @click="handleImport">
+        <button class="primary" :disabled="!csvText || !workspaceSlug.trim()" @click="handleImport">
           Create Stories
         </button>
       </div>
@@ -233,6 +233,10 @@ input[type='text'] {
   color: #fff;
   outline: none;
   transition: border-color 0.15s;
+}
+
+input[type='text']::placeholder {
+  color: rgba(255, 255, 255, 0.45);
 }
 
 input[type='text']:focus {

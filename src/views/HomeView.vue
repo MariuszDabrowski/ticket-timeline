@@ -133,9 +133,10 @@ function handleDeleteLabel() {
 function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   const { startDate, endDate, ...ticketData } = ticket
   const id = tickets.addTicket(ticketData)
-  if (startDate && endDate) {
+  if (startDate) {
+    const end = endDate ?? startDate
     tickets.placeTicket(id, startDate)
-    tickets.moveTicket(id, startDate, endDate)
+    tickets.moveTicket(id, startDate, end)
   }
   showAddTicket.value = false
 }
@@ -185,9 +186,10 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
   const id = editingTicket.value.id
   const { startDate, endDate, ...ticketData } = data
   tickets.updateTicket(id, ticketData)
-  if (startDate && endDate) {
+  if (startDate) {
+    const end = endDate ?? startDate
     if (!tickets.placements.find((p) => p.ticketId === id)) tickets.placeTicket(id, startDate)
-    tickets.moveTicket(id, startDate, endDate)
+    tickets.moveTicket(id, startDate, end)
   } else {
     tickets.removePlacement(id)
   }
@@ -427,6 +429,7 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.people }">›</span>
         </button>
         <div v-show="!collapsed.people" class="section-body">
+          <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
           <button class="add-btn" @click="showAddPerson = true">Add Person</button>
           <ul v-if="people.people.length > 0" class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
@@ -872,6 +875,14 @@ section {
   text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
+.people-blurb {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0.3rem 1rem 0.5rem;
+  margin: 0;
+}
+
 .label-blurb {
   font-size: 13px;
   line-height: 1.5;
@@ -955,12 +966,12 @@ section {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.4);
-  padding: 0.5rem 1rem 0.15rem;
-}
-
-.ticket-state-heading:first-child {
-  padding-top: 0.15rem;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0 1rem;
+  margin: 4px 0;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.2);
+  text-underline-offset: 2px;
 }
 
 .ticket-list {

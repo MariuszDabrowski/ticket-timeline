@@ -152,6 +152,66 @@ function durationDays(start: { year: number; month: number; day: number }, end: 
   return Math.round(ms / 86_400_000) + 1
 }
 
+interface TicketTooltipState {
+  title: string | undefined
+  startDate: CalendarDate
+  endDate: CalendarDate
+  assignedTo: string
+  duration: number
+  x: number
+  y: number
+}
+
+interface VacationTooltipState {
+  personName: string
+  startDate: CalendarDate
+  endDate: CalendarDate
+  duration: number
+  x: number
+  y: number
+}
+
+const ticketTooltip = ref<TicketTooltipState | null>(null)
+const vacationTooltip = ref<VacationTooltipState | null>(null)
+
+function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
+  if (info.ticket.isLabel) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  dragState.hoveredTicketId = info.ticket.id
+  ticketTooltip.value = {
+    title: info.ticket.title || undefined,
+    startDate: info.placement.startDate,
+    endDate: info.placement.endDate,
+    assignedTo: assignedName(info.ticket),
+    duration: durationDays(info.placement.startDate, info.placement.endDate),
+    x: rect.left + rect.width / 2,
+    y: rect.top,
+  }
+}
+
+function hideTicketTooltip() {
+  ticketTooltip.value = null
+  dragState.hoveredTicketId = null
+}
+
+function showVacationTooltip(e: MouseEvent, info: DayVacationInfo) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  dragState.hoveredVacationId = info.vacationId
+  vacationTooltip.value = {
+    personName: info.personName,
+    startDate: info.startDate,
+    endDate: info.endDate,
+    duration: durationDays(info.startDate, info.endDate),
+    x: rect.left + rect.width / 2,
+    y: rect.top,
+  }
+}
+
+function hideVacationTooltip() {
+  vacationTooltip.value = null
+  dragState.hoveredVacationId = null
+}
+
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
   if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
   if (ticket.assignedTo === null) return '#555555'
@@ -585,8 +645,8 @@ function onDrop(event: DragEvent, day: number) {
               }"
               :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
-              @mouseenter="dragState.hoveredTicketId = info.ticket.id"
-              @mouseleave="dragState.hoveredTicketId = null"
+              @mouseenter="showTicketTooltip($event, info)"
+              @mouseleave="hideTicketTooltip()"
               @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
               @dragstart="onTicketDragStart($event, info)"
               @dragend="dragState.clearMoveDrag"
@@ -600,12 +660,6 @@ function onDrop(event: DragEvent, day: number) {
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
               <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
-              <div v-if="!info.ticket.isLabel" class="ticket-tooltip">
-                <div v-if="info.ticket.title" class="tooltip-title">{{ info.ticket.title }}</div>
-                <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(info.placement.startDate) }} – {{ fmtDate(info.placement.endDate) }}</span></div>
-                <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ durationDays(info.placement.startDate, info.placement.endDate) }} day{{ durationDays(info.placement.startDate, info.placement.endDate) !== 1 ? 's' : '' }}</span></div>
-                <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ assignedName(info.ticket) }}</span></div>
-              </div>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -629,15 +683,10 @@ function onDrop(event: DragEvent, day: number) {
                 'is-dimmed': dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId,
               }"
               :style="{ ...vacationStyle(info.color), '--vac-color': info.color }"
-              @mouseenter="dragState.hoveredVacationId = info.vacationId"
-              @mouseleave="dragState.hoveredVacationId = null"
+              @mouseenter="showVacationTooltip($event, info)"
+              @mouseleave="hideVacationTooltip()"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
-              <div class="vacation-tooltip">
-                <div class="tooltip-title">{{ info.personName }} — Vacation</div>
-                <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(info.startDate) }} – {{ fmtDate(info.endDate) }}</span></div>
-                <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ durationDays(info.startDate, info.endDate) }} day{{ durationDays(info.startDate, info.endDate) !== 1 ? 's' : '' }}</span></div>
-              </div>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -663,6 +712,28 @@ function onDrop(event: DragEvent, day: number) {
     @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); editingLabel = null }"
     @cancel="editingLabel = null"
   />
+
+  <Teleport to="body">
+    <div
+      v-if="ticketTooltip"
+      class="global-tooltip"
+      :style="{ left: ticketTooltip.x + 'px', top: ticketTooltip.y + 'px' }"
+    >
+      <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
+      <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(ticketTooltip.startDate) }} – {{ fmtDate(ticketTooltip.endDate) }}</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} day{{ ticketTooltip.duration !== 1 ? 's' : '' }}</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
+    </div>
+    <div
+      v-if="vacationTooltip"
+      class="global-tooltip"
+      :style="{ left: vacationTooltip.x + 'px', top: vacationTooltip.y + 'px' }"
+    >
+      <div class="tooltip-title">{{ vacationTooltip.personName }} — Vacation</div>
+      <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(vacationTooltip.startDate) }} – {{ fmtDate(vacationTooltip.endDate) }}</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ vacationTooltip.duration }} day{{ vacationTooltip.duration !== 1 ? 's' : '' }}</span></div>
+    </div>
+  </Teleport>
 
   <DayMarkerModal
     v-if="markerDay !== null"
@@ -992,44 +1063,6 @@ h2 {
   text-overflow: ellipsis;
 }
 
-.vacation-tooltip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgb(30, 30, 35);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.45rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: normal;
-  width: max-content;
-  max-width: 260px;
-  white-space: normal;
-  text-align: left;
-  line-height: 1.5;
-  pointer-events: none;
-  z-index: 9999;
-  visibility: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.vacation-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgb(30, 30, 35);
-}
-
-.vacation-pill:hover .vacation-tooltip {
-  visibility: visible;
-}
 
 .ticket-pill {
   display: flex;
@@ -1112,13 +1145,11 @@ h2 {
   opacity: 0.5;
 }
 
-.ticket-tooltip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(30, 30, 35, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+:global(.global-tooltip) {
+  position: fixed;
+  transform: translate(-50%, calc(-100% - 6px));
+  background: rgb(30, 30, 35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
   padding: 0.45rem 0.65rem;
   border-radius: 6px;
@@ -1130,45 +1161,39 @@ h2 {
   text-align: left;
   line-height: 1.5;
   pointer-events: none;
-  z-index: 20;
-  opacity: 0;
-  transition: opacity 0.15s;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
 }
 
-.tooltip-title {
-  font-weight: 600;
-  font-size: 0.75rem;
-  color: #fff;
-  margin-bottom: 0.2rem;
-}
-
-.tooltip-row {
-  display: flex;
-  gap: 0.35rem;
-  align-items: baseline;
-}
-
-.tooltip-label {
-  opacity: 0.5;
-  flex-shrink: 0;
-  min-width: 4.5rem;
-}
-
-.ticket-tooltip::after {
+:global(.global-tooltip::after) {
   content: '';
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(60, 60, 60, 0.92);
+  border-top-color: rgb(30, 30, 35);
 }
 
-.ticket-pill:hover .ticket-tooltip {
-  opacity: 1;
+:global(.global-tooltip .tooltip-title) {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+:global(.global-tooltip .tooltip-row) {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+:global(.global-tooltip .tooltip-label) {
+  opacity: 0.5;
+  flex-shrink: 0;
+  min-width: 4.5rem;
 }
 
 .ticket-label {
