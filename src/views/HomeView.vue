@@ -667,14 +667,17 @@ section {
   cursor: pointer;
   text-align: left;
   color: #fff;
-  transition: color 0.15s;
-}
-
-.section-header:hover {
-  color: #fff;
 }
 
 .section-header > span:not(.chevron) {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s;
+}
+
+.section-header:hover > span:not(.chevron) {
+  text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
 .chevron {
