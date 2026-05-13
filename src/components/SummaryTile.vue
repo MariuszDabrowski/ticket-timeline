@@ -195,7 +195,7 @@ const headline = computed(() => {
   padding: 1rem;
   border: 1px dashed rgba(255, 255, 255, 0.25);
   border-radius: 8px;
-  margin: 68px 2rem 1rem 2rem;
+  margin: 68px 0 1rem 2rem;
   width: 280px;
   flex-shrink: 0;
   display: flex;
