@@ -10,12 +10,10 @@
          M80-440q-17 0-28.5-11.5T40-480q0-17 11.5-28.5T80-520h120q17 0 28.5 11.5T240-480q0 17-11.5 28.5T200-440H80Z
          M120-280q-17 0-28.5-11.5T80-320q0-17 11.5-28.5T120-360h80q17 0 28.5 11.5T240-320q0 17-11.5 28.5T200-280h-80Z"
     />
-    <!-- Clock hands (rotating around clock center 600,-480) -->
+
+    <!-- Minute hand (long) — 5s per revolution -->
     <g>
-      <path
-        fill="rgba(255,255,255,0.4)"
-        d="M640-496v-104q0-17-11.5-28.5T600-640q-17 0-28.5 11.5T560-600v121q0 8 3.5 15.5T572-451l91 91q12 12 28.5 12t28.5-12q12-12 12-28.5T720-417l-80-79Z"
-      />
+      <rect x="592" y="-640" width="16" height="160" rx="8" fill="rgba(255,255,255,0.4)" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -25,5 +23,21 @@
         repeatCount="indefinite"
       />
     </g>
+
+    <!-- Hour hand (short) — 10s per revolution (2× slower) -->
+    <g>
+      <rect x="590" y="-590" width="20" height="110" rx="10" fill="rgba(255,255,255,0.4)" />
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="120 600 -480"
+        to="480 600 -480"
+        dur="10s"
+        repeatCount="indefinite"
+      />
+    </g>
+
+    <!-- Center pivot dot -->
+    <circle cx="600" cy="-480" r="14" fill="rgba(255,255,255,0.4)" />
   </svg>
 </template>
