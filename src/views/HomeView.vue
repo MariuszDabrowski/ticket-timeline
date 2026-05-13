@@ -486,6 +486,7 @@ function onTicketListDrop(event: DragEvent) {
         </button>
         <div v-show="!collapsed.filters" class="section-body">
           <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
+          <div class="filter-divider" />
           <template v-if="people.people.length > 0">
             <span class="filter-group-label">People</span>
             <label
@@ -1091,6 +1092,12 @@ section {
   opacity: 0.4;
   padding: 0 1rem 0.35rem;
   line-height: 1.4;
+}
+
+.filter-divider {
+  height: 1px;
+  background: rgba(128, 128, 128, 0.2);
+  margin-bottom: 0.35rem;
 }
 
 /* Custom checkboxes */
