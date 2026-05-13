@@ -2,24 +2,24 @@
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true">
     <!-- Clock ring (static) -->
     <path
-      fill="#767676"
+      fill="#818cf8"
       fill-rule="evenodd"
       d="M600-160q-134 0-227-93t-93-227q0-133 93-226.5T600-800q133 0 226.5 93.5T920-480q0 134-93.5 227T600-160Z
          M600-240q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70Z"
     />
 
     <!-- Left dash 1 (top) -->
-    <rect class="dash dash-1" x="80" y="-680" width="160" height="80" rx="40" fill="#767676" />
+    <rect class="dash dash-1" x="80" y="-680" width="160" height="80" rx="40" fill="#818cf8" />
 
     <!-- Left dash 2 (middle) -->
-    <rect class="dash dash-2" x="40" y="-520" width="200" height="80" rx="40" fill="#767676" />
+    <rect class="dash dash-2" x="40" y="-520" width="200" height="80" rx="40" fill="#818cf8" />
 
     <!-- Left dash 3 (bottom) -->
-    <rect class="dash dash-3" x="80" y="-360" width="160" height="80" rx="40" fill="#767676" />
+    <rect class="dash dash-3" x="80" y="-360" width="160" height="80" rx="40" fill="#818cf8" />
 
     <!-- Minute hand (long) — 5s per revolution -->
     <g>
-      <rect x="560" y="-680" width="80" height="200" rx="40" fill="#767676" />
+      <rect x="560" y="-680" width="80" height="200" rx="40" fill="#818cf8" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -32,7 +32,7 @@
 
     <!-- Hour hand (short) — 10s per revolution (2× slower) -->
     <g>
-      <rect x="560" y="-620" width="80" height="140" rx="40" fill="#767676" />
+      <rect x="560" y="-620" width="80" height="140" rx="40" fill="#818cf8" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -44,7 +44,7 @@
     </g>
 
     <!-- Center pivot dot -->
-    <circle cx="600" cy="-480" r="40" fill="#767676" />
+    <circle cx="600" cy="-480" r="40" fill="#818cf8" />
   </svg>
 </template>
 
