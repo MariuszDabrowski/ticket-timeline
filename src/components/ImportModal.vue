@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { getSavedProjects, STORAGE_KEY } from '../utils/projectStorage'
 import type { ProjectData } from '../utils/projectStorage'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const emit = defineEmits<{
   load: [data: ProjectData]
@@ -11,6 +12,7 @@ const emit = defineEmits<{
 const savedProjects = ref(getSavedProjects())
 const error = ref('')
 const confirmId = ref<string | null>(null)
+const { trapRef, onKeydown } = useFocusTrap()
 
 function refresh() {
   savedProjects.value = getSavedProjects()
@@ -57,7 +59,7 @@ function fmtDate(iso: string) {
 
 <template>
   <div class="backdrop" @click.self="emit('close')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
       <h3>Import Project</h3>
 
       <!-- Saved projects -->

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import type { Ticket } from '../stores/tickets'
 import type { Person } from '../stores/people'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   ticket: Ticket
@@ -18,11 +19,7 @@ const number = ref(props.ticket.number)
 const title = ref(props.ticket.title)
 const assignedTo = ref<number | null>(props.ticket.assignedTo)
 const link = ref(props.ticket.link)
-const modalRef = ref<HTMLElement | null>(null)
-
-onMounted(() => {
-  modalRef.value?.querySelector<HTMLElement>('input, select, button')?.focus()
-})
+const { trapRef, onKeydown } = useFocusTrap()
 
 function handleSubmit() {
   if (!number.value.trim() || !title.value.trim()) return
@@ -33,29 +30,11 @@ function handleSubmit() {
     link: link.value.trim(),
   })
 }
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') { emit('cancel'); return }
-  if (event.key !== 'Tab') return
-  const focusable = Array.from(
-    modalRef.value?.querySelectorAll<HTMLElement>(
-      'input:not([disabled]), select:not([disabled]), button:not([disabled])'
-    ) ?? []
-  )
-  if (focusable.length === 0) return
-  const first = focusable[0]!
-  const last = focusable[focusable.length - 1]!
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault(); last.focus()
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault(); first.focus()
-  }
-}
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="modalRef" @keydown="onKeydown">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>Edit Ticket</h3>
 
       <div class="field">

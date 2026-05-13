@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Ticket } from '../stores/tickets'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{ existing?: Ticket }>()
 
@@ -18,11 +19,12 @@ const COLORS = [
 
 const text = ref(props.existing?.title ?? '')
 const selectedColor = ref(props.existing?.labelColor ?? COLORS[0]!)
+const { trapRef, onKeydown } = useFocusTrap()
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>{{ props.existing ? 'Edit Label' : 'Add Label' }}</h3>
 
       <div class="field">

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { parseICS, groupByPerson } from '../utils/icsParser'
 import type { ICSPersonGroup } from '../utils/icsParser'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const emit = defineEmits<{
   parsed: [groups: ICSPersonGroup[]]
@@ -10,6 +11,7 @@ const emit = defineEmits<{
 
 const dragOver = ref(false)
 const error = ref('')
+const { trapRef, onKeydown } = useFocusTrap()
 
 function processFile(file: File) {
   error.value = ''
@@ -44,7 +46,7 @@ function onFileInput(e: Event) {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>Sync HiBob Vacation Days</h3>
 
       <div class="instructions">

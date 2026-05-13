@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useFocusTrap } from '../composables/useFocusTrap'
 import {
   getSavedProjects,
   setSavedProjects,
@@ -10,8 +11,8 @@ const props = defineProps<{ data: Omit<ProjectData, 'name'> }>()
 const emit = defineEmits<{ close: []; exportImage: [includeSummary: boolean] }>()
 
 const includeSummary = ref(true)
-
 const projectName = ref('My Project')
+const { trapRef, onKeydown } = useFocusTrap()
 
 const existingProject = computed(() =>
   getSavedProjects().find((p) => p.name === projectName.value.trim()) ?? null
@@ -67,7 +68,7 @@ function fmtDate(iso: string) {
 
 <template>
   <div class="backdrop" @click.self="emit('close')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
       <h3>Export Project</h3>
 
       <div class="field">

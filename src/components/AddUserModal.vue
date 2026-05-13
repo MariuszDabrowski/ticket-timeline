@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { Person } from '../stores/people'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   existing?: Person
@@ -27,6 +28,7 @@ const COLORS = [
 
 const name = ref('')
 const selectedColor = ref(COLORS[0]!)
+const { trapRef, onKeydown } = useFocusTrap()
 
 watch(
   () => props.existing,
@@ -46,7 +48,7 @@ function handleSubmit() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" @keydown.escape.prevent="emit('cancel')">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>{{ props.existing ? 'Edit Person' : 'Add Person' }}</h3>
 
       <div class="field">
@@ -56,7 +58,6 @@ function handleSubmit() {
           type="text"
           placeholder="Name"
           @keydown.enter.prevent="handleSubmit"
-          autofocus
         />
       </div>
 

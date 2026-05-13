@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const emit = defineEmits<{
   import: [csvText: string, workspaceSlug: string]
@@ -10,6 +11,7 @@ const csvText = ref<string | null>(null)
 const fileName = ref<string | null>(null)
 const workspaceSlug = ref('')
 const isDragOver = ref(false)
+const { trapRef, onKeydown } = useFocusTrap()
 
 function readFile(file: File) {
   if (!file.name.endsWith('.csv')) return
@@ -50,7 +52,7 @@ function handleImport() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>Import Epic from Shortcut</h3>
 
       <ol class="instructions">

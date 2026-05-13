@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import type { ICSPersonGroup } from '../utils/icsParser'
 import type { Person } from '../stores/people'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   groups: ICSPersonGroup[]
@@ -45,6 +46,7 @@ const rows = ref<Row[]>(
 
 const matchedCount = computed(() => rows.value.filter((r) => r.person !== null).length)
 const unmatchedCount = computed(() => rows.value.filter((r) => r.person === null).length)
+const { trapRef, onKeydown } = useFocusTrap()
 
 function totalDays(group: ICSPersonGroup): number {
   return group.events.reduce((sum, ev) => {
@@ -67,7 +69,7 @@ function confirm() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>Confirm Sync</h3>
       <p class="subtitle">
         Found <strong>{{ matchedCount }}</strong> matched

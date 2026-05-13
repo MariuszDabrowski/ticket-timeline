@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { DayMarker } from '../stores/dayMarkers'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   year: number
@@ -27,11 +28,12 @@ const COLORS = [
 
 const selectedColor = ref(props.existing?.color ?? COLORS[0]!)
 const note = ref(props.existing?.note ?? '')
+const { trapRef, onKeydown } = useFocusTrap()
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal">
+    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3>{{ MONTH_NAMES[props.month] }} {{ props.day }}, {{ props.year }}</h3>
 
       <div class="field">
