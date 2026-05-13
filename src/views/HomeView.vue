@@ -564,16 +564,17 @@ function onTicketListDrop(event: DragEvent) {
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0;
   font-size: 20px;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.02em;
+  transform: translateX(-12px);
 }
 
 .app-logo-icon {
-  width: 28px;
-  height: 28px;
+  width: 58px;
+  height: auto;
   flex-shrink: 0;
 }
 
