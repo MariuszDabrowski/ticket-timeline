@@ -706,11 +706,15 @@ section {
   text-align: left;
   color: rgba(255, 255, 255, 0.55);
   width: 100%;
-  transition: color 0.15s;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: color 0.15s, text-decoration-color 0.15s;
 }
 
 .load-more-btn:hover {
   color: rgba(255, 255, 255, 0.9);
+  text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
 .trim-btn {
@@ -734,13 +738,17 @@ section {
   cursor: pointer;
   padding: 0.15rem 1rem;
   color: rgba(255, 255, 255, 0.55);
-  transition: color 0.15s, background 0.15s;
+  transition: color 0.15s;
   border-radius: 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: color 0.15s, text-decoration-color 0.15s;
 }
 
 .month-option:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.04);
+  text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
 .add-btn {
@@ -780,11 +788,10 @@ section {
   font-size: 14px;
   padding: 0.15rem 1rem;
   color: rgba(255, 255, 255, 0.6);
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s;
 }
 
 .person:hover {
-  background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -792,9 +799,11 @@ section {
   flex: 1;
   cursor: pointer;
   border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
 }
 
-.person-name:hover {
+.person:hover .person-name {
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 
