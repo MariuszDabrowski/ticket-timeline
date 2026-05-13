@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Person } from '../stores/people'
+import type { CalendarDate } from '../stores/tickets'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
@@ -8,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string }]
+  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
 }>()
 
@@ -16,15 +17,31 @@ const number = ref('')
 const title = ref('')
 const assignedTo = ref<number | null>(null)
 const link = ref('')
+const startDateStr = ref('')
+const endDateStr = ref('')
 const { trapRef, onKeydown } = useFocusTrap()
 
+function parseDate(str: string): CalendarDate | null {
+  if (!str) return null
+  const [year, month, day] = str.split('-').map(Number)
+  return { year, month: month - 1, day }
+}
+
+const datesValid = computed(() => {
+  if (!startDateStr.value && !endDateStr.value) return true
+  if (startDateStr.value && endDateStr.value) return endDateStr.value >= startDateStr.value
+  return false
+})
+
 function handleSubmit() {
-  if (!number.value.trim() || !title.value.trim()) return
+  if (!number.value.trim() || !title.value.trim() || !datesValid.value) return
   emit('submit', {
     number: number.value.trim(),
     title: title.value.trim(),
     assignedTo: assignedTo.value,
     link: link.value.trim(),
+    startDate: parseDate(startDateStr.value),
+    endDate: parseDate(endDateStr.value),
   })
 }
 </script>
@@ -59,9 +76,19 @@ function handleSubmit() {
         <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
+      <div class="field">
+        <label>Schedule <span class="label-hint">— optional</span></label>
+        <div class="date-row">
+          <input v-model="startDateStr" type="date" />
+          <span class="date-sep">to</span>
+          <input v-model="endDateStr" type="date" :min="startDateStr" />
+        </div>
+        <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
+      </div>
+
       <div class="actions">
         <button @click="emit('cancel')">Cancel</button>
-        <button @click="handleSubmit" :disabled="!number.trim() || !title.trim()">Add</button>
+        <button @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Add</button>
       </div>
     </div>
   </div>
@@ -114,6 +141,13 @@ label {
   font-weight: 700;
 }
 
+.label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
 input,
 select {
   padding: 0.45rem 0.65rem;
@@ -136,6 +170,32 @@ select:focus {
 select option {
   background: #1a1a1a;
   color: #fff;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.4);
+  cursor: pointer;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-row input {
+  flex: 1;
+}
+
+.date-sep {
+  font-size: 13px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.date-error {
+  font-size: 12px;
+  color: #e74c3c;
 }
 
 .actions {

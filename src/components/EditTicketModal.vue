@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Ticket } from '../stores/tickets'
+import { ref, computed } from 'vue'
+import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import type { Person } from '../stores/people'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   ticket: Ticket
   people: Person[]
+  placement: Placement | null
 }>()
 
 const emit = defineEmits<{
-  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string }]
+  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
   delete: []
 }>()
@@ -21,13 +22,39 @@ const assignedTo = ref<number | null>(props.ticket.assignedTo)
 const link = ref(props.ticket.link)
 const { trapRef, onKeydown } = useFocusTrap()
 
+function calToStr(d: CalendarDate): string {
+  return `${d.year}-${String(d.month + 1).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`
+}
+
+function parseDate(str: string): CalendarDate | null {
+  if (!str) return null
+  const [year, month, day] = str.split('-').map(Number)
+  return { year, month: month - 1, day }
+}
+
+const startDateStr = ref(props.placement ? calToStr(props.placement.startDate) : '')
+const endDateStr = ref(props.placement ? calToStr(props.placement.endDate) : '')
+
+const datesValid = computed(() => {
+  if (!startDateStr.value && !endDateStr.value) return true
+  if (startDateStr.value && endDateStr.value) return endDateStr.value >= startDateStr.value
+  return false
+})
+
+function clearDates() {
+  startDateStr.value = ''
+  endDateStr.value = ''
+}
+
 function handleSubmit() {
-  if (!number.value.trim() || !title.value.trim()) return
+  if (!number.value.trim() || !title.value.trim() || !datesValid.value) return
   emit('submit', {
     number: number.value.trim(),
     title: title.value.trim(),
     assignedTo: assignedTo.value,
     link: link.value.trim(),
+    startDate: parseDate(startDateStr.value),
+    endDate: parseDate(endDateStr.value),
   })
 }
 </script>
@@ -65,11 +92,26 @@ function handleSubmit() {
         <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
+      <div class="field">
+        <div class="schedule-label-row">
+          <label>Schedule</label>
+          <button v-if="startDateStr || endDateStr" type="button" class="clear-btn" @click="clearDates">
+            Remove from calendar
+          </button>
+        </div>
+        <div class="date-row">
+          <input v-model="startDateStr" type="date" />
+          <span class="date-sep">to</span>
+          <input v-model="endDateStr" type="date" :min="startDateStr" />
+        </div>
+        <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
+      </div>
+
       <div class="actions">
         <button class="delete-btn" @click="emit('delete')">Delete</button>
         <div class="actions-right">
           <button @click="emit('cancel')">Cancel</button>
-          <button @click="handleSubmit" :disabled="!number.trim() || !title.trim()">Save</button>
+          <button @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Save</button>
         </div>
       </div>
     </div>
@@ -173,6 +215,53 @@ select:focus {
 select option {
   background: #1a1a1a;
   color: #fff;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.4);
+  cursor: pointer;
+}
+
+.schedule-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clear-btn {
+  all: unset;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.clear-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-row input {
+  flex: 1;
+}
+
+.date-sep {
+  font-size: 13px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.date-error {
+  font-size: 12px;
+  color: #e74c3c;
 }
 
 .actions {

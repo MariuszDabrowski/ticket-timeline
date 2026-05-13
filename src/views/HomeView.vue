@@ -17,7 +17,7 @@ import AddLabelModal from '../components/AddLabelModal.vue'
 import ExportModal from '../components/ExportModal.vue'
 import ImportModal from '../components/ImportModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
-import type { Ticket } from '../stores/tickets'
+import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
@@ -123,8 +123,13 @@ function handleDeleteLabel() {
   editingLabel.value = null
 }
 
-function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string }) {
-  tickets.addTicket(ticket)
+function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+  const { startDate, endDate, ...ticketData } = ticket
+  const id = tickets.addTicket(ticketData)
+  if (startDate && endDate) {
+    tickets.placeTicket(id, startDate)
+    tickets.moveTicket(id, startDate, endDate)
+  }
   showAddTicket.value = false
 }
 
@@ -168,8 +173,17 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 
 const editingTicket = ref<Ticket | null>(null)
 
-function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string }) {
-  if (editingTicket.value) tickets.updateTicket(editingTicket.value.id, data)
+function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+  if (!editingTicket.value) return
+  const id = editingTicket.value.id
+  const { startDate, endDate, ...ticketData } = data
+  tickets.updateTicket(id, ticketData)
+  if (startDate && endDate) {
+    if (!tickets.placements.find((p) => p.ticketId === id)) tickets.placeTicket(id, startDate)
+    tickets.moveTicket(id, startDate, endDate)
+  } else {
+    tickets.removePlacement(id)
+  }
   editingTicket.value = null
 }
 
@@ -503,6 +517,7 @@ function onTicketListDrop(event: DragEvent) {
     v-if="editingTicket"
     :ticket="editingTicket"
     :people="people.people"
+    :placement="tickets.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
     @submit="handleEditTicket"
     @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
@@ -899,7 +914,6 @@ section {
   white-space: nowrap;
   overflow: visible;
   max-width: 100%;
-  touch-action: none;
 }
 
 .ticket-pill:active {
