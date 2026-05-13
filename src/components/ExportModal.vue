@@ -7,7 +7,7 @@ import {
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
 
-const props = defineProps<{ data: Omit<ProjectData, 'name'> }>()
+const props = defineProps<{ data: Omit<ProjectData, 'name'>; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; exportImage: [includeSummary: boolean] }>()
 
 const includeSummary = ref(true)
@@ -115,7 +115,10 @@ function fmtDate(iso: string) {
             </label>
           </div>
           <div class="option-action">
-            <button class="btn" @click="emit('exportImage', includeSummary)">Export</button>
+            <button class="btn" @click="emit('exportImage', includeSummary)" :disabled="props.exportingImage">
+              <span v-if="props.exportingImage" class="spinner" />
+              <template v-else>Export</template>
+            </button>
           </div>
         </div>
 
@@ -289,10 +292,23 @@ h3 {
 
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.6;
   cursor: default;
   pointer-events: none;
   outline: none;
 }
 
+.spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 </style>

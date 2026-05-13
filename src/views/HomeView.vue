@@ -222,9 +222,11 @@ function handleImport(data: ProjectData) {
 }
 
 const monthsRowRef = ref<HTMLElement | null>(null)
+const exportingImage = ref(false)
 
 async function handleExportImage(includeSummary: boolean) {
-  if (!monthsRowRef.value) return
+  if (!monthsRowRef.value || exportingImage.value) return
+  exportingImage.value = true
   const row = monthsRowRef.value
   const panel = row.parentElement as HTMLElement
 
@@ -248,6 +250,7 @@ async function handleExportImage(includeSummary: boolean) {
   } finally {
     panel.style.overflow = prevOverflow
     if (!includeSummary && summaryEl) summaryEl.style.display = ''
+    exportingImage.value = false
   }
 }
 
@@ -526,6 +529,7 @@ function onTicketListDrop(event: DragEvent) {
   <ExportModal
     v-if="showExport"
     :data="exportData"
+    :exporting-image="exportingImage"
     @close="showExport = false"
     @export-image="(v) => handleExportImage(v)"
   />
@@ -604,7 +608,7 @@ function onTicketListDrop(event: DragEvent) {
   padding: 5px 1rem;
   font-family: 'Nunito', sans-serif;
   font-size: 0.76rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.03em;
   line-height: 1;
   display: inline-flex;
