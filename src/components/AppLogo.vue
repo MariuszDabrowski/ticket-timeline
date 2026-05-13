@@ -13,7 +13,7 @@
 
     <!-- Minute hand (long) — 5s per revolution -->
     <g>
-      <rect x="560" y="-700" width="80" height="220" rx="40" fill="#767676" />
+      <rect x="560" y="-680" width="80" height="200" rx="40" fill="#767676" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -26,7 +26,7 @@
 
     <!-- Hour hand (short) — 10s per revolution (2× slower) -->
     <g>
-      <rect x="560" y="-640" width="80" height="160" rx="40" fill="#767676" />
+      <rect x="560" y="-620" width="80" height="140" rx="40" fill="#767676" />
       <animateTransform
         attributeName="transform"
         type="rotate"
