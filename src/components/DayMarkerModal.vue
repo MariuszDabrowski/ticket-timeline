@@ -89,7 +89,7 @@ const note = ref(props.existing?.note ?? '')
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  width: 340px;
+  width: 420px;
   max-width: calc(100vw - 2rem);
 }
 

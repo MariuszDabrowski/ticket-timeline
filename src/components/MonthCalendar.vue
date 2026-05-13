@@ -548,8 +548,8 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.number }}</span>
-              <span v-if="info.ticket.title" class="ticket-tooltip">{{ info.ticket.title }}</span>
+              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
+              <span v-if="!info.ticket.isLabel && info.ticket.title" class="ticket-tooltip">{{ info.ticket.title }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -795,7 +795,7 @@ h2 {
 }
 
 .holiday-label {
-  font-size: 0.72rem;
+  font-size: 12px;
   color: rgba(240, 175, 85, 1);
   font-weight: 500;
   padding: 0 0.3rem 0.35rem;

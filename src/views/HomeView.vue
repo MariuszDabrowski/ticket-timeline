@@ -71,6 +71,7 @@ const collapsed = ref<Record<string, boolean>>({
   months: false,
   people: true,
   tickets: true,
+  labels: true,
   sync: true,
 })
 
@@ -355,7 +356,7 @@ function onTicketListDrop(event: DragEvent) {
         </button>
         <div v-show="!collapsed.people" class="section-body">
           <button class="add-btn" @click="showAddPerson = true">Add Person</button>
-          <ul class="people-list">
+          <ul v-if="people.people.length > 0" class="people-list">
             <li v-for="person in people.people" :key="person.id" class="person">
               <span class="color-dot" :style="{ background: person.color }" />
               <input
@@ -393,8 +394,7 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-          <button class="add-btn" @click="showAddLabel = true">Add Label</button>
-          <ol class="ticket-list">
+          <ol v-if="unplacedTickets.length > 0" class="ticket-list">
             <li v-for="ticket in unplacedTickets" :key="ticket.id">
               <span
                 class="ticket-pill"
@@ -406,6 +406,18 @@ function onTicketListDrop(event: DragEvent) {
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
               >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
             </li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
+        <button class="section-header" @click="collapsed.labels = !collapsed.labels">
+          <span>Labels</span>
+          <span class="chevron" :class="{ rotated: collapsed.labels }">›</span>
+        </button>
+        <div v-show="!collapsed.labels" class="section-body">
+          <button class="add-btn" @click="showAddLabel = true">Add Label</button>
+          <ol v-if="unplacedLabels.length > 0" class="ticket-list">
             <li v-for="label in unplacedLabels" :key="label.id">
               <span
                 class="ticket-pill label-pill"
@@ -415,7 +427,7 @@ function onTicketListDrop(event: DragEvent) {
                 @click.stop="editingLabel = label"
                 @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
                 @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-              >{{ label.title }}<div class="sidebar-pill-tooltip">{{ label.title }}</div></span>
+              >{{ label.title }}</span>
             </li>
           </ol>
         </div>
@@ -612,7 +624,6 @@ function onTicketListDrop(event: DragEvent) {
   flex-shrink: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   background: #141414;
-  padding: 0.5rem 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -664,7 +675,7 @@ section {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0.25rem 0 0.5rem;
+  padding: 0.15rem 0 0.85rem;
 }
 
 .load-more-btn {
