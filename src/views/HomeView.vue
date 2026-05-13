@@ -1011,9 +1011,15 @@ section {
 }
 
 @media (max-width: 920px) {
+  .layout {
+    height: auto;
+    min-height: 100vh;
+  }
+
   .below-header {
     flex-direction: column;
-    overflow: auto;
+    overflow: visible;
+    flex: none;
   }
 
   .sidebar {
