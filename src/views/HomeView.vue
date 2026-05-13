@@ -1097,6 +1097,8 @@ section {
 
 .panel-body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .panel-body--filters {
@@ -1175,8 +1177,8 @@ section {
 
 .filter-hint {
   font-size: 13px;
-  opacity: 0.4;
-  padding: 0 1rem 0.35rem;
+  opacity: 0.7;
+  padding: 0.5rem 1rem 0.35rem;
   line-height: 1.4;
 }
 
@@ -1260,12 +1262,18 @@ section {
     align-self: stretch;
     margin: 0;
     position: static;
+    order: -1;
   }
 
   .panel-section {
     border-radius: 0;
     border-left: none;
     border-right: none;
+  }
+
+  .panel-body {
+    max-height: 60vh;
+    overflow-y: auto;
   }
 }
 
