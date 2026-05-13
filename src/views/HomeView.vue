@@ -4,6 +4,7 @@ import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
+import AppLogo from '../components/AppLogo.vue'
 import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
@@ -288,7 +289,10 @@ function onTicketListDrop(event: DragEvent) {
 <template>
   <div class="layout">
     <header class="app-header">
-      <span class="app-logo">Ticket Timeline</span>
+      <span class="app-logo">
+        <AppLogo class="app-logo-icon" />
+        Ticket Timeline
+      </span>
       <div class="header-actions">
         <button class="header-btn" @click="showImport = true"><span class="icon">upload</span> Import</button>
         <button class="header-btn" @click="showExport = true"><span class="icon">download</span> Export</button>
@@ -558,10 +562,19 @@ function onTicketListDrop(event: DragEvent) {
 .app-logo {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 20px;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.02em;
+}
+
+.app-logo-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .header-actions {
