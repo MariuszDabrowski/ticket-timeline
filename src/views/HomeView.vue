@@ -1001,6 +1001,7 @@ section {
 @media (max-width: 1220px) {
   .months-row {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .months-stack {
