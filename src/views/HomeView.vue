@@ -1000,6 +1000,16 @@ section {
   }
 }
 
+@media (max-width: 460px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+}
+
 @media (max-width: 920px) {
   .below-header {
     flex-direction: column;
