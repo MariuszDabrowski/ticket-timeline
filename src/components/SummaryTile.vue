@@ -94,6 +94,14 @@ const teamStats = computed<PersonStat[]>(() => {
 
 const activePersonCount = computed(() => teamStats.value.filter((s) => s.id !== null).length)
 
+const ticketStates = computed(() => {
+  const seen = new Set<string>()
+  for (const ticket of ticketsStore.tickets) {
+    if (ticket.state) seen.add(ticket.state)
+  }
+  return [...seen].sort()
+})
+
 const headline = computed(() => {
   if (totalCount.value === 0) return 'No tickets yet — add some to get started.'
   if (scheduledCount.value === 0)
@@ -176,7 +184,6 @@ const headline = computed(() => {
             Team
             <span class="section-count">{{ activePersonCount }} {{ activePersonCount === 1 ? 'person' : 'people' }}</span>
           </div>
-          <p class="visibility-hint">Uncheck a person to hide their tickets from the calendar.</p>
           <ul class="team-list">
             <li v-for="stat in teamStats" :key="stat.id ?? -1" class="team-row">
               <label class="team-row-label">
@@ -200,6 +207,31 @@ const headline = computed(() => {
               </label>
             </li>
           </ul>
+          <p class="visibility-hint">Uncheck a person to hide their tickets from the calendar.</p>
+        </div>
+      </template>
+
+      <template v-if="ticketStates.length > 0">
+        <div class="divider" />
+        <div class="section">
+          <div class="section-label">States</div>
+          <ul class="team-list">
+            <li v-for="state in ticketStates" :key="state" class="team-row">
+              <label class="team-row-label">
+                <input
+                  type="checkbox"
+                  class="visibility-checkbox"
+                  :checked="!options.hiddenStates.has(state)"
+                  @change="options.toggleStateVisibility(state)"
+                />
+                <span
+                  class="team-name"
+                  :style="{ opacity: options.hiddenStates.has(state) ? 0.4 : 1 }"
+                >{{ state }}</span>
+              </label>
+            </li>
+          </ul>
+          <p class="visibility-hint">Uncheck a state to hide those tickets from the calendar.</p>
         </div>
       </template>
     </template>
@@ -375,10 +407,10 @@ const headline = computed(() => {
 }
 
 .visibility-hint {
-  font-size: 11px;
+  font-size: 13px;
   opacity: 0.45;
   line-height: 1.4;
-  margin-bottom: 0.15rem;
+  margin-top: 0.25rem;
 }
 
 .team-list {

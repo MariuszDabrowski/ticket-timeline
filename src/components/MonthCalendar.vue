@@ -174,6 +174,7 @@ function isTicketVisible(ticketId: number): boolean {
   const ticket = ticketsStore.tickets.find((t) => t.id === ticketId)
   if (!ticket) return false
   if (ticket.assignedTo !== null && options.hiddenPersonIds.has(ticket.assignedTo)) return false
+  if (ticket.state && options.hiddenStates.has(ticket.state)) return false
   return true
 }
 

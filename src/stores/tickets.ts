@@ -9,6 +9,7 @@ export interface Ticket {
   link: string
   isLabel?: boolean
   labelColor?: string
+  state?: string
 }
 
 export interface CalendarDate {
