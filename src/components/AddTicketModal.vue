@@ -23,7 +23,7 @@ const { trapRef, onKeydown } = useFocusTrap()
 
 function parseDate(str: string): CalendarDate | null {
   if (!str) return null
-  const [year, month, day] = str.split('-').map(Number)
+  const [year, month, day] = str.split('-').map(Number) as [number, number, number]
   return { year, month: month - 1, day }
 }
 

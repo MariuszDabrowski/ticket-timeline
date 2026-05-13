@@ -586,6 +586,7 @@ function onDrop(event: DragEvent, day: number) {
     v-if="editingTicket"
     :ticket="editingTicket"
     :people="peopleStore.people"
+    :placement="ticketsStore.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
     @submit="handleEditSubmit"
     @delete="handleDeleteTicket"
     @cancel="editingTicket = null"
