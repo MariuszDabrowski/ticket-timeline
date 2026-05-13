@@ -997,4 +997,10 @@ section {
 .clear-sync-btn:hover {
   color: rgba(231, 76, 60, 0.9);
 }
+
+@media (max-width: 1220px) {
+  .months-row {
+    flex-direction: column;
+  }
+}
 </style>

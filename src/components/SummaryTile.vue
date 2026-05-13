@@ -207,6 +207,21 @@ const headline = computed(() => {
   top: 2rem;
 }
 
+@media (max-width: 1220px) {
+  .summary-tile {
+    width: auto;
+    align-self: stretch;
+    margin: 0;
+    top: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    background: #141414;
+    z-index: 10;
+  }
+}
+
 
 .tile-header {
   display: flex;
