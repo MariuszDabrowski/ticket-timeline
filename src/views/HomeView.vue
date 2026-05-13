@@ -1097,7 +1097,7 @@ section {
 
 .panel-body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  max-height: 60vh;
+  max-height: calc(100vh - 6rem);
   overflow-y: auto;
 }
 
@@ -1272,8 +1272,7 @@ section {
   }
 
   .panel-body {
-    max-height: 60vh;
-    overflow-y: auto;
+    max-height: none;
   }
 }
 

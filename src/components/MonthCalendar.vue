@@ -439,6 +439,13 @@ function darkenColor(hex: string, amount: number): string {
   return `rgb(${Math.round(r * (1 - amount))}, ${Math.round(g * (1 - amount))}, ${Math.round(b * (1 - amount))})`
 }
 
+function withAlpha(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 function vacationStyle(color: string): Record<string, string> {
   const dark = darkenColor(color, 0.18)
   return {
@@ -551,7 +558,7 @@ function onDrop(event: DragEvent, day: number) {
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
               }"
-              :style="{ background: ticketColor(info.ticket) }"
+              :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
               @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
               @dragstart="onTicketDragStart($event, info)"
@@ -916,7 +923,11 @@ h2 {
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
-  transition: opacity 0.1s;
+  transition: background 0.15s, opacity 0.1s;
+}
+
+.ticket-pill:hover {
+  background: var(--tc) !important;
 }
 
 .ticket-pill:active {
