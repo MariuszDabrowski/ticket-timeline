@@ -13,7 +13,7 @@
 
     <!-- Minute hand (long) — 5s per revolution -->
     <g>
-      <rect x="592" y="-640" width="16" height="160" rx="8" fill="rgba(255,255,255,0.4)" />
+      <rect x="560" y="-640" width="80" height="160" rx="40" fill="rgba(255,255,255,0.4)" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -26,7 +26,7 @@
 
     <!-- Hour hand (short) — 10s per revolution (2× slower) -->
     <g>
-      <rect x="590" y="-590" width="20" height="110" rx="10" fill="rgba(255,255,255,0.4)" />
+      <rect x="560" y="-590" width="80" height="110" rx="40" fill="rgba(255,255,255,0.4)" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -38,6 +38,6 @@
     </g>
 
     <!-- Center pivot dot -->
-    <circle cx="600" cy="-480" r="14" fill="rgba(255,255,255,0.4)" />
+    <circle cx="600" cy="-480" r="40" fill="rgba(255,255,255,0.4)" />
   </svg>
 </template>
