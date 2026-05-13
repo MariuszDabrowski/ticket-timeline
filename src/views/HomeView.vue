@@ -498,8 +498,8 @@ function onTicketListDrop(event: DragEvent) {
                 @change="options.togglePersonVisibility(person.id)"
               />
               <span class="filter-dot" :style="{ background: person.color }" />
-              <span class="filter-name">{{ person.name }}</span>
-              <span v-if="placedTicketCountByPerson.get(person.id)" class="filter-count">{{ placedTicketCountByPerson.get(person.id) }}</span>
+              <span class="filter-name" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
+              <span class="filter-count" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ placedTicketCountByPerson.get(person.id) ?? 0 }}</span>
             </label>
           </template>
           <template v-if="ticketStates.length > 0">
@@ -514,8 +514,8 @@ function onTicketListDrop(event: DragEvent) {
                 :checked="!options.hiddenStates.has(state)"
                 @change="options.toggleStateVisibility(state)"
               />
-              <span class="filter-name">{{ state }}</span>
-              <span v-if="placedTicketCountByState.get(state)" class="filter-count">{{ placedTicketCountByState.get(state) }}</span>
+              <span class="filter-name" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
+              <span class="filter-count" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.25 : 0.45 }">{{ placedTicketCountByState.get(state) ?? 0 }}</span>
             </label>
           </template>
           <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
