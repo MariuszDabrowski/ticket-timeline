@@ -487,17 +487,16 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
+        <div class="months-stack">
+          <MonthCalendar
+            v-for="m in sortedMonths"
+            :key="`${m.year}-${m.month}`"
+            :year="m.year"
+            :month="m.month"
+          />
+          <div class="months-row-end" />
+        </div>
         <div class="summary-column">
-          <div class="panel-section">
-            <button class="panel-header" @click="togglePanel('brief')">
-              <span>Project Brief</span>
-              <span class="panel-chevron" :class="{ rotated: openPanel === 'brief' }">›</span>
-            </button>
-            <div v-show="openPanel === 'brief'" class="panel-body">
-              <SummaryTile />
-            </div>
-          </div>
-
           <div v-if="people.people.length > 0 || ticketStates.length > 0" class="panel-section">
             <button class="panel-header" @click="togglePanel('filters')">
               <span>Filters</span>
@@ -535,15 +534,16 @@ function onTicketListDrop(event: DragEvent) {
               </template>
             </div>
           </div>
-        </div>
-        <div class="months-stack">
-          <MonthCalendar
-            v-for="m in sortedMonths"
-            :key="`${m.year}-${m.month}`"
-            :year="m.year"
-            :month="m.month"
-          />
-          <div class="months-row-end" />
+
+          <div class="panel-section">
+            <button class="panel-header" @click="togglePanel('brief')">
+              <span>Project Brief</span>
+              <span class="panel-chevron" :class="{ rotated: openPanel === 'brief' }">›</span>
+            </button>
+            <div v-show="openPanel === 'brief'" class="panel-body">
+              <SummaryTile />
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -1031,7 +1031,7 @@ section {
   align-self: flex-start;
   width: 280px;
   flex-shrink: 0;
-  margin: 68px 0 1rem 2rem;
+  margin: 68px 2rem 1rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

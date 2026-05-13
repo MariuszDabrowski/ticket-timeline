@@ -186,21 +186,10 @@ const headline = computed(() => {
 <style scoped>
 .summary-tile {
   padding: 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   font-size: 0.85rem;
-}
-
-@media (max-width: 1220px) {
-  .summary-tile {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-  }
 }
 
 
