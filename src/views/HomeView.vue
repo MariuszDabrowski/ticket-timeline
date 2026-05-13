@@ -921,7 +921,6 @@ section {
 }
 
 .months-stack :deep(.month-calendar) {
-  min-width: unset;
   margin-left: 0;
   margin-right: 0;
 }

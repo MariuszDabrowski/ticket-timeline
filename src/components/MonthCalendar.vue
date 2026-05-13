@@ -614,7 +614,6 @@ function onDrop(event: DragEvent, day: number) {
 .month-calendar {
   border-radius: 12px;
   margin: 0 1rem 1rem;
-  min-width: fit-content;
   flex-shrink: 0;
 }
 
