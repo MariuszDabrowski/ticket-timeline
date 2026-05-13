@@ -232,6 +232,30 @@ const calendarCountByState = computed(() => {
 
 const hasCalendarTickets = computed(() => tickets.placements.length > 0)
 
+const unplacedTicketsByState = computed(() => {
+  const grouped = new Map<string, Ticket[]>()
+  const noState: Ticket[] = []
+  for (const ticket of unplacedTickets.value) {
+    if (ticket.state) {
+      if (!grouped.has(ticket.state)) grouped.set(ticket.state, [])
+      grouped.get(ticket.state)!.push(ticket)
+    } else {
+      noState.push(ticket)
+    }
+  }
+  const result: { state: string | null; tickets: Ticket[]; start: number }[] = []
+  let start = 1
+  for (const state of ticketStates.value) {
+    const group = grouped.get(state)
+    if (group && group.length > 0) {
+      result.push({ state, tickets: group, start })
+      start += group.length
+    }
+  }
+  if (noState.length > 0) result.push({ state: null, tickets: noState, start })
+  return result
+})
+
 const openPanel = ref<'brief' | 'filters' | null>('brief')
 function togglePanel(key: 'brief' | 'filters') {
   openPanel.value = openPanel.value === key ? null : key
@@ -430,19 +454,24 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-          <ol v-if="unplacedTickets.length > 0" class="ticket-list">
-            <li v-for="ticket in unplacedTickets" :key="ticket.id">
-              <span
-                class="ticket-pill"
-                :class="{ dragging: draggingTicketId === ticket.id }"
-                :style="{ background: ticketColor(ticket.assignedTo) }"
-                draggable="true"
-                @click.stop="editingTicket = ticket"
-                @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-                @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-              >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
-            </li>
-          </ol>
+          <div v-if="unplacedTickets.length > 0" class="ticket-groups">
+            <template v-for="group in unplacedTicketsByState" :key="group.state ?? '__none__'">
+              <div v-if="group.state" class="ticket-state-heading">{{ group.state }}</div>
+              <ol class="ticket-list" :start="group.start">
+                <li v-for="ticket in group.tickets" :key="ticket.id">
+                  <span
+                    class="ticket-pill"
+                    :class="{ dragging: draggingTicketId === ticket.id }"
+                    :style="{ background: ticketColor(ticket.assignedTo) }"
+                    draggable="true"
+                    @click.stop="editingTicket = ticket"
+                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+                  >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+                </li>
+              </ol>
+            </template>
+          </div>
         </div>
       </section>
 
@@ -510,9 +539,9 @@ function onTicketListDrop(event: DragEvent) {
               <template v-if="hasCalendarTickets">
                 <p class="filter-hint">Uncheck items to hide their tickets from the calendar. Counts reflect tickets currently on the calendar.</p>
                 <div class="filter-divider" />
-                <template v-if="people.people.length > 0">
+                <template v-if="people.people.some(p => calendarCountByPerson.get(p.id))">
                   <span class="filter-group-label">People</span>
-                  <label v-for="person in people.people" :key="person.id" class="filter-option">
+                  <label v-for="person in people.people.filter(p => calendarCountByPerson.get(p.id))" :key="person.id" class="filter-option">
                     <input
                       type="checkbox"
                       :checked="!!calendarCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
@@ -524,9 +553,9 @@ function onTicketListDrop(event: DragEvent) {
                     <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.3 : 0.8 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
                   </label>
                 </template>
-                <template v-if="ticketStates.length > 0">
-                  <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
-                  <label v-for="state in ticketStates" :key="state" class="filter-option">
+                <template v-if="ticketStates.some(s => calendarCountByState.get(s))">
+                  <span class="filter-group-label" :style="{ marginTop: people.people.some(p => calendarCountByPerson.get(p.id)) ? '0.6rem' : '0' }">States</span>
+                  <label v-for="state in ticketStates.filter(s => calendarCountByState.get(s))" :key="state" class="filter-option">
                     <input
                       type="checkbox"
                       :checked="!!calendarCountByState.get(state) && !options.hiddenStates.has(state)"
@@ -916,11 +945,27 @@ section {
   outline: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
+.ticket-groups {
+  counter-reset: ticket-counter;
+  margin-top: 0.5rem;
+}
+
+.ticket-state-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.5rem 1rem 0.15rem;
+}
+
+.ticket-state-heading:first-child {
+  padding-top: 0.15rem;
+}
+
 .ticket-list {
   list-style: none;
-  counter-reset: ticket-counter;
-  padding: 0.25rem 1rem 0.25rem 1rem;
-  margin-top: 0.5rem;
+  padding: 0.1rem 1rem 0.25rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1005,6 +1050,8 @@ section {
 .panel {
   flex: 1;
   overflow: auto;
+  position: relative;
+  z-index: 1;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 

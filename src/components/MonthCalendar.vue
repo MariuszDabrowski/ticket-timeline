@@ -365,6 +365,7 @@ const ticketSlotsPerRow = computed<Record<number, number>>(() => {
 // --- Vacation slot computation ---
 
 interface DayVacationInfo {
+  vacationId: number
   personId: number
   color: string
   personName: string
@@ -411,6 +412,7 @@ function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
     const isStart = compareCalendarDates(entry.startDate, thisDate) === 0
     const isEnd = compareCalendarDates(entry.endDate, thisDate) === 0
     slots[slot] = {
+      vacationId: entry.id,
       personId: entry.personId,
       color: person?.color ?? '#aaa',
       personName: person?.name ?? '',
@@ -579,7 +581,7 @@ function onDrop(event: DragEvent, day: number) {
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
                 'is-hovered': dragState.hoveredTicketId === info.ticket.id,
-                'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
+                'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
               }"
               :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
@@ -623,8 +625,12 @@ function onDrop(event: DragEvent, day: number) {
                 'is-end': info.isEnd,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
+                'is-hovered': dragState.hoveredVacationId === info.vacationId,
+                'is-dimmed': dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId,
               }"
               :style="{ ...vacationStyle(info.color), '--vac-color': info.color }"
+              @mouseenter="dragState.hoveredVacationId = info.vacationId"
+              @mouseleave="dragState.hoveredVacationId = null"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
               <div class="vacation-tooltip">
@@ -887,6 +893,48 @@ h2 {
   min-height: 1.1rem;
   line-height: 1;
   position: relative;
+  transition: opacity 0.35s ease;
+}
+
+.vacation-pill.is-hovered {
+  opacity: 1;
+}
+
+.vacation-pill.is-dimmed {
+  opacity: 0.2;
+}
+
+.vacation-pill.is-start.is-hovered::before,
+.vacation-pill.is-end.is-hovered::after {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.vacation-pill.is-start.is-hovered::before {
+  content: 'S';
+  right: calc(100% + 2px);
+}
+
+.vacation-pill.is-end.is-hovered::after {
+  content: 'F';
+  left: calc(100% + 2px);
 }
 
 .vacation-pill.row-end::after {
