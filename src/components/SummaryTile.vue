@@ -124,10 +124,6 @@ const headline = computed(() => {
 
 <template>
   <div class="summary-tile">
-    <div class="tile-header">
-      <span class="tile-label">Project Brief</span>
-    </div>
-
     <p class="headline">{{ headline }}</p>
 
     <template v-if="totalCount > 0">
@@ -207,19 +203,6 @@ const headline = computed(() => {
   }
 }
 
-
-.tile-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.tile-label {
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: #fff;
-}
 
 .headline {
   font-size: 14px;
