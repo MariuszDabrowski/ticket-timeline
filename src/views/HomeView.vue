@@ -494,7 +494,8 @@ function onTicketListDrop(event: DragEvent) {
             >
               <input
                 type="checkbox"
-                :checked="!options.hiddenPersonIds.has(person.id)"
+                :checked="!!placedTicketCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
+                :disabled="!placedTicketCountByPerson.get(person.id)"
                 @change="options.togglePersonVisibility(person.id)"
               />
               <span class="filter-dot" :style="{ background: person.color }" />
@@ -511,7 +512,8 @@ function onTicketListDrop(event: DragEvent) {
             >
               <input
                 type="checkbox"
-                :checked="!options.hiddenStates.has(state)"
+                :checked="!!placedTicketCountByState.get(state) && !options.hiddenStates.has(state)"
+                :disabled="!placedTicketCountByState.get(state)"
                 @change="options.toggleStateVisibility(state)"
               />
               <span class="filter-name" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
