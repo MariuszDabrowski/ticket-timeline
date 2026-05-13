@@ -485,6 +485,7 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.filters }">›</span>
         </button>
         <div v-show="!collapsed.filters" class="section-body">
+          <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
           <template v-if="people.people.length > 0">
             <span class="filter-group-label">People</span>
             <label
@@ -520,7 +521,6 @@ function onTicketListDrop(event: DragEvent) {
               <span class="filter-count" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.25 : 0.45 }">{{ placedTicketCountByState.get(state) ?? 0 }}</span>
             </label>
           </template>
-          <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
         </div>
       </section>
     </aside>
@@ -1089,13 +1089,14 @@ section {
 .filter-hint {
   font-size: 13px;
   opacity: 0.4;
-  padding: 0.5rem 1rem 0;
+  padding: 0 1rem 0.35rem;
   line-height: 1.4;
 }
 
 /* Custom checkboxes */
 .option input[type='checkbox'],
-.month-option input[type='checkbox'] {
+.month-option input[type='checkbox'],
+.filter-option input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   width: 14px;
@@ -1110,13 +1111,15 @@ section {
 }
 
 .option input[type='checkbox']:checked,
-.month-option input[type='checkbox']:checked {
+.month-option input[type='checkbox']:checked,
+.filter-option input[type='checkbox']:checked {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(255, 255, 255, 0.6);
 }
 
 .option input[type='checkbox']:checked::after,
-.month-option input[type='checkbox']:checked::after {
+.month-option input[type='checkbox']:checked::after,
+.filter-option input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
   left: 3px;
@@ -1130,7 +1133,8 @@ section {
 }
 
 .option input[type='checkbox']:hover,
-.month-option input[type='checkbox']:hover {
+.month-option input[type='checkbox']:hover,
+.filter-option input[type='checkbox']:not(:disabled):hover {
   border-color: rgba(255, 255, 255, 0.45);
 }
 
