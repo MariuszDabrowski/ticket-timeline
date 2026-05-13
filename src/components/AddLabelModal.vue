@@ -189,15 +189,13 @@ button:disabled {
 }
 
 .delete-btn {
-  background: transparent;
-  border-color: rgba(231, 76, 60, 0.35);
-  color: rgba(231, 76, 60, 0.75);
-  box-shadow: none;
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
+  border-color: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .delete-btn:hover {
-  border-color: rgba(231, 76, 60, 0.7);
-  color: rgba(231, 76, 60, 1);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 </style>
