@@ -613,7 +613,7 @@ function onDrop(event: DragEvent, day: number) {
 <style scoped>
 .month-calendar {
   border-radius: 12px;
-  margin: 0 1rem 1rem;
+  margin: 0 0 1rem;
   flex-shrink: 0;
 }
 

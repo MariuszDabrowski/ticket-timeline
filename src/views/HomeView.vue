@@ -916,14 +916,10 @@ section {
   align-items: stretch;
   flex: 1;
   min-width: 0;
-  padding: 0 2rem 0 0;
+  padding: 0 2rem;
   box-sizing: border-box;
 }
 
-.months-stack :deep(.month-calendar) {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
 
 .months-row-end {
   width: 1.5rem;
@@ -1002,10 +998,6 @@ section {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .months-stack {
-    padding-left: 2rem;
-  }
 }
 
 @media (max-width: 920px) {
@@ -1025,6 +1017,10 @@ section {
   .panel {
     overflow: visible;
     flex: none;
+  }
+
+  .months-stack {
+    padding: 0 1rem;
   }
 }
 </style>
