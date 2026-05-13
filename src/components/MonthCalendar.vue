@@ -139,7 +139,7 @@ function spanInDays(start: CalendarDate, end: CalendarDate): number {
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 function fmtDate(d: { year: number; month: number; day: number }): string {
-  return `${MONTH_SHORT[d.month]} ${d.day}, ${d.year}`
+  return `${MONTH_SHORT[d.month]} ${d.day}`
 }
 
 function assignedName(ticket: Ticket): string {
@@ -949,8 +949,8 @@ h2 {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(30, 30, 35, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(30, 30, 35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
   padding: 0.45rem 0.65rem;
   border-radius: 6px;
@@ -962,9 +962,8 @@ h2 {
   text-align: left;
   line-height: 1.5;
   pointer-events: none;
-  z-index: 20;
-  opacity: 0;
-  transition: opacity 0.15s;
+  z-index: 9999;
+  visibility: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -977,11 +976,11 @@ h2 {
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(60, 60, 60, 0.92);
+  border-top-color: rgb(30, 30, 35);
 }
 
 .vacation-pill:hover .vacation-tooltip {
-  opacity: 1;
+  visibility: visible;
 }
 
 .ticket-pill {
@@ -1078,7 +1077,7 @@ h2 {
   font-size: 0.72rem;
   font-weight: normal;
   width: max-content;
-  max-width: 240px;
+  max-width: 260px;
   white-space: normal;
   text-align: left;
   line-height: 1.5;

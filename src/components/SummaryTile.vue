@@ -243,7 +243,7 @@ const headline = computed(() => {
 }
 
 .stat-desc {
-  opacity: 0.75;
+  opacity: 0.82;
   font-size: 14px;
 }
 

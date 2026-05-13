@@ -503,7 +503,7 @@ function onTicketListDrop(event: DragEvent) {
         <div class="summary-column">
           <div class="panel-section">
             <button class="panel-header" @click="togglePanel('filters')">
-              <span>Filters</span>
+              <span>Calendar Filters</span>
               <span class="panel-chevron" :class="{ rotated: openPanel === 'filters' }">›</span>
             </button>
             <div v-show="openPanel === 'filters'" class="panel-body panel-body--filters">
@@ -844,9 +844,9 @@ section {
 }
 
 .label-blurb {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.75);
   padding: 0.3rem 1rem 0.5rem;
   margin: 0;
 }
@@ -1159,7 +1159,7 @@ section {
 
 .filter-hint {
   font-size: 13px;
-  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.82);
   padding: 0.5rem 1rem 0.35rem;
   line-height: 1.4;
 }
