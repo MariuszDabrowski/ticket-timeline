@@ -9,22 +9,13 @@
     />
 
     <!-- Left dash 1 (top) -->
-    <rect y="-680" height="80" rx="40" fill="#767676">
-      <animate attributeName="x"     calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="80;40;115;80"  keyTimes="0;0.3;0.65;1" dur="2.8s" repeatCount="indefinite" />
-      <animate attributeName="width" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="160;200;125;160" keyTimes="0;0.3;0.65;1" dur="2.8s" repeatCount="indefinite" />
-    </rect>
+    <rect class="dash dash-1" x="80" y="-680" width="160" height="80" rx="40" fill="#767676" />
 
     <!-- Left dash 2 (middle) -->
-    <rect y="-520" height="80" rx="40" fill="#767676">
-      <animate attributeName="x"     calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="40;110;20;40"  keyTimes="0;0.4;0.72;1" dur="3.5s" repeatCount="indefinite" />
-      <animate attributeName="width" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="200;130;220;200" keyTimes="0;0.4;0.72;1" dur="3.5s" repeatCount="indefinite" />
-    </rect>
+    <rect class="dash dash-2" x="40" y="-520" width="200" height="80" rx="40" fill="#767676" />
 
     <!-- Left dash 3 (bottom) -->
-    <rect y="-360" height="80" rx="40" fill="#767676">
-      <animate attributeName="x"     calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="80;25;105;80"  keyTimes="0;0.35;0.68;1" dur="2.2s" repeatCount="indefinite" />
-      <animate attributeName="width" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" values="160;215;135;160" keyTimes="0;0.35;0.68;1" dur="2.2s" repeatCount="indefinite" />
-    </rect>
+    <rect class="dash dash-3" x="80" y="-360" width="160" height="80" rx="40" fill="#767676" />
 
     <!-- Minute hand (long) — 5s per revolution -->
     <g>
@@ -56,3 +47,40 @@
     <circle cx="600" cy="-480" r="40" fill="#767676" />
   </svg>
 </template>
+
+<style scoped>
+.dash {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+}
+
+.dash-1 {
+  animation: wind1 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dash-2 {
+  animation: wind2 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dash-3 {
+  animation: wind3 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes wind1 {
+  0%, 100% { transform: scaleX(1); }
+  30%       { transform: scaleX(1.25); }
+  65%       { transform: scaleX(0.78); }
+}
+
+@keyframes wind2 {
+  0%, 100% { transform: scaleX(1); }
+  40%      { transform: scaleX(0.65); }
+  72%      { transform: scaleX(1.38); }
+}
+
+@keyframes wind3 {
+  0%, 100% { transform: scaleX(1); }
+  35%      { transform: scaleX(1.34); }
+  68%      { transform: scaleX(0.84); }
+}
+</style>
