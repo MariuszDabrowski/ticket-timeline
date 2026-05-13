@@ -1002,5 +1002,9 @@ section {
   .months-row {
     flex-direction: column;
   }
+
+  .months-stack {
+    padding-left: 2rem;
+  }
 }
 </style>
