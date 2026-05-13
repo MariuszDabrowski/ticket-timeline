@@ -192,24 +192,14 @@ const headline = computed(() => {
   padding: 1rem;
   border: 1px dashed rgba(255, 255, 255, 0.25);
   border-radius: 8px;
-  margin: 68px 0 1rem 2rem;
-  width: 280px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  align-self: flex-start;
   font-size: 0.85rem;
-  position: sticky;
-  top: 2rem;
 }
 
 @media (max-width: 1220px) {
   .summary-tile {
-    width: auto;
-    align-self: stretch;
-    margin: 0;
-    position: static;
     border-radius: 0;
     border-left: none;
     border-right: none;

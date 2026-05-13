@@ -228,6 +228,11 @@ const placedTicketCountByState = computed(() => {
   return counts
 })
 
+const filterPanelOpen = ref(false)
+const hasActiveFilters = computed(() =>
+  options.hiddenPersonIds.size > 0 || options.hiddenStates.size > 0
+)
+
 const vacations = useVacationsStore()
 const showExport = ref(false)
 const showImport = ref(false)
@@ -301,7 +306,7 @@ function handleHiBobConfirm(
     const personId = people.addPerson(name)
     matches.push({ personId, group })
   }
-  if (newPeople.length > 0) collapsed.value.people = false
+  if (newPeople.length > 0) openSection.value = 'people'
   vacations.addVacations(
     matches.flatMap(({ personId, group }) =>
       group.events.map((ev) => ({
@@ -476,58 +481,64 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section v-if="people.people.length > 0 || ticketStates.length > 0">
-        <button class="section-header" @click="toggleSection('filters')">
-          <span>Calendar Filters</span>
-          <span class="chevron" :class="{ rotated: !collapsed.filters }">›</span>
-        </button>
-        <div v-show="!collapsed.filters" class="section-body">
-          <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
-          <div class="filter-divider" />
-          <template v-if="people.people.length > 0">
-            <span class="filter-group-label">People</span>
-            <label
-              v-for="person in people.people"
-              :key="person.id"
-              class="filter-option"
-            >
-              <input
-                type="checkbox"
-                :checked="!!placedTicketCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
-                :disabled="!placedTicketCountByPerson.get(person.id)"
-                @change="options.togglePersonVisibility(person.id)"
-              />
-              <span class="filter-dot" :style="{ background: person.color }" />
-              <span class="filter-name" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
-              <span class="filter-count" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ placedTicketCountByPerson.get(person.id) ?? 0 }}</span>
-            </label>
-          </template>
-          <template v-if="ticketStates.length > 0">
-            <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
-            <label
-              v-for="state in ticketStates"
-              :key="state"
-              class="filter-option"
-            >
-              <input
-                type="checkbox"
-                :checked="!!placedTicketCountByState.get(state) && !options.hiddenStates.has(state)"
-                :disabled="!placedTicketCountByState.get(state)"
-                @change="options.toggleStateVisibility(state)"
-              />
-              <span class="filter-name" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
-              <span class="filter-count" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.25 : 0.45 }">{{ placedTicketCountByState.get(state) ?? 0 }}</span>
-            </label>
-          </template>
-        </div>
-      </section>
     </aside>
 
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <SummaryTile />
+        <div class="summary-column">
+          <div v-if="people.people.length > 0 || ticketStates.length > 0" class="filter-bar">
+            <button
+              class="filter-icon-btn"
+              :class="{ active: filterPanelOpen, 'filters-on': hasActiveFilters }"
+              title="Calendar Filters"
+              @click="filterPanelOpen = !filterPanelOpen"
+            >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <line x1="2" y1="4" x2="13" y2="4"/>
+                <line x1="2" y1="7.5" x2="13" y2="7.5"/>
+                <line x1="2" y1="11" x2="13" y2="11"/>
+                <circle cx="5" cy="4" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="9.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="6" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+              </svg>
+              <span v-if="hasActiveFilters" class="filter-active-dot" />
+            </button>
+          </div>
+          <div v-show="filterPanelOpen" class="filter-dropdown-panel">
+            <p class="filter-hint">Uncheck items to hide their tickets from the calendar.</p>
+            <div class="filter-divider" />
+            <template v-if="people.people.length > 0">
+              <span class="filter-group-label">People</span>
+              <label v-for="person in people.people" :key="person.id" class="filter-option">
+                <input
+                  type="checkbox"
+                  :checked="!!placedTicketCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
+                  :disabled="!placedTicketCountByPerson.get(person.id)"
+                  @change="options.togglePersonVisibility(person.id)"
+                />
+                <span class="filter-dot" :style="{ background: person.color }" />
+                <span class="filter-name" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
+                <span class="filter-count" :style="{ opacity: !placedTicketCountByPerson.get(person.id) ? 0.25 : 0.45 }">{{ placedTicketCountByPerson.get(person.id) ?? 0 }}</span>
+              </label>
+            </template>
+            <template v-if="ticketStates.length > 0">
+              <span class="filter-group-label" :style="{ marginTop: people.people.length > 0 ? '0.6rem' : '0' }">States</span>
+              <label v-for="state in ticketStates" :key="state" class="filter-option">
+                <input
+                  type="checkbox"
+                  :checked="!!placedTicketCountByState.get(state) && !options.hiddenStates.has(state)"
+                  :disabled="!placedTicketCountByState.get(state)"
+                  @change="options.toggleStateVisibility(state)"
+                />
+                <span class="filter-name" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
+                <span class="filter-count" :style="{ opacity: !placedTicketCountByState.get(state) ? 0.25 : 0.45 }">{{ placedTicketCountByState.get(state) ?? 0 }}</span>
+              </label>
+            </template>
+          </div>
+          <SummaryTile />
+        </div>
         <div class="months-stack">
           <MonthCalendar
             v-for="m in sortedMonths"
@@ -1017,6 +1028,77 @@ section {
   align-items: flex-start;
 }
 
+.summary-column {
+  position: sticky;
+  top: 2rem;
+  align-self: flex-start;
+  width: 280px;
+  flex-shrink: 0;
+  margin: 68px 0 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.25rem;
+}
+
+.filter-icon-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.filter-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.filter-icon-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.filter-icon-btn.filters-on {
+  border-color: rgba(100, 115, 245, 0.6);
+  color: #8f99f5;
+}
+
+.filter-active-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8f99f5;
+  border: 1.5px solid #1a1a1a;
+}
+
+.filter-dropdown-panel {
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.6rem 0 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
 .months-stack {
   display: flex;
   flex-direction: column;
@@ -1160,6 +1242,23 @@ section {
   .months-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .summary-column {
+    width: auto;
+    align-self: stretch;
+    margin: 0;
+    position: static;
+  }
+
+  .filter-bar {
+    padding: 0.5rem 1rem;
+  }
+
+  .filter-dropdown-panel {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }
 
