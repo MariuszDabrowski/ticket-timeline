@@ -933,6 +933,46 @@ h2 {
   background: var(--tc) !important;
 }
 
+.ticket-pill.is-start.is-hovered::before {
+  content: 'S';
+  position: absolute;
+  right: calc(100% + 3px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  font-size: 8px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  line-height: 12px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ticket-pill.is-end.is-hovered::after {
+  content: 'F';
+  position: absolute;
+  left: calc(100% + 3px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  font-size: 8px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  line-height: 12px;
+  pointer-events: none;
+  z-index: 5;
+}
+
 .ticket-pill:active {
   cursor: grabbing;
 }

@@ -1267,9 +1267,8 @@ section {
   }
 
   .panel-section {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .panel-body {
