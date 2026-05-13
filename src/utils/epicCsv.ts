@@ -127,13 +127,12 @@ export function importEpicCSV(
     const isCompleted = (row[completedIdx] ?? '').toLowerCase() === 'true'
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
     const completedDate = completedAtIdx !== -1 ? parseDate(row[completedAtIdx] ?? '') : null
-    if (isCompleted && completedDate) {
-      const startDate = startedDate && compareCalendarDates(startedDate, completedDate) <= 0
-        ? startedDate
-        : completedDate
-      ticketsStore.placeTicket(ticketId, startDate)
-      if (compareCalendarDates(startDate, completedDate) !== 0) {
-        ticketsStore.moveTicket(ticketId, startDate, completedDate)
+    if (startedDate) {
+      if (isCompleted && completedDate && compareCalendarDates(startedDate, completedDate) <= 0) {
+        ticketsStore.placeTicket(ticketId, startedDate)
+        ticketsStore.moveTicket(ticketId, startedDate, completedDate)
+      } else {
+        ticketsStore.placeTicket(ticketId, startedDate)
       }
     }
   }

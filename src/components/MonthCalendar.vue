@@ -964,8 +964,8 @@ h2 {
   min-height: 1.1rem;
   line-height: 1;
   position: relative;
-  transition: opacity 0.35s ease;
 }
+
 
 .vacation-pill.is-hovered {
   opacity: 1;
@@ -1077,7 +1077,7 @@ h2 {
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
-  transition: background 0.15s, opacity 0.35s ease;
+  transition: background 0.15s;
 }
 
 .ticket-pill.is-hovered {

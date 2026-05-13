@@ -887,7 +887,7 @@ section {
   font-size: 13px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.75);
-  padding: 0.3rem 1rem 0.5rem;
+  padding: 0 1rem 0.5rem;
   margin: 0;
 }
 
@@ -968,7 +968,7 @@ section {
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.5);
   padding: 0 1rem;
-  margin: 4px 0;
+  margin: 8px 0;
   text-decoration: underline;
   text-decoration-color: rgba(255, 255, 255, 0.2);
   text-underline-offset: 2px;
