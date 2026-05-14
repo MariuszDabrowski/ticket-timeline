@@ -389,7 +389,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       const onVacation = vacationsStore.getVacationsForMonth(props.year, props.month).some(
         (v) => v.personId === ticket.assignedTo &&
           compareCalendarDates(v.startDate, thisDate) <= 0 &&
-          compareCalendarDates(thisDate, v.endDate) >= 0
+          compareCalendarDates(thisDate, v.endDate) <= 0
       )
       if (onVacation) continue
     }
@@ -405,13 +405,13 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       vacationsStore.getVacationsForMonth(props.year, props.month).some(
         (v) => v.personId === ticket.assignedTo &&
           compareCalendarDates(v.startDate, calDate(day - 1)) <= 0 &&
-          compareCalendarDates(calDate(day - 1), v.endDate) >= 0
+          compareCalendarDates(calDate(day - 1), v.endDate) <= 0
       )
     const nextDayVacation = !ticket.isLabel && ticket.assignedTo !== null && day < daysInMonth.value &&
       vacationsStore.getVacationsForMonth(props.year, props.month).some(
         (v) => v.personId === ticket.assignedTo &&
           compareCalendarDates(v.startDate, calDate(day + 1)) <= 0 &&
-          compareCalendarDates(calDate(day + 1), v.endDate) >= 0
+          compareCalendarDates(calDate(day + 1), v.endDate) <= 0
       )
 
     slots[slot] = {
