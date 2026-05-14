@@ -712,13 +712,11 @@ section {
 .slide-wrap {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.28s ease, opacity 0.22s ease;
-  opacity: 1;
+  transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .slide-wrap.slide-closed {
   grid-template-rows: 0fr;
-  opacity: 0;
   pointer-events: none;
 }
 
@@ -729,6 +727,13 @@ section {
   padding: 0.15rem 0 0.85rem;
   overflow: hidden;
   min-height: 0;
+  opacity: 1;
+  transition: opacity 0.28s ease 0.12s;
+}
+
+.slide-closed .section-body {
+  opacity: 0;
+  transition: opacity 0.12s ease;
 }
 
 .load-more-btn {
