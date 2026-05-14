@@ -277,6 +277,9 @@ const headline = computed(() => {
 .stat-desc {
   opacity: 0.82;
   font-size: 14px;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .sub-stats {
