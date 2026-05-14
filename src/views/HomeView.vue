@@ -330,7 +330,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
-          <span class="chevron" :class="{ rotated: !collapsed.months }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
+          <span class="chevron" :class="{ rotated: !collapsed.months }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }">
           <div class="slide-inner">
@@ -357,7 +357,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
-          <span class="chevron" :class="{ rotated: !collapsed.people }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
+          <span class="chevron" :class="{ rotated: !collapsed.people }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }">
           <div class="slide-inner">
@@ -387,7 +387,7 @@ function onTicketListDrop(event: DragEvent) {
       >
         <button class="section-header" @click="toggleSection('tickets')">
           <span>Tickets</span>
-          <span class="chevron" :class="{ rotated: !collapsed.tickets }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
+          <span class="chevron" :class="{ rotated: !collapsed.tickets }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }">
           <div class="slide-inner">
@@ -415,7 +415,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
-          <span class="chevron" :class="{ rotated: !collapsed.labels }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
+          <span class="chevron" :class="{ rotated: !collapsed.labels }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
           <div class="slide-inner">
@@ -443,7 +443,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
-          <span class="chevron" :class="{ rotated: !collapsed.sync }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
+          <span class="chevron" :class="{ rotated: !collapsed.sync }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.sync }">
           <div class="slide-inner">
@@ -718,8 +718,8 @@ section {
   color: rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
   filter:
-    drop-shadow(0 -1px 0px rgba(0, 0, 0, 0.7))
-    drop-shadow(0 1px 0px rgba(255, 255, 255, 0.06));
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0px rgba(255, 255, 255, 0.08));
 }
 
 .chevron svg {
