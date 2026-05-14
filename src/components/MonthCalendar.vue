@@ -450,6 +450,7 @@ interface DayVacationInfo {
 
 const vacationSlotMap = computed(() => {
   const monthVacations = vacationsStore.getVacationsForMonth(props.year, props.month)
+    .filter((v) => !options.hiddenPersonIds.has(v.personId))
     .slice()
     .sort((a, b) => compareCalendarDates(a.startDate, b.startDate))
 
@@ -475,6 +476,7 @@ function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
   const col = colPos(day)
 
   for (const entry of vacationsStore.getVacationsForMonth(props.year, props.month)) {
+    if (options.hiddenPersonIds.has(entry.personId)) continue
     if (compareCalendarDates(entry.startDate, thisDate) > 0) continue
     if (compareCalendarDates(thisDate, entry.endDate) > 0) continue
     const slot = vacationSlotMap.value.get(entry.id)
