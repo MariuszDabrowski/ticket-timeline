@@ -716,7 +716,8 @@ section {
   transition: background 0.25s ease;
 }
 
-section:has(.slide-wrap:not(.slide-closed)) {
+section:has(.slide-wrap:not(.slide-closed)),
+section.drawer-closing {
   background: rgba(0, 0, 0, 0.18);
 }
 
