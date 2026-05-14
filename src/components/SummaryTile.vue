@@ -208,6 +208,7 @@ const headline = computed(() => {
   flex-direction: column;
   gap: 0.75rem;
   font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 
