@@ -650,12 +650,18 @@ function onTicketListDrop(event: DragEvent) {
   color: rgba(255, 255, 255, 0.9);
   letter-spacing: 0.02em;
   transform: translateX(-3px);
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .app-logo-icon {
   width: 32px;
   height: auto;
   flex-shrink: 0;
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.1));
 }
 
 .header-actions {
