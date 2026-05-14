@@ -938,7 +938,7 @@ h2 {
   flex-shrink: 0;
   font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.4);
   transition: background 0.1s, color 0.1s;
 }
 
