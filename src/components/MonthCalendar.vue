@@ -1145,6 +1145,8 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.2rem;
+  position: relative;
+  z-index: 1;
 }
 
 
@@ -1172,6 +1174,8 @@ h2 {
   padding: 0 0.25rem;
   cursor: ew-resize;
   opacity: 0.7;
+  position: relative;
+  z-index: 1;
 }
 
 .resize-handle:hover {
