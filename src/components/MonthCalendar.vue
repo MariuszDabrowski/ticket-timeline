@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
@@ -180,6 +180,16 @@ interface TicketTooltipState {
 
 const ticketTooltip = ref<TicketTooltipState | null>(null)
 let hideTooltipTimer: ReturnType<typeof setTimeout> | null = null
+
+const isScrolling = ref(false)
+let scrollTimer: ReturnType<typeof setTimeout> | null = null
+function onScroll() {
+  isScrolling.value = true
+  if (scrollTimer) clearTimeout(scrollTimer)
+  scrollTimer = setTimeout(() => { isScrolling.value = false }, 150)
+}
+onMounted(() => window.addEventListener('scroll', onScroll, { passive: true, capture: true }))
+onUnmounted(() => window.removeEventListener('scroll', onScroll, { capture: true }))
 
 function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   if (info.ticket.isLabel) return
@@ -643,7 +653,7 @@ function onDrop(event: DragEvent, day: number) {
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         </div>
-        <div class="placed-tickets">
+        <div class="placed-tickets" :class="{ 'no-pointer': isScrolling }">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div v-if="info" class="pill-slot">
               <div
@@ -907,6 +917,10 @@ h2 {
   flex-direction: column;
   gap: 0.2rem;
   padding-top: 0.3rem;
+}
+
+.placed-tickets.no-pointer {
+  pointer-events: none;
 }
 
 .slot-row {
