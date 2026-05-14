@@ -712,7 +712,7 @@ section {
 .slide-wrap {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-wrap.slide-closed {
@@ -728,12 +728,12 @@ section {
   overflow: hidden;
   min-height: 0;
   opacity: 1;
-  transition: opacity 0.28s ease 0.12s;
+  transition: opacity 0.35s ease 0.18s;
 }
 
 .slide-closed .section-body {
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transition: opacity 0.18s ease;
 }
 
 .load-more-btn {
