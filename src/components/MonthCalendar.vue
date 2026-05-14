@@ -1037,38 +1037,6 @@ h2 {
   display: none;
 }
 
-.ticket-pill.is-start.is-hovered::before,
-.ticket-pill.is-end.is-hovered::after {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: 0;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  font-size: 11px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  z-index: 5;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-}
-
-.ticket-pill.is-start.is-hovered::before {
-  content: 'S';
-  right: calc(100% + 2px);
-}
-
-.ticket-pill.is-end.is-hovered::after {
-  content: 'F';
-  left: calc(100% + 2px);
-}
 
 .ticket-pill:active {
   cursor: grabbing;
