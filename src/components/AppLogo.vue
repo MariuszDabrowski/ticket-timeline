@@ -35,7 +35,7 @@
 
     <!-- Minute hand (long) — 5s per revolution -->
     <g transform="rotate(0 600 -480)">
-      <rect x="570" y="-640" width="60" height="160" rx="30" fill="url(#logoShine)" />
+      <rect x="570" y="-680" width="60" height="200" rx="30" fill="url(#logoShine)" />
       <animateTransform
         attributeName="transform"
         type="rotate"
@@ -49,7 +49,7 @@
 
     <!-- Hour hand (short) — 10s per revolution (2× slower) -->
     <g transform="rotate(120 600 -480)">
-      <rect x="570" y="-585" width="60" height="105" rx="30" fill="url(#logoShine)" />
+      <rect x="570" y="-620" width="60" height="140" rx="30" fill="url(#logoShine)" />
       <animateTransform
         attributeName="transform"
         type="rotate"
