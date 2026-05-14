@@ -80,6 +80,7 @@ export function importEpicCSV(
   const ownersIdx = header.indexOf('owners')
   const startedAtIdx = header.indexOf('started_at')
   const completedAtIdx = header.indexOf('completed_at')
+  const deadlineIdx = header.indexOf('deadline')
   const stateIdx = header.indexOf('state')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
@@ -124,11 +125,13 @@ export function importEpicCSV(
     })
 
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
+    const rolloutDate = deadlineIdx !== -1 ? parseDate(row[deadlineIdx] ?? '') : null
     const completedDate = completedAtIdx !== -1 ? parseDate(row[completedAtIdx] ?? '') : null
+    const endDate = rolloutDate ?? completedDate
     if (startedDate) {
       ticketsStore.placeTicket(ticketId, startedDate)
-      if (completedDate && compareCalendarDates(startedDate, completedDate) <= 0) {
-        ticketsStore.moveTicket(ticketId, startedDate, completedDate)
+      if (endDate && compareCalendarDates(startedDate, endDate) <= 0) {
+        ticketsStore.moveTicket(ticketId, startedDate, endDate)
       }
     }
   }
