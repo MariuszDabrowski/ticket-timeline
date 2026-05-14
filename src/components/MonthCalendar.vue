@@ -555,6 +555,8 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
   event.stopPropagation()
   event.dataTransfer?.setData('resizeHandle', `${side}:${ticketId}`)
   dragState.startResizeDrag(ticketId, side)
+  ticketTooltip.value = null
+  dragState.hoveredTicketId = null
 }
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
@@ -563,6 +565,8 @@ function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
     ? workingDaysBetween(info.placement.startDate, info.placement.endDate)
     : spanInDays(info.placement.startDate, info.placement.endDate)
   dragState.startMoveDrag(info.ticket.id, span)
+  ticketTooltip.value = null
+  dragState.hoveredTicketId = null
 }
 
 function onDrop(event: DragEvent, day: number) {
@@ -1222,7 +1226,7 @@ h2 {
 }
 
 .pill-state-icon {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
