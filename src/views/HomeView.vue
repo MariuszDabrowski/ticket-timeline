@@ -676,6 +676,7 @@ function onTicketListDrop(event: DragEvent) {
 section {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.25rem 0;
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18);
 }
 
 .section-header {
@@ -692,7 +693,6 @@ section {
   cursor: pointer;
   text-align: left;
   color: #fff;
-  box-shadow: inset 0 -2px 6px rgba(0, 0, 0, 0.18);
 }
 
 .section-header::after {
