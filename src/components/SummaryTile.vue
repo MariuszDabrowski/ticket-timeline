@@ -369,7 +369,7 @@ const headline = computed(() => {
   background-repeat: repeat-x;
   background-size: 50px 10px;
   background-position: center;
-  animation: sineScroll 3s linear infinite;
+  animation: sineScroll 8s linear infinite;
 }
 
 @keyframes sineScroll {
