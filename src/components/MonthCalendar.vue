@@ -594,6 +594,16 @@ function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
   dragState.hoveredTicketId = null
 }
 
+function isVacationDay(personId: number | null, date: CalendarDate): boolean {
+  if (personId === null) return false
+  return vacationsStore.entries.some(
+    (v) =>
+      v.personId === personId &&
+      compareCalendarDates(date, v.startDate) >= 0 &&
+      compareCalendarDates(date, v.endDate) <= 0,
+  )
+}
+
 function onDrop(event: DragEvent, day: number) {
   event.preventDefault()
   dragOverDay.value = null
@@ -601,6 +611,11 @@ function onDrop(event: DragEvent, day: number) {
   const resizeHandle = event.dataTransfer?.getData('resizeHandle')
   if (resizeHandle) {
     const [side, id] = resizeHandle.split(':')
+    const ticket = ticketsStore.tickets.find((t) => t.id === Number(id))
+    if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
+      dragState.clearResizeDrag()
+      return
+    }
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
     dragState.clearResizeDrag()
     return
@@ -612,6 +627,11 @@ function onDrop(event: DragEvent, day: number) {
     const newEnd = options.hideWeekends
       ? addWorkingDays(newStart, dragState.moveDrag.span)
       : addDays(newStart, dragState.moveDrag.span)
+    const ticket = ticketsStore.tickets.find((t) => t.id === Number(moveData))
+    if (ticket && (isVacationDay(ticket.assignedTo, newStart) || isVacationDay(ticket.assignedTo, newEnd))) {
+      dragState.clearMoveDrag()
+      return
+    }
     ticketsStore.moveTicket(Number(moveData), newStart, newEnd)
     dragState.clearMoveDrag()
     return
@@ -619,6 +639,11 @@ function onDrop(event: DragEvent, day: number) {
 
   const ticketId = event.dataTransfer?.getData('ticketId')
   if (ticketId) {
+    const ticket = ticketsStore.tickets.find((t) => t.id === Number(ticketId))
+    if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
+      dragState.clearMoveDrag()
+      return
+    }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
     dragState.clearMoveDrag()
   }
