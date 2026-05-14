@@ -706,6 +706,11 @@ function onTicketListDrop(event: DragEvent) {
 section {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18);
+  transition: background 0.25s ease;
+}
+
+section:has(.slide-wrap:not(.slide-closed)) {
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .section-header {
