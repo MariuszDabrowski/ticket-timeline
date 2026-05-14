@@ -1048,7 +1048,8 @@ h2 {
   cursor: grabbing;
 }
 
-.ticket-pill:not(.is-end):not(.row-end) {
+.ticket-pill:not(.is-start):not(.row-start) {
+  margin-left: -1px;
   width: calc(100% + 1px);
 }
 
