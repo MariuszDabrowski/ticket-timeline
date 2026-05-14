@@ -311,34 +311,6 @@ function onTicketListDrop(event: DragEvent) {
   tickets.removePlacement(Number(id))
 }
 
-function slideEnter(el: Element) {
-  const elem = el as HTMLElement
-  elem.style.height = '0'
-  elem.style.opacity = '0'
-  elem.style.overflow = 'hidden'
-  elem.offsetHeight
-  elem.style.transition = 'height 0.25s ease, opacity 0.2s ease'
-  elem.style.height = elem.scrollHeight + 'px'
-  elem.style.opacity = '1'
-}
-
-function slideAfterEnter(el: Element) {
-  const elem = el as HTMLElement
-  elem.style.height = 'auto'
-  elem.style.overflow = ''
-  elem.style.transition = ''
-  elem.style.opacity = ''
-}
-
-function slideLeave(el: Element) {
-  const elem = el as HTMLElement
-  elem.style.height = elem.scrollHeight + 'px'
-  elem.style.overflow = 'hidden'
-  elem.offsetHeight
-  elem.style.transition = 'height 0.25s ease, opacity 0.15s ease'
-  elem.style.height = '0'
-  elem.style.opacity = '0'
-}
 </script>
 
 <template>
@@ -360,22 +332,24 @@ function slideLeave(el: Element) {
           <span>Months</span>
           <span class="chevron" :class="{ rotated: !collapsed.months }">›</span>
         </button>
-        <Transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave">
-          <div v-if="!collapsed.months" class="section-body">
-            <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
-            <template v-for="group in monthsByYear" :key="group.year">
-              <span class="year-label">{{ group.year }}</span>
-              <label v-for="abs in group.months" :key="abs" class="month-option">
-                <input type="checkbox" :value="abs" v-model="selectedMonths" />
-                {{ MONTH_NAMES[absToYearMonth(abs).month] }}
-              </label>
-            </template>
-            <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
-            <button
-              v-if="selectedMonths.length > 0"
-              class="load-more-btn trim-btn"
-              @click="trimToSelection"
-            >Hide unselected</button>
+        <Transition name="slide">
+          <div v-if="!collapsed.months" class="slide-wrap">
+            <div class="section-body">
+              <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
+              <template v-for="group in monthsByYear" :key="group.year">
+                <span class="year-label">{{ group.year }}</span>
+                <label v-for="abs in group.months" :key="abs" class="month-option">
+                  <input type="checkbox" :value="abs" v-model="selectedMonths" />
+                  {{ MONTH_NAMES[absToYearMonth(abs).month] }}
+                </label>
+              </template>
+              <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
+              <button
+                v-if="selectedMonths.length > 0"
+                class="load-more-btn trim-btn"
+                @click="trimToSelection"
+              >Hide unselected</button>
+            </div>
           </div>
         </Transition>
       </section>
@@ -385,19 +359,21 @@ function slideLeave(el: Element) {
           <span>People</span>
           <span class="chevron" :class="{ rotated: !collapsed.people }">›</span>
         </button>
-        <Transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave">
-          <div v-if="!collapsed.people" class="section-body">
-            <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
-            <button class="add-btn" @click="showAddPerson = true">Add Person</button>
-            <ul v-if="people.people.length > 0" class="people-list">
-              <li v-for="person in people.people" :key="person.id" class="person">
-                <span class="color-dot" :style="{ background: person.color }" />
-                <span
-                  class="person-name"
-                  @click="editingPerson = person"
-                >{{ person.name }}</span>
-              </li>
-            </ul>
+        <Transition name="slide">
+          <div v-if="!collapsed.people" class="slide-wrap">
+            <div class="section-body">
+              <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
+              <button class="add-btn" @click="showAddPerson = true">Add Person</button>
+              <ul v-if="people.people.length > 0" class="people-list">
+                <li v-for="person in people.people" :key="person.id" class="person">
+                  <span class="color-dot" :style="{ background: person.color }" />
+                  <span
+                    class="person-name"
+                    @click="editingPerson = person"
+                  >{{ person.name }}</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </Transition>
       </section>
@@ -413,23 +389,25 @@ function slideLeave(el: Element) {
           <span>Tickets</span>
           <span class="chevron" :class="{ rotated: !collapsed.tickets }">›</span>
         </button>
-        <Transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave">
-          <div v-if="!collapsed.tickets" class="section-body">
-            <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
-            <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-            <ol v-if="unplacedTickets.length > 0" class="ticket-list">
-              <li v-for="ticket in unplacedTickets" :key="ticket.id">
-                <span
-                  class="ticket-pill"
-                  :class="{ dragging: draggingTicketId === ticket.id }"
-                  :style="{ background: ticketColor(ticket.assignedTo) }"
-                  draggable="true"
-                  @click.stop="editingTicket = ticket"
-                  @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-                  @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
-              </li>
-            </ol>
+        <Transition name="slide">
+          <div v-if="!collapsed.tickets" class="slide-wrap">
+            <div class="section-body">
+              <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
+              <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
+              <ol v-if="unplacedTickets.length > 0" class="ticket-list">
+                <li v-for="ticket in unplacedTickets" :key="ticket.id">
+                  <span
+                    class="ticket-pill"
+                    :class="{ dragging: draggingTicketId === ticket.id }"
+                    :style="{ background: ticketColor(ticket.assignedTo) }"
+                    draggable="true"
+                    @click.stop="editingTicket = ticket"
+                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+                  >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+                </li>
+              </ol>
+            </div>
           </div>
         </Transition>
       </section>
@@ -439,23 +417,25 @@ function slideLeave(el: Element) {
           <span>Labels</span>
           <span class="chevron" :class="{ rotated: !collapsed.labels }">›</span>
         </button>
-        <Transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave">
-          <div v-if="!collapsed.labels" class="section-body">
-            <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
-            <button class="add-btn" @click="showAddLabel = true">Add Label</button>
-            <ol v-if="unplacedLabels.length > 0" class="ticket-list">
-              <li v-for="label in unplacedLabels" :key="label.id">
-                <span
-                  class="ticket-pill label-pill"
-                  :class="{ dragging: draggingTicketId === label.id }"
-                  :style="{ background: label.labelColor }"
-                  draggable="true"
-                  @click.stop="editingLabel = label"
-                  @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
-                  @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                >{{ label.title }}</span>
-              </li>
-            </ol>
+        <Transition name="slide">
+          <div v-if="!collapsed.labels" class="slide-wrap">
+            <div class="section-body">
+              <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
+              <button class="add-btn" @click="showAddLabel = true">Add Label</button>
+              <ol v-if="unplacedLabels.length > 0" class="ticket-list">
+                <li v-for="label in unplacedLabels" :key="label.id">
+                  <span
+                    class="ticket-pill label-pill"
+                    :class="{ dragging: draggingTicketId === label.id }"
+                    :style="{ background: label.labelColor }"
+                    draggable="true"
+                    @click.stop="editingLabel = label"
+                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
+                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+                  >{{ label.title }}</span>
+                </li>
+              </ol>
+            </div>
           </div>
         </Transition>
       </section>
@@ -465,14 +445,16 @@ function slideLeave(el: Element) {
           <span>Sync</span>
           <span class="chevron" :class="{ rotated: !collapsed.sync }">›</span>
         </button>
-        <Transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave">
-          <div v-if="!collapsed.sync" class="section-body">
-            <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
-            <button
-              v-if="vacations.entries.length > 0"
-              class="add-btn clear-sync-btn"
-              @click="vacations.clearVacations()"
-            >Clear Synced Data</button>
+        <Transition name="slide">
+          <div v-if="!collapsed.sync" class="slide-wrap">
+            <div class="section-body">
+              <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
+              <button
+                v-if="vacations.entries.length > 0"
+                class="add-btn clear-sync-btn"
+                @click="vacations.clearVacations()"
+              >Clear Synced Data</button>
+            </div>
           </div>
         </Transition>
       </section>
@@ -737,11 +719,29 @@ section {
   transform: rotate(-90deg);
 }
 
+.slide-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: grid-template-rows 0.28s ease, opacity 0.22s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
 .section-body {
   display: flex;
   flex-direction: column;
   gap: 0;
   padding: 0.15rem 0 0.85rem;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .load-more-btn {
