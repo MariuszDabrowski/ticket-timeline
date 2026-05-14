@@ -1140,7 +1140,6 @@ h2 {
     transparent 3px,
     transparent 9px
   );
-  background-attachment: fixed;
   pointer-events: none;
   z-index: 0;
 }
