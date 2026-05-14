@@ -1174,6 +1174,10 @@ h2 {
   margin-right: 0.25rem;
 }
 
+.ticket-pill.is-end:not(.is-start):not(.row-start) {
+  width: calc(100% - 0.25rem + 1px);
+}
+
 .ticket-pill.is-start.is-end {
   border-radius: 999px;
 }
