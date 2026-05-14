@@ -264,6 +264,9 @@ const headline = computed(() => {
   -webkit-text-fill-color: transparent;
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @keyframes textShine {
