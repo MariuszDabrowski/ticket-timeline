@@ -66,9 +66,17 @@ const sortedMonths = computed(() =>
 )
 
 const openSection = ref<string | null>(null)
+const closingSection = ref<Set<string>>(new Set())
 
 function toggleSection(key: string) {
-  openSection.value = openSection.value === key ? null : key
+  const wasOpen = openSection.value === key
+  openSection.value = wasOpen ? null : key
+  if (wasOpen) {
+    closingSection.value = new Set([...closingSection.value, key])
+    setTimeout(() => {
+      closingSection.value = new Set([...closingSection.value].filter(k => k !== key))
+    }, 500)
+  }
 }
 
 const collapsed = computed<Record<string, boolean>>(() => ({
@@ -327,7 +335,7 @@ function onTicketListDrop(event: DragEvent) {
     </header>
     <div class="below-header">
     <aside class="sidebar">
-      <section>
+      <section :class="{ 'drawer-closing': closingSection.has('months') }">
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
           <span class="chevron">
@@ -360,7 +368,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section>
+      <section :class="{ 'drawer-closing': closingSection.has('people') }">
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
           <span class="chevron">
@@ -392,6 +400,7 @@ function onTicketListDrop(event: DragEvent) {
 
       <section
         class="ticket-section"
+        :class="{ 'drawer-closing': closingSection.has('tickets') }"
         :class="{ 'drop-target': ticketListIsOver }"
         @dragover="onTicketListDragOver"
         @dragleave="onTicketListDragLeave"
@@ -430,7 +439,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section>
+      <section :class="{ 'drawer-closing': closingSection.has('labels') }">
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
           <span class="chevron">
@@ -464,7 +473,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section>
+      <section :class="{ 'drawer-closing': closingSection.has('sync') }">
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
           <span class="chevron">
@@ -734,7 +743,7 @@ section:has(.slide-wrap:not(.slide-closed)) {
   display: none;
 }
 
-section:not(:has(.slide-wrap:not(.slide-closed))) .section-header:hover {
+section:not(:has(.slide-wrap:not(.slide-closed))):not(.drawer-closing) .section-header:hover {
   background: rgba(0, 0, 0, 0.18);
 }
 
