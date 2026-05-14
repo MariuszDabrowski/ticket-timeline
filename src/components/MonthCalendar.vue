@@ -935,17 +935,18 @@ h2 {
 }
 
 .day.is-holiday {
-  background: rgba(240, 175, 85, 0.05);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .holiday-label {
   font-size: 12px;
-  color: rgba(240, 175, 85, 1);
+  color: rgba(255, 255, 255, 0.35);
   font-weight: 500;
   padding: 0 0.3rem 0.35rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  filter: grayscale(1);
 }
 
 .placed-tickets {
