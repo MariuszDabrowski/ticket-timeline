@@ -660,7 +660,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ (!info.ticket.isLabel && info.ticket.state ? stateIcon(info.ticket.state) + ' ' : '') + (info.ticket.isLabel ? info.ticket.title : info.ticket.number) }}</span>
+              <span v-if="info.isStart || info.isRowStart" class="ticket-label"><span v-if="!info.ticket.isLabel && info.ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(info.ticket.state) }}</span>{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -1203,6 +1203,17 @@ h2 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.pill-state-icon {
+  font-size: 12px;
+  line-height: 1;
+  flex-shrink: 0;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  opacity: 0.9;
 }
 
 .ticket-pill.row-end::after {

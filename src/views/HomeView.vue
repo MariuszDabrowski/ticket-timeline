@@ -458,6 +458,12 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
+          <div v-if="ticketStates.length > 0" class="state-legend">
+            <div v-for="state in ticketStates" :key="state" class="legend-row">
+              <span class="material-symbols-rounded legend-icon">{{ stateIcon(state) }}</span>
+              <span class="legend-label">{{ state }}</span>
+            </div>
+          </div>
           <div v-if="unplacedTickets.length > 0" class="ticket-groups">
             <template v-for="group in unplacedTicketsByState" :key="group.state ?? '__none__'">
               <ol class="ticket-list" :start="group.start">
@@ -470,16 +476,10 @@ function onTicketListDrop(event: DragEvent) {
                     @click.stop="editingTicket = ticket"
                     @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                  ><span v-if="ticket.state" class="pill-state-icon">{{ stateIcon(ticket.state) }}</span>{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+                  ><span v-if="ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(ticket.state) }}</span>{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
                 </li>
               </ol>
             </template>
-          </div>
-          <div v-if="ticketStates.length > 0" class="state-legend">
-            <div v-for="state in ticketStates" :key="state" class="legend-row">
-              <span class="legend-icon">{{ stateIcon(state) }}</span>
-              <span class="legend-label">{{ state }}</span>
-            </div>
           </div>
         </div>
       </section>
@@ -546,7 +546,7 @@ function onTicketListDrop(event: DragEvent) {
             </button>
             <div v-show="openPanel === 'filters'" class="panel-body panel-body--filters">
               <template v-if="hasCalendarTickets">
-                <p class="filter-hint">Uncheck items to hide their tickets from the calendar. Counts reflect tickets currently on the calendar.</p>
+                <p class="filter-hint">Uncheck to hide tickets on the calendar. Counts reflect only tickets placed on the calendar — those still in the sidebar are not included.</p>
                 <div class="filter-divider" />
                 <template v-if="people.people.some(p => calendarCountByPerson.get(p.id))">
                   <span class="filter-group-label">People</span>
@@ -968,31 +968,35 @@ section {
 }
 
 .pill-state-icon {
-  margin-right: 0.25em;
-  opacity: 0.9;
+  font-size: 12px;
+  line-height: 1;
+  margin-right: 0.2em;
+  vertical-align: middle;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  opacity: 0.92;
 }
 
 .state-legend {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.5rem 1rem 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  margin-top: 0.25rem;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 0.15rem;
 }
 
 .legend-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
 }
 
 .legend-icon {
-  min-width: 1rem;
-  text-align: center;
-  font-size: 10px;
+  font-size: 14px;
+  line-height: 1;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
 .legend-label {

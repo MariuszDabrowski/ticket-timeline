@@ -155,7 +155,7 @@ const headline = computed(() => {
         </div>
         <ul v-if="stateBreakdown.length > 0" class="state-breakdown">
           <li v-for="s in stateBreakdown" :key="s.state" class="state-breakdown-row">
-            <span class="state-breakdown-icon">{{ s.icon }}</span>
+            <span class="material-symbols-rounded state-breakdown-icon">{{ s.icon }}</span>
             <span class="state-breakdown-name">{{ s.state }}</span>
             <span class="state-breakdown-count">{{ s.count }}</span>
           </li>
@@ -292,10 +292,11 @@ const headline = computed(() => {
 }
 
 .state-breakdown-icon {
-  font-size: 11px;
+  font-size: 14px;
   min-width: 1rem;
   text-align: center;
   opacity: 0.75;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
 .state-breakdown-name {
