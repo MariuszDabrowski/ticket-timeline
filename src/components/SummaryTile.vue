@@ -3,10 +3,22 @@ import { computed } from 'vue'
 
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
+import { useOptionsStore } from '../stores/options'
 import type { CalendarDate } from '../stores/tickets'
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
+const optionsStore = useOptionsStore()
+
+const calendarCountByPerson = computed(() => {
+  const counts = new Map<number, number>()
+  for (const placement of ticketsStore.placements) {
+    const ticket = ticketsStore.tickets.find((t) => t.id === placement.ticketId)
+    if (!ticket || ticket.isLabel || ticket.assignedTo === null) continue
+    counts.set(ticket.assignedTo, (counts.get(ticket.assignedTo) ?? 0) + 1)
+  }
+  return counts
+})
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -174,6 +186,13 @@ const headline = computed(() => {
               <span class="team-dot" :style="{ background: stat.color }" />
               <span class="team-name">{{ stat.name }}</span>
               <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
+              <label v-if="stat.id !== null && calendarCountByPerson.get(stat.id)" class="team-visibility">
+                <input
+                  type="checkbox"
+                  :checked="!optionsStore.hiddenPersonIds.has(stat.id)"
+                  @change="optionsStore.togglePersonVisibility(stat.id!)"
+                />
+              </label>
             </li>
           </ul>
         </div>
@@ -380,5 +399,48 @@ const headline = computed(() => {
 .team-count {
   opacity: 0.8;
   font-size: 13px;
+}
+
+.team-visibility {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-left: 0.25rem;
+}
+
+.team-visibility input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.team-visibility input[type='checkbox']:checked {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.team-visibility input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0px;
+  width: 5px;
+  height: 7px;
+  border: 2px solid #141414;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.team-visibility input[type='checkbox']:hover {
+  border-color: rgba(255, 255, 255, 0.45);
 }
 </style>

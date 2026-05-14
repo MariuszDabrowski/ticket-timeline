@@ -20,7 +20,6 @@ import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
-import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
 
@@ -202,25 +201,8 @@ function handleDeleteTicket() {
 
 const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
-const options = useOptionsStore()
 const ticketListIsOver = ref(false)
 
-const calendarCountByPerson = computed(() => {
-  const counts = new Map<number, number>()
-  for (const placement of tickets.placements) {
-    const ticket = tickets.tickets.find((t) => t.id === placement.ticketId)
-    if (!ticket || ticket.isLabel || ticket.assignedTo === null) continue
-    counts.set(ticket.assignedTo, (counts.get(ticket.assignedTo) ?? 0) + 1)
-  }
-  return counts
-})
-
-const hasCalendarTickets = computed(() => tickets.placements.length > 0)
-
-const openPanel = ref<'brief' | 'filters' | null>(null)
-function togglePanel(key: 'brief' | 'filters') {
-  openPanel.value = openPanel.value === key ? null : key
-}
 
 const vacations = useVacationsStore()
 const showExport = ref(false)
@@ -476,40 +458,10 @@ function onTicketListDrop(event: DragEvent) {
         </div>
         <div class="summary-column">
           <div class="panel-section">
-            <button class="panel-header" @click="togglePanel('filters')">
-              <span>Calendar Filters</span>
-              <span class="panel-chevron" :class="{ rotated: openPanel === 'filters' }">›</span>
-            </button>
-            <div v-show="openPanel === 'filters'" class="panel-body panel-body--filters">
-              <template v-if="hasCalendarTickets">
-                <p class="filter-hint">Uncheck to hide tickets on the calendar. Counts reflect only tickets placed on the calendar — those still in the sidebar are not included.</p>
-                <div class="filter-divider" />
-                <template v-if="people.people.some(p => calendarCountByPerson.get(p.id))">
-                  <span class="filter-group-label">People</span>
-                  <label v-for="person in people.people.filter(p => calendarCountByPerson.get(p.id))" :key="person.id" class="filter-option">
-                    <input
-                      type="checkbox"
-                      :checked="!!calendarCountByPerson.get(person.id) && !options.hiddenPersonIds.has(person.id)"
-                      :disabled="!calendarCountByPerson.get(person.id)"
-                      @change="options.togglePersonVisibility(person.id)"
-                    />
-                    <span class="filter-dot" :style="{ background: person.color }" />
-                    <span class="filter-name" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.35 : 1 }">{{ person.name }}</span>
-                    <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.3 : 0.8 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
-                  </label>
-                </template>
-              </template>
-              <p v-else-if="people.people.length > 0" class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
-              <p v-else class="filter-hint filter-hint--empty">Add tickets to the calendar to get started.</p>
-            </div>
-          </div>
-
-          <div class="panel-section">
-            <button class="panel-header" @click="togglePanel('brief')">
+            <div class="panel-header-static">
               <span>Project Brief</span>
-              <span class="panel-chevron" :class="{ rotated: openPanel === 'brief' }">›</span>
-            </button>
-            <div v-show="openPanel === 'brief'" class="panel-body">
+            </div>
+            <div class="panel-body">
               <SummaryTile />
             </div>
           </div>
@@ -1003,62 +955,19 @@ section {
   overflow: hidden;
 }
 
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: none;
-  border: none;
+.panel-header-static {
   padding: 0.65rem 1rem;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  cursor: pointer;
   color: #fff;
-  text-align: left;
-}
-
-.panel-header::after {
-  display: none;
-}
-
-.panel-header > span:first-child {
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 2px;
-  transition: text-decoration-color 0.15s;
-}
-
-.panel-header:hover > span:first-child {
-  text-decoration-color: rgba(255, 255, 255, 0.4);
-}
-
-.panel-chevron {
-  font-size: 20px;
-  line-height: 1;
-  transition: transform 0.2s ease;
-  transform: rotate(90deg);
-  opacity: 0.7;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.panel-chevron.rotated {
-  transform: rotate(-90deg);
 }
 
 .panel-body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
-}
-
-.panel-body--filters {
-  display: flex;
-  flex-direction: column;
-  padding: 0.4rem 0 0.75rem;
-  font-size: 0.85rem;
 }
 
 .months-stack {
@@ -1078,66 +987,8 @@ section {
 }
 
 
-.filter-group-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #fff;
-  padding: 0 1rem;
-  margin-bottom: 0.35rem;
-}
-
-.filter-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-  padding: 0.15rem 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  transition: color 0.15s;
-}
-
-.filter-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.filter-name {
-  flex: 1;
-}
-
-.filter-count {
-  font-size: 13px;
-  opacity: 0.8;
-  flex-shrink: 0;
-}
-
-.filter-hint {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.95);
-  padding: 0.5rem 1rem 0.35rem;
-  line-height: 1.55;
-}
-
-.filter-hint--empty {
-  padding-bottom: 0.5rem;
-}
-
-.filter-divider {
-  height: 1px;
-  background: rgba(128, 128, 128, 0.2);
-  margin: 0.5rem 1rem 0.75rem;
-}
-
 /* Custom checkboxes */
-.month-option input[type='checkbox'],
-.filter-option input[type='checkbox'] {
+.month-option input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   width: 14px;
@@ -1151,14 +1002,12 @@ section {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.month-option input[type='checkbox']:checked,
-.filter-option input[type='checkbox']:checked {
+.month-option input[type='checkbox']:checked {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.month-option input[type='checkbox']:checked::after,
-.filter-option input[type='checkbox']:checked::after {
+.month-option input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
   left: 3px;
@@ -1171,8 +1020,7 @@ section {
   transform: rotate(45deg);
 }
 
-.month-option input[type='checkbox']:hover,
-.filter-option input[type='checkbox']:not(:disabled):hover {
+.month-option input[type='checkbox']:hover {
   border-color: rgba(255, 255, 255, 0.45);
 }
 
