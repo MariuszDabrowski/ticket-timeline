@@ -975,7 +975,7 @@ h2 {
 
 .day-marker-tooltip.tooltip-edge-left::after {
   left: 0.65rem;
-  transform: none;
+  transform: translateX(-3px);
 }
 
 .day-marker-tooltip.tooltip-edge-right {
@@ -988,7 +988,7 @@ h2 {
 .day-marker-tooltip.tooltip-edge-right::after {
   left: auto;
   right: 0.65rem;
-  transform: none;
+  transform: translateX(3px);
 }
 
 .day-number-wrap:hover .day-marker-tooltip,
