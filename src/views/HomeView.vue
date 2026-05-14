@@ -850,6 +850,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 }
 
 .load-more-btn:hover {
+  background: none;
   color: rgba(255, 255, 255, 0.9);
   text-decoration-color: rgba(255, 255, 255, 0.4);
 }
