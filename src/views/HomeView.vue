@@ -715,7 +715,7 @@ section {
   align-items: center;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   transform: rotate(0deg);
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
   filter:
     drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
