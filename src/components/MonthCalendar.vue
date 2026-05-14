@@ -713,7 +713,7 @@ function onDrop(event: DragEvent, day: number) {
                   'is-on-vacation': info.isOnVacation,
                   'is-hovered': dragState.hoveredTicketId === info.ticket.id,
                   'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
-                  'is-label': info.ticket.isLabel,
+                  'is-event': info.ticket.isLabel,
                 }"
                 :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
                 draggable="true"
@@ -1128,7 +1128,7 @@ h2 {
   opacity: 1;
 }
 
-.ticket-pill.is-label::after {
+.ticket-pill.is-event::after {
   content: '';
   position: absolute;
   inset: 0;

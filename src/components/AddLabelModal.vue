@@ -25,11 +25,11 @@ const { trapRef, onKeydown } = useFocusTrap()
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>{{ props.existing ? 'Edit Label' : 'Add Label' }}</span></h3>
+      <h3><span>{{ props.existing ? 'Edit Event' : 'Add Event' }}</span></h3>
 
       <div class="modal-body">
         <div class="field">
-          <label>Label text</label>
+          <label>Event name</label>
           <input
             v-model="text"
             type="text"

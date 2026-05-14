@@ -451,12 +451,12 @@ function onTicketListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
           <div class="slide-inner">
             <div class="section-body">
-              <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
-              <button class="add-btn" @click="showAddLabel = true">Add Label</button>
+              <p class="event-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
+              <button class="add-btn" @click="showAddLabel = true">Add Event</button>
               <ol v-if="unplacedLabels.length > 0" class="ticket-list">
                 <li v-for="label in unplacedLabels" :key="label.id">
                   <span
-                    class="ticket-pill label-pill"
+                    class="ticket-pill event-pill"
                     :class="{ dragging: draggingTicketId === label.id }"
                     :style="{ background: label.labelColor }"
                     draggable="true"
@@ -924,7 +924,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   margin: 0;
 }
 
-.label-blurb {
+.event-blurb {
   font-size: 13px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.75);
