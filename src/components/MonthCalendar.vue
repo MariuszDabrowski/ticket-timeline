@@ -632,7 +632,7 @@ function onDrop(event: DragEvent, day: number) {
 </script>
 
 <template>
-  <div class="month-calendar" :style="{ '--slot-height': `${options.ticketRowHeight * 1.4}rem` }">
+  <div class="month-calendar">
     <h2><span class="month-name">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
@@ -692,7 +692,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label"><span v-if="!info.ticket.isLabel && info.ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(info.ticket.state) }}</span>{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
+              <span v-if="info.isStart" class="ticket-label"><span v-if="!info.ticket.isLabel && info.ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(info.ticket.state) }}</span>{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -947,7 +947,7 @@ h2 {
 }
 
 .slot-row {
-  height: var(--slot-height, 1.4rem);
+  height: 1.4rem;
 }
 
 .slot-spacer {
@@ -1152,6 +1152,59 @@ h2 {
 
 .ticket-pill.is-start.is-end {
   border-radius: 999px;
+}
+
+/* Multi-day start pill: slight right taper into thin line */
+.ticket-pill.is-start:not(.is-end) {
+  border-radius: 999px 3px 3px 999px;
+}
+
+/* Non-start days: taper to a thin horizontal line */
+.ticket-pill:not(.is-start) {
+  height: 3px;
+  align-self: center;
+  border-radius: 0;
+  padding: 0;
+  margin-left: 0;
+}
+
+.ticket-pill.is-end:not(.is-start) {
+  border-radius: 0;
+  margin-right: 0;
+}
+
+/* End cap: the right-handle becomes a rounded pill shape */
+.ticket-pill.is-end:not(.is-start) .right-handle {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.2rem;
+  background: var(--tc);
+  border-radius: 0 999px 999px 0;
+  padding: 0 0.5rem;
+  opacity: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Thin connector nub at row-wrap for non-start pills */
+.ticket-pill:not(.is-start).row-end::after {
+  height: 3px;
+  top: 0;
+  transform: none;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Hide row-start tab indicator on thin continuation pills */
+.ticket-pill:not(.is-start).row-start::before {
+  display: none;
+}
+
+/* Suppress the F hover badge on non-start end pills (end cap handles it visually) */
+.ticket-pill.is-end:not(.is-start).is-hovered::after {
+  display: none;
 }
 
 .ticket-pill.is-preview {

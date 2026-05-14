@@ -6,7 +6,6 @@ export const useOptionsStore = defineStore('options', () => {
   const showAllTooltips = ref(true)
   const hiddenPersonIds = ref<Set<number>>(new Set())
   const hiddenStates = ref<Set<string>>(new Set())
-  const ticketRowHeight = ref<1 | 2 | 3>(1)
 
   function togglePersonVisibility(id: number) {
     if (hiddenPersonIds.value.has(id)) {
@@ -24,5 +23,5 @@ export const useOptionsStore = defineStore('options', () => {
     }
   }
 
-  return { hideWeekends, showAllTooltips, hiddenPersonIds, togglePersonVisibility, hiddenStates, toggleStateVisibility, ticketRowHeight }
+  return { hideWeekends, showAllTooltips, hiddenPersonIds, togglePersonVisibility, hiddenStates, toggleStateVisibility }
 })

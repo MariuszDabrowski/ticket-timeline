@@ -1,7 +1,6 @@
 import type { Ticket, Placement } from '../stores/tickets'
 import type { Person } from '../stores/people'
 import type { VacationEntry } from '../stores/vacations'
-import type { DayMarker } from '../stores/dayMarkers'
 
 export interface ProjectData {
   name: string
@@ -10,7 +9,6 @@ export interface ProjectData {
   people: Person[]
   vacations: VacationEntry[]
   selectedMonths: number[]
-  dayMarkers?: Record<string, DayMarker>
 }
 
 export interface SavedProject {
