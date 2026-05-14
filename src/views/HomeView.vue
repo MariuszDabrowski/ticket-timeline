@@ -559,7 +559,6 @@ function onTicketListDrop(event: DragEvent) {
           <div class="months-row-end" />
         </div>
         <div class="summary-column">
-          <button class="jump-today-btn" @click="jumpToToday">Jump to Today</button>
           <div class="panel-section">
             <button class="panel-header" @click="togglePanel('filters')">
               <span>Calendar Filters</span>
@@ -611,6 +610,12 @@ function onTicketListDrop(event: DragEvent) {
               <SummaryTile />
             </div>
           </div>
+
+          <div class="panel-section">
+            <button class="panel-header" @click="jumpToToday">
+              <span>Jump to Today</span>
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -635,7 +640,6 @@ function onTicketListDrop(event: DragEvent) {
   <AddTicketModal
     v-if="showAddTicket"
     :people="people.people"
-    :states="ticketStates"
     @submit="handleAddTicket"
     @cancel="showAddTicket = false"
   />
@@ -665,7 +669,6 @@ function onTicketListDrop(event: DragEvent) {
     v-if="editingTicket"
     :ticket="editingTicket"
     :people="people.people"
-    :states="ticketStates"
     :placement="tickets.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
     @submit="handleEditTicket"
     @delete="handleDeleteTicket"
@@ -1108,29 +1111,6 @@ section {
 
 .ticket-pill.dragging .sidebar-pill-tooltip {
   display: none;
-}
-
-.jump-today-btn {
-  padding: 6px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1;
-  align-self: flex-start;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.jump-today-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .panel {

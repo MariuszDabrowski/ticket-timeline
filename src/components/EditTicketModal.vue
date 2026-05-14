@@ -4,11 +4,16 @@ import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import type { Person } from '../stores/people'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
+const STATE_OPTIONS = [
+  'Backlog', 'Intake', 'Ready for Development', 'Speccing', 'Tech Speccing',
+  'In Development', 'In Progress', 'Ready for Review', 'In Review',
+  'Awaiting Signoff', 'Blocked', 'On Hold', 'Completed', 'Done', 'Cancelled',
+]
+
 const props = defineProps<{
   ticket: Ticket
   people: Person[]
   placement: Placement | null
-  states?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -89,10 +94,10 @@ function handleSubmit() {
 
       <div class="field">
         <label>State <span class="label-hint">— optional</span></label>
-        <input v-model="state" type="text" placeholder="e.g. In Development" list="edit-ticket-states" @keydown.enter.prevent="handleSubmit" />
-        <datalist id="edit-ticket-states">
-          <option v-for="s in props.states" :key="s" :value="s" />
-        </datalist>
+        <select v-model="state">
+          <option value="">No state</option>
+          <option v-for="s in STATE_OPTIONS" :key="s" :value="s">{{ s }}</option>
+        </select>
       </div>
 
       <div class="field">

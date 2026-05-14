@@ -6,13 +6,18 @@ import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   people: Person[]
-  states?: string[]
 }>()
 
 const emit = defineEmits<{
   submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
 }>()
+
+const STATE_OPTIONS = [
+  'Backlog', 'Intake', 'Ready for Development', 'Speccing', 'Tech Speccing',
+  'In Development', 'In Progress', 'Ready for Review', 'In Review',
+  'Awaiting Signoff', 'Blocked', 'On Hold', 'Completed', 'Done', 'Cancelled',
+]
 
 const number = ref('')
 const title = ref('')
@@ -76,10 +81,10 @@ function handleSubmit() {
 
       <div class="field">
         <label>State <span class="label-hint">— optional</span></label>
-        <input v-model="state" type="text" placeholder="e.g. In Development" list="add-ticket-states" @keydown.enter.prevent="handleSubmit" />
-        <datalist id="add-ticket-states">
-          <option v-for="s in props.states" :key="s" :value="s" />
-        </datalist>
+        <select v-model="state">
+          <option value="">No state</option>
+          <option v-for="s in STATE_OPTIONS" :key="s" :value="s">{{ s }}</option>
+        </select>
       </div>
 
       <div class="field">
@@ -171,6 +176,21 @@ select {
   color: #fff;
   outline: none;
   transition: border-color 0.15s;
+}
+
+select {
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+select option {
+  background: #1a1a1a;
+  color: #fff;
 }
 
 input:focus,
