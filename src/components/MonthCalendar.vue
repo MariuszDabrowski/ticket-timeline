@@ -1307,7 +1307,7 @@ h2 {
 
 .vacation-toast {
   position: fixed;
-  bottom: 1.5rem;
+  top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
@@ -1330,7 +1330,7 @@ h2 {
 }
 .toast-enter-from {
   opacity: 0;
-  transform: translateX(-50%) translateY(6px);
+  transform: translateX(-50%) translateY(-6px);
 }
 .toast-leave-to {
   opacity: 0;
