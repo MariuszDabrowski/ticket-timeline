@@ -530,88 +530,110 @@ function onTicketListDrop(event: DragEvent) {
     </div>
   </div>
 
-  <AddUserModal
-    v-if="showAddPerson"
-    @submit="handleAddPerson"
-    @cancel="showAddPerson = false"
-  />
+  <Transition name="modal">
+    <AddUserModal
+      v-if="showAddPerson"
+      @submit="handleAddPerson"
+      @cancel="showAddPerson = false"
+    />
+  </Transition>
 
-  <AddUserModal
-    v-if="editingPerson"
-    :key="`edit-person-${editingPerson.id}`"
-    :existing="editingPerson"
-    @submit="handleEditPersonSave"
-    @delete="handleEditPersonDelete"
-    @cancel="editingPerson = null"
-  />
+  <Transition name="modal">
+    <AddUserModal
+      v-if="editingPerson"
+      :key="`edit-person-${editingPerson.id}`"
+      :existing="editingPerson"
+      @submit="handleEditPersonSave"
+      @delete="handleEditPersonDelete"
+      @cancel="editingPerson = null"
+    />
+  </Transition>
 
-  <AddTicketModal
-    v-if="showAddTicket"
-    :people="people.people"
-    @submit="handleAddTicket"
-    @cancel="showAddTicket = false"
-  />
+  <Transition name="modal">
+    <AddTicketModal
+      v-if="showAddTicket"
+      :people="people.people"
+      @submit="handleAddTicket"
+      @cancel="showAddTicket = false"
+    />
+  </Transition>
 
-  <AddLabelModal
-    v-if="showAddLabel"
-    @save="handleAddLabel"
-    @delete="() => {}"
-    @cancel="showAddLabel = false"
-  />
+  <Transition name="modal">
+    <AddLabelModal
+      v-if="showAddLabel"
+      @save="handleAddLabel"
+      @delete="() => {}"
+      @cancel="showAddLabel = false"
+    />
+  </Transition>
 
-  <AddLabelModal
-    v-if="editingLabel"
-    :existing="editingLabel"
-    @save="handleSaveLabel"
-    @delete="handleDeleteLabel"
-    @cancel="editingLabel = null"
-  />
+  <Transition name="modal">
+    <AddLabelModal
+      v-if="editingLabel"
+      :existing="editingLabel"
+      @save="handleSaveLabel"
+      @delete="handleDeleteLabel"
+      @cancel="editingLabel = null"
+    />
+  </Transition>
 
-  <UploadEpicModal
-    v-if="showUploadEpic"
-    @import="handleEpicImport"
-    @cancel="showUploadEpic = false"
-  />
+  <Transition name="modal">
+    <UploadEpicModal
+      v-if="showUploadEpic"
+      @import="handleEpicImport"
+      @cancel="showUploadEpic = false"
+    />
+  </Transition>
 
-  <EditTicketModal
-    v-if="editingTicket"
-    :ticket="editingTicket"
-    :people="people.people"
-    :placement="tickets.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
-    @submit="handleEditTicket"
-    @delete="handleDeleteTicket"
-    @cancel="editingTicket = null"
-  />
+  <Transition name="modal">
+    <EditTicketModal
+      v-if="editingTicket"
+      :ticket="editingTicket"
+      :people="people.people"
+      :placement="tickets.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
+      @submit="handleEditTicket"
+      @delete="handleDeleteTicket"
+      @cancel="editingTicket = null"
+    />
+  </Transition>
 
-  <ExportModal
-    v-if="showExport"
-    :data="exportData"
-    :initial-name="currentProjectName"
-    :exporting-image="exportingImage"
-    @close="showExport = false"
-    @save="(name) => currentProjectName = name"
-    @export-image="(v) => handleExportImage(v)"
-  />
+  <Transition name="modal">
+    <ExportModal
+      v-if="showExport"
+      :data="exportData"
+      :initial-name="currentProjectName"
+      :exporting-image="exportingImage"
+      @close="showExport = false"
+      @save="(name) => currentProjectName = name"
+      @export-image="(v) => handleExportImage(v)"
+    />
+  </Transition>
 
-  <ImportModal
-    v-if="showImport"
-    @load="handleImport"
-    @close="showImport = false"
-  />
+  <Transition name="modal">
+    <ImportModal
+      v-if="showImport"
+      @load="handleImport"
+      @close="showImport = false"
+    />
+  </Transition>
 
-  <HiBobModal
-    v-if="showHiBob"
-    @parsed="handleHiBobParsed"
-    @cancel="showHiBob = false"
-  />
+  <Transition name="modal">
+    <HiBobModal
+      v-if="showHiBob"
+      @parsed="handleHiBobParsed"
+      @cancel="showHiBob = false"
+    />
+  </Transition>
 
-  <HiBobConfirmModal
-    v-if="hibobGroups.length > 0"
-    :groups="hibobGroups"
-    :people="people.people"
-    @confirm="(matches, newPeople) => handleHiBobConfirm(matches, newPeople)"
-    @cancel="hibobGroups = []"
-  />
+  <Transition name="modal">
+    <HiBobConfirmModal
+      v-if="hibobGroups.length > 0"
+      :groups="hibobGroups"
+      :people="people.people"
+      @confirm="(matches, newPeople) => handleHiBobConfirm(matches, newPeople)"
+      @cancel="hibobGroups = []"
+    />
+  </Transition>
 </template>
 
 <style scoped>
