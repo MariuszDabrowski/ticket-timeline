@@ -1087,7 +1087,7 @@ h2 {
 }
 
 :global(.tooltip-enter-active) {
-  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :global(.tooltip-leave-active) {
@@ -1096,7 +1096,7 @@ h2 {
 
 :global(.tooltip-enter-from.global-tooltip) {
   opacity: 0;
-  transform: translate(-50%, calc(-100% - 2px));
+  transform: translate(-50%, calc(-100% + 8px));
 }
 
 :global(.tooltip-leave-to) {
