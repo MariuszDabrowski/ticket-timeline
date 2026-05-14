@@ -932,9 +932,8 @@ h2 {
 
 .day-marker-tooltip {
   position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(100% + 4px);
+  left: 0;
   background: rgba(40, 40, 40, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
@@ -944,7 +943,7 @@ h2 {
   width: max-content;
   max-width: 250px;
   white-space: normal;
-  text-align: center;
+  text-align: left;
   line-height: 1.4;
   pointer-events: none;
   z-index: 9999;
@@ -955,11 +954,10 @@ h2 {
 .day-marker-tooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 100%;
+  left: 0.65rem;
   border: 5px solid transparent;
-  border-top-color: rgba(40, 40, 40, 0.95);
+  border-bottom-color: rgba(40, 40, 40, 0.95);
 }
 
 .day-number-wrap:hover .day-marker-tooltip,
@@ -1148,7 +1146,7 @@ h2 {
   transition: background 0.15s;
 }
 
-.ticket-pill.is-hovered {
+.ticket-pill.is-hovered:not(.is-on-vacation) {
   background: var(--tc) !important;
 }
 
