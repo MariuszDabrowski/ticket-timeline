@@ -947,7 +947,7 @@ h2 {
   text-align: center;
   line-height: 1.4;
   pointer-events: none;
-  z-index: 10;
+  z-index: 9999;
   opacity: 0;
   transition: opacity 0.15s;
 }
