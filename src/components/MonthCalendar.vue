@@ -736,16 +736,18 @@ function onDrop(event: DragEvent, day: number) {
   />
 
   <Teleport to="body">
-    <div
-      v-if="ticketTooltip && !dragState.moveDrag && !dragState.resizeDrag"
-      class="global-tooltip"
-      :style="{ left: ticketTooltip.x + 'px', top: ticketTooltip.y + 'px' }"
-    >
-      <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
-      <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtDate(ticketTooltip.startDate) : `${fmtDate(ticketTooltip.startDate)} – ${fmtDate(ticketTooltip.endDate)}` }}</span></div>
-      <div v-if="ticketTooltip.duration !== 1" class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} days</span></div>
-      <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
-    </div>
+    <Transition name="tooltip">
+      <div
+        v-if="ticketTooltip && !dragState.moveDrag && !dragState.resizeDrag"
+        class="global-tooltip"
+        :style="{ left: ticketTooltip.x + 'px', top: ticketTooltip.y + 'px' }"
+      >
+        <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
+        <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtDate(ticketTooltip.startDate) : `${fmtDate(ticketTooltip.startDate)} – ${fmtDate(ticketTooltip.endDate)}` }}</span></div>
+        <div v-if="ticketTooltip.duration !== 1" class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} days</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
+      </div>
+    </Transition>
   </Teleport>
 
 </template>
@@ -1084,6 +1086,23 @@ h2 {
   opacity: 0.5;
 }
 
+:global(.tooltip-enter-active) {
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:global(.tooltip-leave-active) {
+  transition: opacity 0.15s ease;
+}
+
+:global(.tooltip-enter-from) {
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 2px));
+}
+
+:global(.tooltip-leave-to) {
+  opacity: 0;
+}
+
 :global(.global-tooltip) {
   position: fixed;
   transform: translate(-50%, calc(-100% - 6px));
@@ -1147,15 +1166,6 @@ h2 {
   gap: 0.2rem;
   position: relative;
   z-index: 1;
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 0.15s ease;
-}
-
-.ticket-pill.is-hovered .ticket-label {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
