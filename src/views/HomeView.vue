@@ -835,6 +835,8 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 }
 
 .load-more-btn {
+  -webkit-appearance: none;
+  appearance: none;
   background: none;
   border: none;
   padding: 0.15rem 1rem;
