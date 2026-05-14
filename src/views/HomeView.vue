@@ -705,7 +705,6 @@ function onTicketListDrop(event: DragEvent) {
 
 section {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  padding: 0.25rem 0;
   box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18);
 }
 
@@ -716,7 +715,7 @@ section {
   width: 100%;
   background: transparent;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
