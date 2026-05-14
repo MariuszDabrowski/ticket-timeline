@@ -712,6 +712,7 @@ section {
 .slide-wrap {
   display: grid;
   grid-template-rows: 1fr;
+  overflow: hidden;
   transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
