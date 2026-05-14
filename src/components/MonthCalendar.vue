@@ -1061,6 +1061,9 @@ h2 {
   padding: 0.1rem 0;
   cursor: grab;
   transition: opacity 0.2s ease;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .ticket-pill::before {
