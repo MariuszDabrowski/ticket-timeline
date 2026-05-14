@@ -1048,6 +1048,10 @@ h2 {
   cursor: grabbing;
 }
 
+.ticket-pill:not(.is-end):not(.row-end) {
+  width: calc(100% + 1px);
+}
+
 .ticket-pill.is-start {
   border-radius: 999px 0 0 999px;
   padding-left: 0.1rem;
