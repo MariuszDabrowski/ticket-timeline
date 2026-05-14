@@ -87,7 +87,7 @@ function fmtDate(iso: string) {
                     <button class="action-btn" @click="confirmId = null">No</button>
                   </template>
                   <template v-else>
-                    <button class="action-btn" @click="confirmId = project.id" title="Delete"><span class="material-symbols-rounded">close</span></button>
+                    <button class="action-btn delete" @click="confirmId = project.id" title="Delete"><span class="material-symbols-rounded">close</span></button>
                     <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
                   </template>
                 </div>
@@ -288,6 +288,16 @@ h3 span {
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.delete {
+  border-color: rgba(180, 50, 40, 0.5);
+  background: linear-gradient(180deg, rgba(160, 40, 30, 0.35) 0%, rgba(120, 30, 20, 0.35) 100%);
+  color: rgba(255, 120, 110, 0.8);
+}
+
+.action-btn.delete .material-symbols-rounded {
+  font-size: 14px;
 }
 
 .action-btn.danger {
