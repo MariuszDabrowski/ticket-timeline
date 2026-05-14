@@ -23,7 +23,6 @@ import { stateIcon } from '../utils/stateIcons'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
-import { useDayMarkersStore } from '../stores/dayMarkers'
 import type { ICSPersonGroup } from '../utils/icsParser'
 
 
@@ -265,7 +264,6 @@ function togglePanel(key: 'brief' | 'filters') {
 }
 
 const vacations = useVacationsStore()
-const dayMarkers = useDayMarkersStore()
 const showExport = ref(false)
 const showImport = ref(false)
 const currentProjectName = ref('REPLACE-ME')
@@ -276,14 +274,12 @@ const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
   people: toRaw(people.people),
   vacations: toRaw(vacations.entries),
   selectedMonths: toRaw(selectedMonths.value),
-  dayMarkers: toRaw(dayMarkers.markers),
 }))
 
 function handleImport(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
-  dayMarkers.loadData(data.dayMarkers ?? {})
   if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
     selectedMonths.value = data.selectedMonths
@@ -536,6 +532,15 @@ function onTicketListDrop(event: DragEvent) {
               <span class="panel-chevron" :class="{ rotated: openPanel === 'filters' }">›</span>
             </button>
             <div v-show="openPanel === 'filters'" class="panel-body panel-body--filters">
+              <div class="row-height-control">
+                <span class="filter-group-label">Row Height</span>
+                <div class="row-height-btns">
+                  <button :class="{ active: options.ticketRowHeight === 1 }" @click="options.ticketRowHeight = 1">1×</button>
+                  <button :class="{ active: options.ticketRowHeight === 2 }" @click="options.ticketRowHeight = 2">2×</button>
+                  <button :class="{ active: options.ticketRowHeight === 3 }" @click="options.ticketRowHeight = 3">3×</button>
+                </div>
+              </div>
+              <div class="filter-divider" />
               <template v-if="hasCalendarTickets">
                 <p class="filter-hint">Uncheck to hide tickets on the calendar. Counts reflect only tickets placed on the calendar — those still in the sidebar are not included.</p>
                 <div class="filter-divider" />
@@ -1236,6 +1241,42 @@ section {
   line-height: 1;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
   flex-shrink: 0;
+}
+
+.row-height-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 1rem 0.2rem;
+}
+
+.row-height-btns {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.row-height-btns button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.row-height-btns button:hover {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.row-height-btns button.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 .filter-hint {

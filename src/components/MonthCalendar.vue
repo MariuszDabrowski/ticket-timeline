@@ -4,7 +4,6 @@ import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
-import { useDayMarkersStore } from '../stores/dayMarkers'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
@@ -12,7 +11,6 @@ import { stateIcon } from '../utils/stateIcons'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
-import DayMarkerModal from './DayMarkerModal.vue'
 
 const props = defineProps<{
   year: number
@@ -101,8 +99,6 @@ const holidayMap = computed(() => {
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
-const dayMarkers = useDayMarkersStore()
-const markerDay = ref<number | null>(null)
 
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
@@ -636,7 +632,7 @@ function onDrop(event: DragEvent, day: number) {
 </script>
 
 <template>
-  <div class="month-calendar">
+  <div class="month-calendar" :style="{ '--slot-height': `${options.ticketRowHeight * 1.4}rem` }">
     <h2><span class="month-name">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
@@ -658,20 +654,8 @@ function onDrop(event: DragEvent, day: number) {
           <div class="day-number-wrap">
             <span
               class="day-number"
-              :class="{ 'has-marker': !!dayMarkers.getMarker(props.year, props.month, day), 'today-flash': isToday(day) && props.flashToday }"
-              :style="dayMarkers.getMarker(props.year, props.month, day) ? { background: dayMarkers.getMarker(props.year, props.month, day)!.color } : {}"
-              @click.stop="markerDay = day"
+              :class="{ 'today-flash': isToday(day) && props.flashToday }"
             >{{ day }}</span>
-            <div
-              v-if="dayMarkers.getMarker(props.year, props.month, day)?.note"
-              class="day-marker-tooltip"
-              :class="{
-                'always-visible': options.showAllTooltips,
-                'tooltip-edge-left': colPos(day) === 0,
-                'tooltip-edge-right': colPos(day) === columnCount - 1,
-              }"
-              :style="{ '--marker-color': dayMarkers.getMarker(props.year, props.month, day)!.color }"
-            >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
         </div>
@@ -788,15 +772,6 @@ function onDrop(event: DragEvent, day: number) {
     </div>
   </Teleport>
 
-  <DayMarkerModal
-    v-if="markerDay !== null"
-    :year="props.year"
-    :month="props.month"
-    :day="markerDay"
-    :existing="dayMarkers.getMarker(props.year, props.month, markerDay)"
-    @save="(m) => { dayMarkers.setMarker(props.year, props.month, markerDay!, m); markerDay = null }"
-    @cancel="markerDay = null"
-  />
 </template>
 
 <style scoped>
@@ -931,73 +906,6 @@ h2 {
   color: #fff;
 }
 
-.day-number.has-marker {
-  color: #fff;
-}
-
-.day-marker-tooltip {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  top: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(40, 40, 40, 0.95);
-  border: 1px solid var(--marker-color, rgba(255, 255, 255, 0.15));
-  color: #fff;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  width: max-content;
-  max-width: 250px;
-  white-space: normal;
-  text-align: left;
-  line-height: 1.4;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.day-marker-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: var(--marker-color, rgba(255, 255, 255, 0.15));
-}
-
-.day-marker-tooltip.tooltip-edge-left {
-  left: 0;
-  transform: none;
-  text-align: left;
-}
-
-.day-marker-tooltip.tooltip-edge-left::after {
-  left: 0.65rem;
-  transform: translateX(-3px);
-  right: auto;
-}
-
-.day-marker-tooltip.tooltip-edge-right {
-  left: auto;
-  right: 0;
-  transform: none;
-  text-align: right;
-}
-
-.day-marker-tooltip.tooltip-edge-right::after {
-  left: auto;
-  right: 0.65rem;
-  transform: translateX(3px);
-  top: 100%;
-}
-
-.day-number-wrap:hover .day-marker-tooltip,
-.day-marker-tooltip.always-visible {
-  opacity: 1;
-}
 
 .day.is-today .day-number {
   background: #e05252;
@@ -1039,7 +947,7 @@ h2 {
 }
 
 .slot-row {
-  height: 1.4rem;
+  height: var(--slot-height, 1.4rem);
 }
 
 .slot-spacer {
