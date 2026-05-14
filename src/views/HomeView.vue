@@ -1054,17 +1054,6 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
-.ticket-pill::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: url('/foil.gif') 50% no-repeat;
-  background-size: 120% 120%;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-
 .ticket-pill:active {
   cursor: grabbing;
 }
