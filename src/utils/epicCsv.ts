@@ -1,6 +1,5 @@
 import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
-import { compareCalendarDates } from '../stores/tickets'
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
@@ -79,7 +78,6 @@ export function importEpicCSV(
   const nameIdx = header.indexOf('name')
   const ownersIdx = header.indexOf('owners')
   const startedAtIdx = header.indexOf('started_at')
-  const completedAtIdx = header.indexOf('completed_at')
   const archivedIdx = header.indexOf('is_archived')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
@@ -124,12 +122,8 @@ export function importEpicCSV(
     })
 
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
-    const completedDate = completedAtIdx !== -1 ? parseDate(row[completedAtIdx] ?? '') : null
     if (startedDate) {
       ticketsStore.placeTicket(ticketId, startedDate)
-      if (completedDate && compareCalendarDates(startedDate, completedDate) <= 0) {
-        ticketsStore.moveTicket(ticketId, startedDate, completedDate)
-      }
     }
   }
 }
