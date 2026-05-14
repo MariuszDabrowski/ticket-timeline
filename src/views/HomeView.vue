@@ -709,7 +709,7 @@ section {
 .chevron {
   font-size: 20px;
   line-height: 1;
-  transition: transform 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   transform: rotate(90deg);
   opacity: 0.7;
   color: rgba(255, 255, 255, 0.8);
