@@ -180,6 +180,14 @@ interface TicketTooltipState {
 
 const ticketTooltip = ref<TicketTooltipState | null>(null)
 
+function onVacationMouseEnter(info: DayVacationInfo) {
+  dragState.hoveredVacationId = info.vacationId
+}
+
+function onVacationMouseLeave() {
+  dragState.hoveredVacationId = null
+}
+
 function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   if (info.ticket.isLabel) return
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -690,8 +698,11 @@ function onDrop(event: DragEvent, day: number) {
                 'is-end': info.isEnd,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
+                'is-hovered': dragState.hoveredVacationId === info.vacationId,
               }"
               :style="{ ...vacationStyle(), '--vac-color': '#5a5a5a' }"
+              @mouseenter="onVacationMouseEnter(info)"
+              @mouseleave="onVacationMouseLeave()"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
             </div>
@@ -910,9 +921,49 @@ h2 {
   min-height: 1.1rem;
   line-height: 1;
   position: relative;
+  overflow: visible;
 }
 
+.vacation-pill.is-start::before,
+.vacation-pill.is-end::after {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: rgba(80, 80, 80, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: transform 0.1s ease-in, opacity 0.1s ease-in;
+}
 
+.vacation-pill.is-start::before {
+  content: 'S';
+  right: calc(100% + 2px);
+  transform: translateX(calc(100% + 2px));
+}
+
+.vacation-pill.is-end::after {
+  content: 'F';
+  left: calc(100% + 2px);
+  transform: translateX(calc(-100% - 2px));
+}
+
+.vacation-pill.is-start.is-hovered::before,
+.vacation-pill.is-end.is-hovered::after {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.15s ease-out;
+}
 
 .vacation-pill.row-end {
   z-index: 1;
