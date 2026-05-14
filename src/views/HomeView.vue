@@ -709,6 +709,9 @@ function onTicketListDrop(event: DragEvent) {
   display: flex;
   flex-direction: column;
   contain: layout style;
+  box-shadow:
+    inset 6px 0 10px -6px rgba(0, 0, 0, 0.35),
+    inset 0 -8px 12px -4px rgba(0, 0, 0, 0.3);
 }
 
 section {
