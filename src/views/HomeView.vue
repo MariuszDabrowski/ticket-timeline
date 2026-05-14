@@ -711,17 +711,17 @@ section {
 }
 
 .chevron {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   transform: rotate(0deg);
   opacity: 0.7;
   color: rgba(255, 255, 255, 0.8);
-  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
 }
 
 .chevron.rotated {
-  transform: rotate(180deg);
+  transform: rotate(-180deg);
 }
 
 .slide-wrap {
