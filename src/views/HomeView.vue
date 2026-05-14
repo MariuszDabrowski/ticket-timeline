@@ -650,7 +650,7 @@ function onTicketListDrop(event: DragEvent) {
   align-items: center;
   justify-content: space-between;
   height: 52px;
-  padding: 0 1rem;
+  padding: 0 2rem 0 1rem;
   flex-shrink: 0;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E"),
