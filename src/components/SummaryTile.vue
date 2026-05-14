@@ -411,8 +411,8 @@ const headline = computed(() => {
 .team-visibility input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 3px;
@@ -430,10 +430,10 @@ const headline = computed(() => {
 .team-visibility input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
-  left: 2px;
-  top: 0px;
+  left: 3px;
+  top: 1px;
   width: 5px;
-  height: 7px;
+  height: 8px;
   border: 2px solid #141414;
   border-top: none;
   border-left: none;
