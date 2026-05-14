@@ -1082,7 +1082,7 @@ h2 {
   display: flex;
   align-items: center;
   height: 100%;
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: bold;
   line-height: 1;
   color: #fff;

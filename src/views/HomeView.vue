@@ -259,7 +259,7 @@ const unplacedTicketsByState = computed(() => {
   return result
 })
 
-const openPanel = ref<'brief' | 'filters' | null>('brief')
+const openPanel = ref<'brief' | 'filters' | null>(null)
 function togglePanel(key: 'brief' | 'filters') {
   openPanel.value = openPanel.value === key ? null : key
 }

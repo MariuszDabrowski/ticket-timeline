@@ -216,7 +216,7 @@ const headline = computed(() => {
 .headline {
   font-size: 14px;
   line-height: 1.55;
-  opacity: 0.95;
+  color: rgba(255, 255, 255, 0.95);
   white-space: pre-line;
 }
 
