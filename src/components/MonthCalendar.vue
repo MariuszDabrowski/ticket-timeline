@@ -1147,6 +1147,15 @@ h2 {
   gap: 0.2rem;
   position: relative;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.15s ease;
+}
+
+.ticket-pill.is-hovered .ticket-label {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
