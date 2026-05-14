@@ -910,7 +910,7 @@ h2 {
 
 
 .day.is-holiday {
-  background: rgba(255, 255, 255, 0.02);
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.07) 0%, transparent 100%);
 }
 
 .holiday-label {
