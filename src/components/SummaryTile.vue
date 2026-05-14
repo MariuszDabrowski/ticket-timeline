@@ -461,6 +461,11 @@ const headline = computed(() => {
   border-color: rgba(167, 139, 250, 0.6);
 }
 
+@keyframes checkDraw {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
 .team-visibility input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
@@ -473,6 +478,7 @@ const headline = computed(() => {
   border-left: none;
   border-radius: 0 2px 2px 0;
   transform: rotate(45deg);
+  animation: checkDraw 0.2s ease-out forwards;
 }
 
 .team-visibility input[type='checkbox']:hover {
