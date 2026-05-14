@@ -71,73 +71,72 @@ function fmtDate(iso: string) {
 <template>
   <div class="backdrop" @click.self="emit('close')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3>Export Project</h3>
+      <h3><span>Export Project</span></h3>
 
-      <div class="field">
-        <label class="field-label">Project name</label>
-        <input class="field-input" v-model="projectName" placeholder="My Project" />
-      </div>
-
-      <div class="options">
-        <!-- Save to browser -->
-        <div class="option-card">
-          <div class="option-icon">🗄️</div>
-          <div class="option-body">
-            <div class="option-title">Save to browser</div>
-            <div class="option-desc">
-              Stores the project in this browser's local storage. You can load it later from
-              the Import screen.
-              <span v-if="existingProject" class="overwrite-note">
-                A project named <strong>{{ existingProject.name }}</strong> was last saved
-                {{ fmtDate(existingProject.savedAt) }} — saving will update it.
-              </span>
-            </div>
-          </div>
-          <div class="option-action">
-            <button class="btn" @click="saveToStorage" :disabled="!projectName.trim()">
-              <template v-if="saveStatus === 'saved'">✓ Saved</template>
-              <template v-else-if="saveStatus === 'updated'">✓ Updated</template>
-              <template v-else-if="existingProject">Update</template>
-              <template v-else>Save</template>
-            </button>
-          </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label">Project name</label>
+          <input class="field-input" v-model="projectName" placeholder="My Project" />
         </div>
 
-        <!-- Export as Image -->
-        <div class="option-card">
-          <div class="option-icon">🖼️</div>
-          <div class="option-body">
-            <div class="option-title">Export as Image</div>
-            <div class="option-desc">
-              Downloads a <code>.png</code> of the full calendar at 2× resolution.
+        <div class="options">
+          <div class="option-card">
+            <div class="option-icon">🗄️</div>
+            <div class="option-body">
+              <div class="option-title">Save to browser</div>
+              <div class="option-desc">
+                Stores the project in this browser's local storage. You can load it later from
+                the Import screen.
+                <span v-if="existingProject" class="overwrite-note">
+                  A project named <strong>{{ existingProject.name }}</strong> was last saved
+                  {{ fmtDate(existingProject.savedAt) }} — saving will update it.
+                </span>
+              </div>
             </div>
-            <label class="summary-toggle">
-              <input type="checkbox" v-model="includeSummary" />
-              Include project brief
-            </label>
+            <div class="option-action">
+              <button class="btn" @click="saveToStorage" :disabled="!projectName.trim()">
+                <template v-if="saveStatus === 'saved'">✓ Saved</template>
+                <template v-else-if="saveStatus === 'updated'">✓ Updated</template>
+                <template v-else-if="existingProject">Update</template>
+                <template v-else>Save</template>
+              </button>
+            </div>
           </div>
-          <div class="option-action">
-            <button class="btn" @click="emit('exportImage', includeSummary)" :disabled="props.exportingImage">
-              <span v-if="props.exportingImage" class="spinner" />
-              <template v-else>Export</template>
-            </button>
-          </div>
-        </div>
 
-        <!-- Download JSON -->
-        <div class="option-card">
-          <div class="option-icon">⬇️</div>
-          <div class="option-body">
-            <div class="option-title">Download JSON</div>
-            <div class="option-desc">
-              Downloads a <code>.json</code> file containing all tickets, people, and vacation
-              data. You can import this file on any device.
+          <div class="option-card">
+            <div class="option-icon">🖼️</div>
+            <div class="option-body">
+              <div class="option-title">Export as Image</div>
+              <div class="option-desc">
+                Downloads a <code>.png</code> of the full calendar at 2× resolution.
+              </div>
+              <label class="summary-toggle">
+                <input type="checkbox" v-model="includeSummary" />
+                Include project brief
+              </label>
+            </div>
+            <div class="option-action">
+              <button class="btn" @click="emit('exportImage', includeSummary)" :disabled="props.exportingImage">
+                <span v-if="props.exportingImage" class="spinner" />
+                <template v-else>Export</template>
+              </button>
             </div>
           </div>
-          <div class="option-action">
-            <button class="btn" @click="downloadJSON" :disabled="!projectName.trim()">
-              Download
-            </button>
+
+          <div class="option-card">
+            <div class="option-icon">⬇️</div>
+            <div class="option-body">
+              <div class="option-title">Download JSON</div>
+              <div class="option-desc">
+                Downloads a <code>.json</code> file containing all tickets, people, and vacation
+                data. You can import this file on any device.
+              </div>
+            </div>
+            <div class="option-action">
+              <button class="btn" @click="downloadJSON" :disabled="!projectName.trim()">
+                Download
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -161,25 +160,56 @@ function fmtDate(iso: string) {
 }
 
 .modal {
-  background: #1a1a1a;
+  background-color: #1a1a1a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 1.5rem;
-  width: 520px;
-  max-width: calc(100vw - 2rem);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  color: #fff;
+  width: 520px;
+  max-width: calc(100vw - 2rem);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 h3 {
+  padding: 0.65rem 1rem;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+h3 span {
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.1);
+  padding-top: 2px;
+}
+
+@keyframes textShine {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
 }
 
 .field {
@@ -271,9 +301,49 @@ h3 {
   align-self: center;
 }
 
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+input[type='checkbox']:checked {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: 2px solid #141414;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+input[type='checkbox']:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
 .footer {
   display: flex;
   justify-content: flex-end;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .btn {
@@ -287,11 +357,9 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease;
 }
-
 
 .btn:disabled {
   opacity: 0.6;

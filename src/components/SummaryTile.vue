@@ -261,15 +261,10 @@ const headline = computed(() => {
   font-size: 1.6rem;
   font-weight: bold;
   line-height: 1;
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
+  color: rgba(255, 255, 255, 0.8);
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 @keyframes textShine {

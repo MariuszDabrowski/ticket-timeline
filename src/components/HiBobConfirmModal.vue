@@ -20,13 +20,10 @@ function normalizeName(name: string): string {
 
 function matchPerson(icsName: string): Person | null {
   const normalized = normalizeName(icsName)
-  // Exact match
   let match = props.people.find((p) => normalizeName(p.name) === normalized)
   if (match) return match
-  // ICS name contains sidebar name (e.g. sidebar = "Mariusz", ICS = "Mariusz Dabrowski")
   match = props.people.find((p) => normalized.includes(normalizeName(p.name)))
   if (match) return match
-  // Sidebar name contains ICS name
   match = props.people.find((p) => normalizeName(p.name).includes(normalized))
   return match ?? null
 }
@@ -70,37 +67,35 @@ function confirm() {
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3>Confirm Sync</h3>
-      <p class="subtitle">
-        Found <strong>{{ matchedCount }}</strong> matched
-        <template v-if="unmatchedCount > 0"> and <strong>{{ unmatchedCount }}</strong> unmatched</template>
-        people. Select who to sync.
-      </p>
+      <h3><span>Confirm Sync</span></h3>
 
-      <div class="list">
-        <div
-          v-for="row in rows"
-          :key="row.group.personName"
-          class="row"
+      <div class="modal-body">
+        <p class="subtitle">
+          Found <strong>{{ matchedCount }}</strong> matched
+          <template v-if="unmatchedCount > 0"> and <strong>{{ unmatchedCount }}</strong> unmatched</template>
+          people. Select who to sync.
+        </p>
 
-        >
-          <label class="row-label">
-            <input type="checkbox" v-model="row.selected" />
-            <span class="dot" v-if="row.person" :style="{ background: row.person.color }" />
-            <span class="dot dot-new" v-else />
-            <span class="name">{{ row.group.personName }}</span>
-            <span class="meta">
-              <template v-if="row.person">
-                → {{ row.person.name }} · {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
-              </template>
-              <template v-else-if="row.selected">
-                <span class="will-add">Will be added to sidebar</span>
-              </template>
-              <template v-else>
-                <span class="no-match">Not in sidebar — check to add</span>
-              </template>
-            </span>
-          </label>
+        <div class="list">
+          <div v-for="row in rows" :key="row.group.personName" class="row">
+            <label class="row-label">
+              <input type="checkbox" v-model="row.selected" />
+              <span class="dot" v-if="row.person" :style="{ background: row.person.color }" />
+              <span class="dot dot-new" v-else />
+              <span class="name">{{ row.group.personName }}</span>
+              <span class="meta">
+                <template v-if="row.person">
+                  → {{ row.person.name }} · {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
+                </template>
+                <template v-else-if="row.selected">
+                  <span class="will-add">Will be added to sidebar</span>
+                </template>
+                <template v-else>
+                  <span class="no-match">Not in sidebar — check to add</span>
+                </template>
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -124,35 +119,65 @@ function confirm() {
 }
 
 .modal {
-  background: #1a1a1a;
+  background-color: #1a1a1a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 1.5rem;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   width: 520px;
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 4rem);
 }
 
 h3 {
+  padding: 0.65rem 1rem;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+h3 span {
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.1);
+  padding-top: 2px;
+}
+
+@keyframes textShine {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
 }
 
 .subtitle {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .subtitle strong {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .list {
@@ -161,9 +186,10 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   padding: 0.5rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .row {
@@ -178,7 +204,7 @@ h3 {
   font-size: 0.83rem;
   cursor: pointer;
   user-select: none;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .dot {
@@ -194,7 +220,7 @@ h3 {
 }
 
 .meta {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.78rem;
 }
 
@@ -213,11 +239,50 @@ h3 {
   color: #6dd5fa;
 }
 
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+input[type='checkbox']:checked {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: 2px solid #141414;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+input[type='checkbox']:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 button {
@@ -230,11 +295,8 @@ button {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
   line-height: 1;
-  transition: box-shadow 0.25s ease;
 }
-
-
 </style>

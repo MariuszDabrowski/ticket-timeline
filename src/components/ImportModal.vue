@@ -60,56 +60,52 @@ function fmtDate(iso: string) {
 <template>
   <div class="backdrop" @click.self="emit('close')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3>Import Project</h3>
+      <h3><span>Import Project</span></h3>
 
-      <!-- Saved projects -->
-      <div class="section">
-        <div class="section-label">Saved in this browser</div>
-        <div v-if="savedProjects.length === 0" class="empty">
-          No projects saved yet.
+      <div class="modal-body">
+        <div class="section">
+          <div class="section-label">Saved in this browser</div>
+          <div v-if="savedProjects.length === 0" class="empty">
+            No projects saved yet.
+          </div>
+          <ul v-else class="project-list">
+            <li v-for="project in savedProjects" :key="project.id" class="project-row">
+              <div class="project-info">
+                <span class="project-name">{{ project.name }}</span>
+                <span class="project-meta">
+                  {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
+                  · {{ project.data.people.length }} people
+                  · saved {{ fmtDate(project.savedAt) }}
+                </span>
+              </div>
+              <div class="project-actions">
+                <template v-if="confirmId === project.id">
+                  <span class="confirm-text">Delete?</span>
+                  <button class="action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
+                  <button class="action-btn" @click="confirmId = null">No</button>
+                </template>
+                <template v-else>
+                  <button class="action-btn" @click="confirmId = project.id" title="Delete">🗑</button>
+                  <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
+                </template>
+              </div>
+            </li>
+          </ul>
         </div>
-        <ul v-else class="project-list">
-          <li
-            v-for="project in savedProjects"
-            :key="project.id"
-            class="project-row"
-          >
-            <div class="project-info">
-              <span class="project-name">{{ project.name }}</span>
-              <span class="project-meta">
-                {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
-                · {{ project.data.people.length }} people
-                · saved {{ fmtDate(project.savedAt) }}
-              </span>
-            </div>
-            <div class="project-actions">
-              <template v-if="confirmId === project.id">
-                <span class="confirm-text">Delete?</span>
-                <button class="action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
-                <button class="action-btn" @click="confirmId = null">No</button>
-              </template>
-              <template v-else>
-                <button class="action-btn" @click="confirmId = project.id" title="Delete">🗑</button>
-                <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
-              </template>
-            </div>
-          </li>
-        </ul>
-      </div>
 
-      <div class="divider" />
+        <div class="divider" />
 
-      <!-- Upload JSON -->
-      <div class="section">
-        <div class="section-label">Load from file</div>
-        <div class="upload-area">
-          <p class="upload-desc">Upload a <code>.json</code> file exported from this app.</p>
-          <label class="file-btn">
-            Choose File
-            <input type="file" accept=".json,application/json" @change="onFileInput" />
-          </label>
+        <div class="section">
+          <div class="section-label">Load from file</div>
+          <div class="upload-area">
+            <p class="upload-desc">Upload a <code>.json</code> file exported from this app.</p>
+            <label class="file-btn">
+              Choose File
+              <input type="file" accept=".json,application/json" @change="onFileInput" />
+            </label>
+          </div>
+          <p v-if="error" class="error">{{ error }}</p>
         </div>
-        <p v-if="error" class="error">{{ error }}</p>
       </div>
 
       <div class="footer">
@@ -131,27 +127,57 @@ function fmtDate(iso: string) {
 }
 
 .modal {
-  background: #1a1a1a;
+  background-color: #1a1a1a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 1.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   width: 540px;
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 4rem);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  overflow-y: auto;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 h3 {
+  padding: 0.65rem 1rem;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+h3 span {
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.1);
+  padding-top: 2px;
+}
+
+@keyframes textShine {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
 }
 
 .section {
@@ -234,12 +260,9 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease;
 }
-
-
 
 .action-btn.danger {
   background: transparent;
@@ -266,6 +289,7 @@ h3 {
   padding: 0.75rem 0.9rem;
   border: 1px dashed rgba(128, 128, 128, 0.3);
   border-radius: 7px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .upload-desc {
@@ -287,11 +311,9 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease;
 }
-
 
 .file-btn input {
   display: none;
@@ -305,6 +327,10 @@ h3 {
 .footer {
   display: flex;
   justify-content: flex-end;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .btn {
@@ -318,9 +344,7 @@ h3 {
   border-radius: 2px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease;
 }
-
 </style>

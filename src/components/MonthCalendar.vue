@@ -852,7 +852,6 @@ h2 {
   text-shadow:
     0 -1px 0 rgba(0, 0, 0, 0.6),
     0 1px 0 rgba(255, 255, 255, 0.07);
-  background-color: rgba(255, 255, 255, 0.04);
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
     linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 200%);
@@ -1015,14 +1014,15 @@ h2 {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  background: linear-gradient(to right, #4c3585 20%, #0e6688 35%, #0b7a85 65%, #2d3178 80%);
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
   border: 2px solid rgba(255, 255, 255, 0.85);
   font-size: 11px;
   font-weight: 900;
+  line-height: 1;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   pointer-events: none;
   z-index: 0;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
