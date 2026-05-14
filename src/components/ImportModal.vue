@@ -87,7 +87,7 @@ function fmtDate(iso: string) {
                     <button class="action-btn" @click="confirmId = null">No</button>
                   </template>
                   <template v-else>
-                    <button class="action-btn" @click="confirmId = project.id" title="Delete">🗑</button>
+                    <button class="action-btn" @click="confirmId = project.id" title="Delete"><span class="material-symbols-rounded">close</span></button>
                     <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
                   </template>
                 </div>
@@ -227,8 +227,8 @@ h3 span {
   font-size: 0.85rem;
   font-weight: 800;
   color: rgba(255, 255, 255, 0.3);
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-right: 1px solid rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   letter-spacing: 0.03em;
 }
 
