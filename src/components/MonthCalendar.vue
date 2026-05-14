@@ -1041,6 +1041,10 @@ h2 {
   left: calc(100% + 2px);
 }
 
+.vacation-pill.row-end {
+  z-index: 1;
+}
+
 .vacation-pill.row-end::after {
   content: '';
   position: absolute;
@@ -1051,20 +1055,24 @@ h2 {
   height: 0.7rem;
   border-radius: 0 50% 50% 0;
   background: var(--vac-color);
-  z-index: 1;
+  z-index: 2;
+}
+
+.vacation-pill.row-start {
+  z-index: 2;
 }
 
 .vacation-pill.row-start::before {
   content: '';
   position: absolute;
-  left: -0.35rem;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
   width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50% 0 0 50%;
+  border-radius: 0 50% 50% 0;
   background: #1a1a1a;
-  z-index: 1;
+  z-index: 2;
 }
 
 .vacation-pill.is-start {
