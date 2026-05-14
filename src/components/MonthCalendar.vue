@@ -1062,8 +1062,11 @@ h2 {
   cursor: grab;
   transition: opacity 0.2s ease;
   text-shadow:
-    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 -1px 0 rgba(0, 0, 0, 0.3),
     0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
 }
 
 .ticket-pill::before {
