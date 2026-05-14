@@ -591,6 +591,7 @@ function onTicketListDrop(event: DragEvent) {
                       :disabled="!calendarCountByState.get(state)"
                       @change="options.toggleStateVisibility(state)"
                     />
+                    <span class="material-symbols-rounded filter-state-icon" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ stateIcon(state) }}</span>
                     <span class="filter-name" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
                     <span class="filter-count" :style="{ opacity: !calendarCountByState.get(state) ? 0.3 : 0.8 }">{{ calendarCountByState.get(state) ?? 0 }}</span>
                   </label>
@@ -1270,11 +1271,18 @@ section {
   flex-shrink: 0;
 }
 
+.filter-state-icon {
+  font-size: 16px;
+  line-height: 1;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  flex-shrink: 0;
+}
+
 .filter-hint {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.95);
   padding: 0.5rem 1rem 0.35rem;
-  line-height: 1.4;
+  line-height: 1.55;
 }
 
 .filter-hint--empty {

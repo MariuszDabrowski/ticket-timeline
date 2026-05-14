@@ -809,13 +809,6 @@ h2 {
 
 .cell:not(.day):not(.header) {
   position: relative;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(255, 255, 255, 0.04) 0px,
-    rgba(255, 255, 255, 0.04) 5px,
-    rgba(0, 0, 0, 0.15) 5px,
-    rgba(0, 0, 0, 0.15) 10px
-  );
 }
 
 .cell:not(.day):not(.header)::before {
