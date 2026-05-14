@@ -1065,8 +1065,8 @@ h2 {
     0 -1px 0 rgba(0, 0, 0, 0.3),
     0 1px 0 rgba(255, 255, 255, 0.07);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .ticket-pill::before {
@@ -1248,6 +1248,9 @@ h2 {
   opacity: 0.7;
   position: relative;
   z-index: 1;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .resize-handle:hover {
