@@ -1025,7 +1025,6 @@ h2 {
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
-  transition: background 0.15s;
 }
 
 .ticket-pill.is-hovered:not(.is-on-vacation) {
