@@ -759,7 +759,7 @@ function onDrop(event: DragEvent, day: number) {
     >
       <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
       <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(ticketTooltip.startDate) }} – {{ fmtDate(ticketTooltip.endDate) }}</span></div>
-      <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} day{{ ticketTooltip.duration !== 1 ? 's' : '' }}</span></div>
+      <div v-if="ticketTooltip.duration !== 1" class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} days</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
     </div>
     <div
