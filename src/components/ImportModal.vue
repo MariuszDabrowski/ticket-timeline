@@ -291,6 +291,8 @@ h3 span {
 }
 
 .action-btn.delete {
+  display: flex;
+  align-items: center;
   border-color: rgba(180, 50, 40, 0.5);
   background: linear-gradient(180deg, rgba(160, 40, 30, 0.35) 0%, rgba(120, 30, 20, 0.35) 100%);
   color: rgba(255, 120, 110, 0.8);
