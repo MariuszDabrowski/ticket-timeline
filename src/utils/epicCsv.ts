@@ -81,7 +81,7 @@ export function importEpicCSV(
   const startedAtIdx = header.indexOf('started_at')
   const completedAtIdx = header.indexOf('completed_at')
   const stateIdx = header.indexOf('state')
-  const archivedIdx = header.indexOf('archived')
+  const archivedIdx = header.indexOf('is_archived')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
   // Map email → person ID, reusing existing people matched by name
