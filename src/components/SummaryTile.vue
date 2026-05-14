@@ -382,11 +382,17 @@ const headline = computed(() => {
 .duration-chip {
   display: inline-flex;
   align-self: flex-start;
-  background: rgba(128, 128, 128, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
   font-size: 13px;
   opacity: 1;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .team-list {
