@@ -335,7 +335,7 @@ function onTicketListDrop(event: DragEvent) {
     </header>
     <div class="below-header">
     <aside class="sidebar">
-      <section :class="{ 'drawer-closing': closingSection.has('months') }">
+      <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
           <span class="chevron">
@@ -368,7 +368,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section :class="{ 'drawer-closing': closingSection.has('people') }">
+      <section :class="{ 'drawer-open': !collapsed.people, 'drawer-closing': closingSection.has('people') }">
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
           <span class="chevron">
@@ -399,7 +399,7 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section
-        :class="['ticket-section', { 'drawer-closing': closingSection.has('tickets'), 'drop-target': ticketListIsOver }]"
+        :class="['ticket-section', { 'drawer-open': !collapsed.tickets, 'drawer-closing': closingSection.has('tickets'), 'drop-target': ticketListIsOver }]"
         @dragover="onTicketListDragOver"
         @dragleave="onTicketListDragLeave"
         @drop="onTicketListDrop"
@@ -437,7 +437,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section :class="{ 'drawer-closing': closingSection.has('labels') }">
+      <section :class="{ 'drawer-open': !collapsed.labels, 'drawer-closing': closingSection.has('labels') }">
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
           <span class="chevron">
@@ -471,7 +471,7 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section :class="{ 'drawer-closing': closingSection.has('sync') }">
+      <section :class="{ 'drawer-open': !collapsed.sync, 'drawer-closing': closingSection.has('sync') }">
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
           <span class="chevron">
@@ -708,6 +708,7 @@ function onTicketListDrop(event: DragEvent) {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  contain: layout style;
 }
 
 section {
@@ -716,7 +717,7 @@ section {
   transition: background 0.25s ease;
 }
 
-section:has(.slide-wrap:not(.slide-closed)),
+section.drawer-open,
 section.drawer-closing {
   background: rgba(0, 0, 0, 0.18);
 }
@@ -742,7 +743,7 @@ section.drawer-closing {
   display: none;
 }
 
-section:not(:has(.slide-wrap:not(.slide-closed))):not(.drawer-closing) .section-header:hover {
+section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   background: rgba(0, 0, 0, 0.18);
 }
 
