@@ -330,7 +330,13 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
-          <span class="chevron" :class="{ rotated: !collapsed.months }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chevron">
+            <Transition name="arrow">
+              <svg :key="String(collapsed.months)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <path :d="collapsed.months ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </Transition>
+          </span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }">
           <div class="slide-inner">
@@ -357,7 +363,13 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
-          <span class="chevron" :class="{ rotated: !collapsed.people }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chevron">
+            <Transition name="arrow">
+              <svg :key="String(collapsed.people)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <path :d="collapsed.people ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </Transition>
+          </span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }">
           <div class="slide-inner">
@@ -387,7 +399,13 @@ function onTicketListDrop(event: DragEvent) {
       >
         <button class="section-header" @click="toggleSection('tickets')">
           <span>Tickets</span>
-          <span class="chevron" :class="{ rotated: !collapsed.tickets }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chevron">
+            <Transition name="arrow">
+              <svg :key="String(collapsed.tickets)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <path :d="collapsed.tickets ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </Transition>
+          </span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }">
           <div class="slide-inner">
@@ -415,7 +433,13 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
-          <span class="chevron" :class="{ rotated: !collapsed.labels }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chevron">
+            <Transition name="arrow">
+              <svg :key="String(collapsed.labels)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <path :d="collapsed.labels ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </Transition>
+          </span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
           <div class="slide-inner">
@@ -443,7 +467,13 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
-          <span class="chevron" :class="{ rotated: !collapsed.sync }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chevron">
+            <Transition name="arrow">
+              <svg :key="String(collapsed.sync)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <path :d="collapsed.sync ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </Transition>
+          </span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.sync }">
           <div class="slide-inner">
@@ -711,24 +741,49 @@ section {
 }
 
 .chevron {
-  display: flex;
-  align-items: center;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  transform: rotate(0deg);
-  color: rgba(255, 255, 255, 0.1);
+  position: relative;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
   flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.1);
   filter:
     drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
     drop-shadow(0 1px 0px rgba(255, 255, 255, 0.08));
 }
 
 .chevron svg {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 24px;
   height: 24px;
 }
 
-.chevron.rotated {
-  transform: rotate(-180deg);
+.arrow-enter-active {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.arrow-leave-active {
+  transition: transform 0.3s ease-in, opacity 0.25s ease;
+}
+
+.arrow-enter-from {
+  transform: translateY(-100%);
+}
+
+.arrow-enter-to {
+  transform: translateY(0);
+}
+
+.arrow-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.arrow-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
 }
 
 .slide-wrap {
