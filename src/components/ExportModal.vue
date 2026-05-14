@@ -216,24 +216,27 @@ h3 span {
 }
 
 .field-label {
-  font-size: 0.75rem;
-  opacity: 0.75;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .field-input {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  border: 1px solid rgba(128, 128, 128, 0.35);
+  padding: 0.45rem 0.65rem;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 5px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.8);
   outline: none;
+  transition: border-color 0.15s;
 }
 
 .field-input:focus {
-  border-color: rgba(128, 128, 128, 0.7);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .options {
