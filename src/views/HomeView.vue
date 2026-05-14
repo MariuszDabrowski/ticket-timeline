@@ -1101,6 +1101,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
     transparent 3px,
     transparent 9px
   );
+  background-attachment: fixed;
   pointer-events: none;
 }
 
