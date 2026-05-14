@@ -473,7 +473,7 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-          <div v-if="ticketStates.length > 0" class="state-legend">
+          <div v-if="ticketStates.length > 0" class="state-legend" :class="{ 'state-legend--bordered': unplacedTickets.length > 0 }">
             <div v-for="state in ticketStates" :key="state" class="legend-row">
               <span class="material-symbols-rounded legend-icon">{{ stateIcon(state) }}</span>
               <span class="legend-label">{{ state }}</span>
@@ -995,7 +995,7 @@ section {
 }
 
 .pill-state-icon {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   margin-right: 0.2em;
   vertical-align: middle;
@@ -1008,6 +1008,9 @@ section {
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.5rem 1rem 0.35rem;
+}
+
+.state-legend--bordered {
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   margin-bottom: 0.15rem;
 }
