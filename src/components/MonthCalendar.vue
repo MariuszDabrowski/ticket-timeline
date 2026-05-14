@@ -792,8 +792,8 @@ h2 {
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.6),
-    0 -1px 0 rgba(255, 255, 255, 0.08);
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @keyframes textShine {
@@ -808,7 +808,7 @@ h2 {
   opacity: 0.6;
   letter-spacing: 0.02em;
   text-shadow:
-    0 -1px 2px rgba(0, 0, 0, 0.8),
+    0 -1px 0 rgba(0, 0, 0, 0.6),
     0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
