@@ -399,8 +399,7 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section
-        class="ticket-section"
-        :class="{ 'drawer-closing': closingSection.has('tickets') }"
+        :class="['ticket-section', { 'drawer-closing': closingSection.has('tickets') }]"
         :class="{ 'drop-target': ticketListIsOver }"
         @dragover="onTicketListDragOver"
         @dragleave="onTicketListDragLeave"
