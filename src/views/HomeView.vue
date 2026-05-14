@@ -1029,9 +1029,9 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 .ticket-pill {
   position: relative;
   display: inline-block;
-  padding: 0.2rem 0.6rem;
+  padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 12px;
   font-weight: bold;
   color: #fff;
   cursor: grab;
