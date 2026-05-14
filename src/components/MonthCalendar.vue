@@ -717,7 +717,7 @@ function onDrop(event: DragEvent, day: number) {
 
   <Teleport to="body">
     <div
-      v-if="ticketTooltip"
+      v-if="ticketTooltip && !dragState.moveDrag && !dragState.resizeDrag"
       class="global-tooltip"
       :style="{ left: ticketTooltip.x + 'px', top: ticketTooltip.y + 'px' }"
     >
