@@ -672,6 +672,7 @@ function onDrop(event: DragEvent, day: number) {
                   'is-on-vacation': info.isOnVacation,
                   'is-hovered': dragState.hoveredTicketId === info.ticket.id,
                   'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
+                  'is-label': info.ticket.isLabel,
                 }"
                 :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
                 draggable="true"
@@ -1060,6 +1061,22 @@ h2 {
 
 .ticket-pill.is-hovered:not(.is-on-vacation)::before {
   opacity: 1;
+}
+
+.ticket-pill.is-label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 3px,
+    transparent 3px,
+    transparent 9px
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .ticket-pill.is-dimmed {
