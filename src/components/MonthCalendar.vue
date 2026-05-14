@@ -163,6 +163,7 @@ function durationDays(start: CalendarDate, end: CalendarDate): number {
 
 interface TicketTooltipState {
   title: string | undefined
+  state: string | undefined
   startDate: CalendarDate
   endDate: CalendarDate
   assignedTo: string
@@ -189,6 +190,7 @@ function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   dragState.hoveredTicketId = info.ticket.id
   ticketTooltip.value = {
     title: info.ticket.title || undefined,
+    state: info.ticket.state,
     startDate: info.placement.startDate,
     endDate: info.placement.endDate,
     assignedTo: assignedName(info.ticket),
@@ -285,29 +287,6 @@ const slotMap = computed(() => {
 
 const monthStart = computed<CalendarDate>(() => ({ year: props.year, month: props.month, day: 1 }))
 const monthEnd = computed<CalendarDate>(() => ({ year: props.year, month: props.month, day: daysInMonth.value }))
-
-const reviewPlacements = computed(() =>
-  ticketsStore.getPlacementsForMonth(props.year, props.month).filter((p) => {
-    const ticket = ticketsStore.tickets.find((t) => t.id === p.ticketId)
-    return ticket?.state?.toLowerCase() === 'ready for review'
-  })
-)
-
-function dayHasReview(day: number): boolean {
-  const thisDate = calDate(day)
-  return reviewPlacements.value.some((p) => {
-    const eff = effectivePlacement(p)
-    return compareCalendarDates(eff.startDate, thisDate) <= 0 && compareCalendarDates(thisDate, eff.endDate) >= 0
-  })
-}
-
-function dayIsReviewStart(day: number): boolean {
-  const thisDate = calDate(day)
-  return reviewPlacements.value.some((p) => {
-    const eff = effectivePlacement(p)
-    return compareCalendarDates(eff.startDate, thisDate) === 0
-  })
-}
 
 function overlapsMonth(start: CalendarDate, end: CalendarDate): boolean {
   return compareCalendarDates(start, monthEnd.value) <= 0 &&
@@ -644,7 +623,6 @@ function onDrop(event: DragEvent, day: number) {
           'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag,
           'is-holiday': holidayMap.has(day),
           'is-today': isToday(day),
-          'has-review': dayHasReview(day),
         }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
@@ -665,7 +643,6 @@ function onDrop(event: DragEvent, day: number) {
             >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
-          <span v-if="dayIsReviewStart(day)" class="material-symbols-rounded review-eye-icon">visibility</span>
         </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
@@ -761,6 +738,10 @@ function onDrop(event: DragEvent, day: number) {
       <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(ticketTooltip.startDate) }} – {{ fmtDate(ticketTooltip.endDate) }}</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} day{{ ticketTooltip.duration !== 1 ? 's' : '' }}</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
+      <div v-if="ticketTooltip.state" class="tooltip-row">
+        <span class="tooltip-label">Status</span>
+        <span class="tooltip-state"><span class="material-symbols-rounded tooltip-state-icon">{{ stateIcon(ticketTooltip.state) }}</span>{{ ticketTooltip.state }}</span>
+      </div>
     </div>
     <div
       v-if="vacationTooltip"
@@ -977,24 +958,6 @@ h2 {
 
 .day.is-holiday {
   background: rgba(240, 175, 85, 0.05);
-}
-
-.day.has-review {
-  background: repeating-linear-gradient(
-    -45deg,
-    rgba(130, 200, 255, 0.06) 0px,
-    rgba(130, 200, 255, 0.06) 4px,
-    transparent 4px,
-    transparent 10px
-  );
-}
-
-.review-eye-icon {
-  font-size: 13px;
-  color: rgba(130, 200, 255, 0.7);
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  flex-shrink: 0;
-  line-height: 1;
 }
 
 .holiday-label {
@@ -1262,6 +1225,17 @@ h2 {
   opacity: 0.5;
   flex-shrink: 0;
   min-width: 4.5rem;
+}
+
+:global(.global-tooltip .tooltip-state) {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+:global(.global-tooltip .tooltip-state-icon) {
+  font-size: 14px;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
 .ticket-label {
