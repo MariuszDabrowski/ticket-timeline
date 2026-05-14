@@ -5,7 +5,7 @@ import type { Person } from '../stores/people'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
 const STATE_OPTIONS = [
-  'Tech Speccing', 'Ready for Development', 'In Development', 'Blocked', 'Completed',
+  'Tech Speccing', 'Ready for Development', 'In Development', 'Ready for Review', 'Awaiting Signoff', 'Blocked', 'Completed',
 ]
 
 const props = defineProps<{

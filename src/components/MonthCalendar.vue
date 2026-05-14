@@ -149,9 +149,16 @@ function assignedName(ticket: Ticket): string {
   return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.name ?? 'Unassigned'
 }
 
-function durationDays(start: { year: number; month: number; day: number }, end: { year: number; month: number; day: number }): number {
-  const ms = new Date(end.year, end.month, end.day).getTime() - new Date(start.year, start.month, start.day).getTime()
-  return Math.round(ms / 86_400_000) + 1
+function durationDays(start: CalendarDate, end: CalendarDate): number {
+  let count = 0
+  const d = new Date(start.year, start.month, start.day)
+  const endDate = new Date(end.year, end.month, end.day)
+  while (d <= endDate) {
+    const dow = d.getDay()
+    if (dow !== 0 && dow !== 6) count++
+    d.setDate(d.getDate() + 1)
+  }
+  return count
 }
 
 interface TicketTooltipState {
@@ -278,6 +285,29 @@ const slotMap = computed(() => {
 
 const monthStart = computed<CalendarDate>(() => ({ year: props.year, month: props.month, day: 1 }))
 const monthEnd = computed<CalendarDate>(() => ({ year: props.year, month: props.month, day: daysInMonth.value }))
+
+const reviewPlacements = computed(() =>
+  ticketsStore.getPlacementsForMonth(props.year, props.month).filter((p) => {
+    const ticket = ticketsStore.tickets.find((t) => t.id === p.ticketId)
+    return ticket?.state?.toLowerCase() === 'ready for review'
+  })
+)
+
+function dayHasReview(day: number): boolean {
+  const thisDate = calDate(day)
+  return reviewPlacements.value.some((p) => {
+    const eff = effectivePlacement(p)
+    return compareCalendarDates(eff.startDate, thisDate) <= 0 && compareCalendarDates(thisDate, eff.endDate) >= 0
+  })
+}
+
+function dayIsReviewStart(day: number): boolean {
+  const thisDate = calDate(day)
+  return reviewPlacements.value.some((p) => {
+    const eff = effectivePlacement(p)
+    return compareCalendarDates(eff.startDate, thisDate) === 0
+  })
+}
 
 function overlapsMonth(start: CalendarDate, end: CalendarDate): boolean {
   return compareCalendarDates(start, monthEnd.value) <= 0 &&
@@ -614,6 +644,7 @@ function onDrop(event: DragEvent, day: number) {
           'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag,
           'is-holiday': holidayMap.has(day),
           'is-today': isToday(day),
+          'has-review': dayHasReview(day),
         }"
         @dragover="onDragOver($event, day)"
         @dragleave="onDragLeave"
@@ -634,6 +665,7 @@ function onDrop(event: DragEvent, day: number) {
             >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
+          <span v-if="dayIsReviewStart(day)" class="material-symbols-rounded review-eye-icon">visibility</span>
         </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
@@ -945,6 +977,24 @@ h2 {
 
 .day.is-holiday {
   background: rgba(240, 175, 85, 0.05);
+}
+
+.day.has-review {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(130, 200, 255, 0.06) 0px,
+    rgba(130, 200, 255, 0.06) 4px,
+    transparent 4px,
+    transparent 10px
+  );
+}
+
+.review-eye-icon {
+  font-size: 13px;
+  color: rgba(130, 200, 255, 0.7);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .holiday-label {
