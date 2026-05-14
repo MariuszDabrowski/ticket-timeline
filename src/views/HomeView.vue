@@ -734,7 +734,7 @@ section:has(.slide-wrap:not(.slide-closed)) {
   display: none;
 }
 
-.section-header:hover {
+section:not(:has(.slide-wrap:not(.slide-closed))) .section-header:hover {
   background: rgba(0, 0, 0, 0.18);
 }
 
