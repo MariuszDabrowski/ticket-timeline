@@ -223,6 +223,7 @@ const headline = computed(() => {
   border-top: 1px dotted rgba(255, 255, 255, 0.1);
   margin-left: -1rem;
   margin-right: -1rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .section {
