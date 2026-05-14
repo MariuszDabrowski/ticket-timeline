@@ -236,7 +236,7 @@ const headline = computed(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
   display: flex;
   align-items: center;
   gap: 0.4rem;
