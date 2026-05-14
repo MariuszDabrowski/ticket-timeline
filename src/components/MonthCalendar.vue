@@ -923,6 +923,9 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   filter: grayscale(1);
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .placed-tickets {
