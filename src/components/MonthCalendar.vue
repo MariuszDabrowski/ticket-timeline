@@ -98,6 +98,14 @@ const holidayMap = computed(() => {
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
+const vacationDropRejected = ref(false)
+let vacationToastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showVacationRejection() {
+  vacationDropRejected.value = true
+  if (vacationToastTimer) clearTimeout(vacationToastTimer)
+  vacationToastTimer = setTimeout(() => { vacationDropRejected.value = false }, 2500)
+}
 
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
@@ -614,6 +622,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(id))
     if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
       dragState.clearResizeDrag()
+      showVacationRejection()
       return
     }
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
@@ -630,6 +639,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(moveData))
     if (ticket && (isVacationDay(ticket.assignedTo, newStart) || isVacationDay(ticket.assignedTo, newEnd))) {
       dragState.clearMoveDrag()
+      showVacationRejection()
       return
     }
     ticketsStore.moveTicket(Number(moveData), newStart, newEnd)
@@ -642,6 +652,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(ticketId))
     if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
       dragState.clearMoveDrag()
+      showVacationRejection()
       return
     }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
@@ -651,6 +662,11 @@ function onDrop(event: DragEvent, day: number) {
 </script>
 
 <template>
+  <Transition name="toast">
+    <div v-if="vacationDropRejected" class="vacation-toast">
+      Tickets can't start or end on a vacation day
+    </div>
+  </Transition>
   <div class="month-calendar">
     <h2><span class="month-name">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
@@ -1287,5 +1303,36 @@ h2 {
 
 .right-handle {
   margin-left: auto;
+}
+
+.vacation-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast-enter-active {
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast-leave-active {
+  transition: opacity 0.3s ease;
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px);
+}
+.toast-leave-to {
+  opacity: 0;
 }
 </style>
