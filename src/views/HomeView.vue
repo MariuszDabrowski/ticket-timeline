@@ -254,7 +254,6 @@ async function handleExportImage(includeSummary: boolean) {
   const prevOverflow = panel.style.overflow
   panel.style.overflow = 'visible'
 
-  document.body.classList.add('exporting')
   try {
     const dataUrl = await toPng(row, {
       pixelRatio: 2,
@@ -266,7 +265,6 @@ async function handleExportImage(includeSummary: boolean) {
     a.download = 'ticket-timeline.png'
     a.click()
   } finally {
-    document.body.classList.remove('exporting')
     panel.style.overflow = prevOverflow
     if (!includeSummary && summaryEl) summaryEl.style.display = ''
     exportingImage.value = false

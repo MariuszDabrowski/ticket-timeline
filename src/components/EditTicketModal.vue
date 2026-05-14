@@ -124,7 +124,7 @@ function handleSubmit() {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,7 +231,7 @@ select {
   border-radius: 5px;
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
   outline: none;
   transition: border-color 0.15s;
 }
