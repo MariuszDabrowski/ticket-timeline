@@ -1209,7 +1209,7 @@ h2 {
 }
 
 .pill-state-icon {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
   flex-shrink: 0;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
@@ -1244,12 +1244,12 @@ h2 {
 .ticket-pill.row-start::before {
   content: '';
   position: absolute;
-  left: -0.35rem;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
   width: 0.35rem;
   height: 0.7rem;
-  border-radius: 50% 0 0 50%;
+  border-radius: 0 50% 50% 0;
   background: #1a1a1a;
   z-index: 2;
 }

@@ -292,8 +292,8 @@ const headline = computed(() => {
 }
 
 .state-breakdown-icon {
-  font-size: 14px;
-  min-width: 1rem;
+  font-size: 16px;
+  min-width: 1.1rem;
   text-align: center;
   opacity: 0.75;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;

@@ -968,7 +968,7 @@ section {
 }
 
 .pill-state-icon {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
   margin-right: 0.2em;
   vertical-align: middle;
@@ -994,7 +994,7 @@ section {
 }
 
 .legend-icon {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
