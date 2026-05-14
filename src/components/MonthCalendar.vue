@@ -1078,6 +1078,9 @@ h2 {
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .ticket-pill.is-hovered:not(.is-on-vacation)::before {
