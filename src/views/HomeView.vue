@@ -854,14 +854,11 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 .year-label {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 0.4rem 1rem 0.2rem;
   display: block;
-  text-shadow:
-    0 -1px 2px rgba(0, 0, 0, 0.7),
-    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .month-option {
@@ -877,10 +874,6 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   transition: color 0.15s, text-decoration-color 0.15s;
-  text-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.12),
-    0 1px 4px rgba(0, 0, 0, 0.7),
-    0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .month-option:hover {

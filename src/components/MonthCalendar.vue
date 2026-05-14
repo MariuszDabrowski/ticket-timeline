@@ -791,6 +791,10 @@ h2 {
   text-fill-color: transparent;
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
+  text-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.7),
+    0 2px 16px rgba(0, 0, 0, 0.45),
+    0 -1px 0 rgba(255, 255, 255, 0.12);
 }
 
 @keyframes textShine {
@@ -804,6 +808,9 @@ h2 {
   vertical-align: baseline;
   opacity: 0.6;
   letter-spacing: 0.02em;
+  text-shadow:
+    0 -1px 2px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .grid {
