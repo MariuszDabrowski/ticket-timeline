@@ -1094,7 +1094,7 @@ h2 {
   transition: opacity 0.15s ease;
 }
 
-:global(.tooltip-enter-from) {
+:global(.tooltip-enter-from.global-tooltip) {
   opacity: 0;
   transform: translate(-50%, calc(-100% - 2px));
 }
