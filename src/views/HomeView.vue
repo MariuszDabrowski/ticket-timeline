@@ -715,9 +715,11 @@ section {
   align-items: center;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   transform: rotate(0deg);
-  opacity: 0.7;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
+  filter:
+    drop-shadow(0 -1px 0px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 1px 0px rgba(255, 255, 255, 0.06));
 }
 
 .chevron svg {
