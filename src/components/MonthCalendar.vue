@@ -914,6 +914,7 @@ h2 {
 }
 
 .holiday-label {
+  display: block;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.35);
   font-weight: 500;
