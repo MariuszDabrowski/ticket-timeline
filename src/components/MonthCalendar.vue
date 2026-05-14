@@ -179,10 +179,11 @@ interface TicketTooltipState {
 }
 
 const ticketTooltip = ref<TicketTooltipState | null>(null)
-
+let hideTooltipTimer: ReturnType<typeof setTimeout> | null = null
 
 function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   if (info.ticket.isLabel) return
+  if (hideTooltipTimer) { clearTimeout(hideTooltipTimer); hideTooltipTimer = null }
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
   dragState.hoveredTicketId = info.ticket.id
   ticketTooltip.value = {
@@ -197,8 +198,10 @@ function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
 }
 
 function hideTicketTooltip() {
-  ticketTooltip.value = null
-  dragState.hoveredTicketId = null
+  hideTooltipTimer = setTimeout(() => {
+    ticketTooltip.value = null
+    dragState.hoveredTicketId = null
+  }, 80)
 }
 
 
