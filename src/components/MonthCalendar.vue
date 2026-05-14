@@ -980,11 +980,14 @@ h2 {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  background: rgba(30, 30, 30, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  font-size: 10px;
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  font-size: 11px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   pointer-events: none;
   z-index: 0;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
