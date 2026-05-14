@@ -1104,6 +1104,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #fff;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .panel-body {
