@@ -81,7 +81,6 @@ function fmtDate(iso: string) {
 
         <div class="options">
           <div class="option-card">
-            <div class="option-icon">🗄️</div>
             <div class="option-body">
               <div class="option-title">Save to browser</div>
               <div class="option-desc">
@@ -104,7 +103,6 @@ function fmtDate(iso: string) {
           </div>
 
           <div class="option-card">
-            <div class="option-icon">🖼️</div>
             <div class="option-body">
               <div class="option-title">Export as Image</div>
               <div class="option-desc">
@@ -124,7 +122,6 @@ function fmtDate(iso: string) {
           </div>
 
           <div class="option-card">
-            <div class="option-icon">⬇️</div>
             <div class="option-body">
               <div class="option-title">Download JSON</div>
               <div class="option-desc">
@@ -247,18 +244,12 @@ h3 span {
 
 .option-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
-  padding: 0.9rem 1rem;
+  padding: 0.75rem 0.9rem;
   border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 8px;
-}
-
-.option-icon {
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  line-height: 1;
-  margin-top: 0.1rem;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .option-body {
