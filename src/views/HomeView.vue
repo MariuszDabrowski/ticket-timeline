@@ -1095,7 +1095,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .panel-header-static {

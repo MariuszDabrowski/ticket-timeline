@@ -344,6 +344,8 @@ const headline = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  position: relative;
+  z-index: 1;
 }
 
 .timeline-marker {
