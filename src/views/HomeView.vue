@@ -1109,7 +1109,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 }
 
 .panel-body {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
 }
