@@ -989,7 +989,7 @@ section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -1335,12 +1335,6 @@ section {
     padding: 0 2rem;
   }
 
-  .panel-section {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
   .panel-body {
     max-height: none;
   }
@@ -1377,6 +1371,8 @@ section {
 
   .summary-column {
     padding: 0;
+    margin: 1rem;
+    align-self: auto;
   }
 
   .months-stack {

@@ -1216,6 +1216,10 @@ h2 {
   opacity: 0.9;
 }
 
+.ticket-pill.row-end {
+  z-index: 1;
+}
+
 .ticket-pill.row-end::after {
   content: '';
   position: absolute;
@@ -1226,11 +1230,15 @@ h2 {
   height: 0.7rem;
   border-radius: 0 50% 50% 0;
   background: inherit;
-  z-index: 1;
+  z-index: 2;
 }
 
 .ticket-pill.row-start .ticket-label {
   padding-left: 0.6rem;
+}
+
+.ticket-pill.row-start {
+  z-index: 2;
 }
 
 .ticket-pill.row-start::before {
@@ -1243,7 +1251,7 @@ h2 {
   height: 0.7rem;
   border-radius: 50% 0 0 50%;
   background: #1a1a1a;
-  z-index: 1;
+  z-index: 2;
 }
 
 .resize-handle {
