@@ -722,7 +722,7 @@ section {
   text-transform: uppercase;
   cursor: pointer;
   text-align: left;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .section-header::after {
@@ -769,7 +769,7 @@ section {
 }
 
 .arrow-enter-from {
-  transform: translateY(-100%);
+  transform: translateY(-250%);
 }
 
 .arrow-enter-to {
@@ -782,7 +782,7 @@ section {
 }
 
 .arrow-leave-to {
-  transform: translateY(100%);
+  transform: translateY(250%);
   opacity: 0;
 }
 
