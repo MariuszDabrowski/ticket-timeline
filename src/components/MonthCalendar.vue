@@ -642,43 +642,54 @@ function onDrop(event: DragEvent, day: number) {
         </div>
         <div class="placed-tickets">
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
-            <div
-              v-if="info"
-              class="ticket-pill"
-              :class="{
-                'is-start': info.isStart,
-                'is-end': info.isEnd,
-                'is-preview': info.isPreview,
-                'row-end': info.isRowEnd,
-                'row-start': info.isRowStart,
-                'is-on-vacation': info.isOnVacation,
-                'is-hovered': dragState.hoveredTicketId === info.ticket.id,
-                'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
-              }"
-              :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
-              draggable="true"
-              @mouseenter="showTicketTooltip($event, info)"
-              @mouseleave="hideTicketTooltip()"
-              @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
-              @dragstart="onTicketDragStart($event, info)"
-              @dragend="dragState.clearMoveDrag"
-            >
-              <button
+            <div v-if="info" class="pill-slot">
+              <div
                 v-if="info.isStart"
-                class="resize-handle"
+                class="pill-marker s-marker"
+                :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
+              >S</div>
+              <div
+                class="ticket-pill"
+                :class="{
+                  'is-start': info.isStart,
+                  'is-end': info.isEnd,
+                  'is-preview': info.isPreview,
+                  'row-end': info.isRowEnd,
+                  'row-start': info.isRowStart,
+                  'is-on-vacation': info.isOnVacation,
+                  'is-hovered': dragState.hoveredTicketId === info.ticket.id,
+                  'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
+                }"
+                :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
                 draggable="true"
-                @click.stop
-                @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
-                @dragend="dragState.clearResizeDrag"
-              >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
-              <button
+                @mouseenter="showTicketTooltip($event, info)"
+                @mouseleave="hideTicketTooltip()"
+                @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
+                @dragstart="onTicketDragStart($event, info)"
+                @dragend="dragState.clearMoveDrag"
+              >
+                <button
+                  v-if="info.isStart"
+                  class="resize-handle"
+                  draggable="true"
+                  @click.stop
+                  @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
+                  @dragend="dragState.clearResizeDrag"
+                >‹</button>
+                <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
+                <button
+                  v-if="info.isEnd"
+                  class="resize-handle right-handle"
+                  draggable="true"
+                  @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
+                  @dragend="dragState.clearResizeDrag"
+                >›</button>
+              </div>
+              <div
                 v-if="info.isEnd"
-                class="resize-handle right-handle"
-                draggable="true"
-                @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
-                @dragend="dragState.clearResizeDrag"
-              >›</button>
+                class="pill-marker f-marker"
+                :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
+              >F</div>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -955,29 +966,12 @@ h2 {
 }
 
 
-.ticket-pill {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  color: #fff;
-  overflow: visible;
+.pill-slot {
   position: relative;
-  z-index: 0;
-  border-radius: 0;
-  padding: 0.1rem 0;
-  cursor: grab;
-  transition: background 0.15s;
+  height: 100%;
 }
 
-.ticket-pill.is-hovered:not(.is-on-vacation) {
-  background: var(--tc) !important;
-}
-
-.ticket-pill.is-start::before,
-.ticket-pill.is-end::after {
+.pill-marker {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -992,29 +986,45 @@ h2 {
   font-weight: 900;
   color: rgba(255, 255, 255, 0.7);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transition: transform 0.1s ease-in, opacity 0s;
+  transition: transform 0.1s ease-in;
 }
 
-.ticket-pill.is-start::before {
-  content: 'S';
+.s-marker {
   right: calc(100% + 2px);
   transform: translateX(calc(100% + 2px));
 }
 
-.ticket-pill.is-end::after {
-  content: 'F';
+.f-marker {
   left: calc(100% + 2px);
   transform: translateX(calc(-100% - 2px));
 }
 
-.ticket-pill.is-start.is-hovered::before,
-.ticket-pill.is-end.is-hovered::after {
-  opacity: 1;
+.pill-marker.is-visible {
   transform: translateX(0);
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0s;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ticket-pill {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  border-radius: 0;
+  padding: 0.1rem 0;
+  cursor: grab;
+  transition: background 0.15s;
+}
+
+.ticket-pill.is-hovered:not(.is-on-vacation) {
+  background: var(--tc) !important;
 }
 
 .ticket-pill.is-dimmed {
