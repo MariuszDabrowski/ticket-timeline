@@ -1018,7 +1018,7 @@ h2 {
   width: 0.35rem;
   height: 0.7rem;
   border-radius: 0 50% 50% 0;
-  background: #1a1a1a;
+  background: var(--vac-color);
   z-index: 1;
 }
 
@@ -1031,7 +1031,7 @@ h2 {
   width: 0.35rem;
   height: 0.7rem;
   border-radius: 50% 0 0 50%;
-  background: var(--vac-color);
+  background: #1a1a1a;
   z-index: 1;
 }
 
@@ -1229,7 +1229,7 @@ h2 {
   width: 0.35rem;
   height: 0.7rem;
   border-radius: 0 50% 50% 0;
-  background: #1a1a1a;
+  background: inherit;
   z-index: 2;
 }
 
@@ -1250,7 +1250,7 @@ h2 {
   width: 0.35rem;
   height: 0.7rem;
   border-radius: 50% 0 0 50%;
-  background: inherit;
+  background: #1a1a1a;
   z-index: 2;
 }
 

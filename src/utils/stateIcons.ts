@@ -2,17 +2,20 @@ const KNOWN: Record<string, string> = {
   'backlog': 'article',
   'unstarted': 'article',
   'not started': 'article',
-  'ready for development': 'play_arrow',
-  'ready for dev': 'play_arrow',
-  'ready to start': 'play_arrow',
-  'speccing': 'article',
-  'scoping': 'article',
+  'intake': 'arrow_insert',
+  'ready for development': 'campaign',
+  'ready for dev': 'campaign',
+  'ready to start': 'campaign',
+  'speccing': 'discover_tune',
+  'scoping': 'discover_tune',
+  'tech speccing': 'discover_tune',
+  'tech spec': 'discover_tune',
   'planning': 'article',
   'design': 'article',
-  'in development': 'construction',
-  'started': 'construction',
-  'in progress': 'construction',
-  'development': 'construction',
+  'in development': 'play_arrow',
+  'started': 'play_arrow',
+  'in progress': 'play_arrow',
+  'development': 'play_arrow',
   'ready for review': 'back_hand',
   'in review': 'back_hand',
   'code review': 'back_hand',
@@ -21,7 +24,7 @@ const KNOWN: Record<string, string> = {
   'awaiting review': 'back_hand',
   'needs approval': 'back_hand',
   'signoff': 'back_hand',
-  'blocked': 'back_hand',
+  'blocked': 'pause',
   'on hold': 'hourglass_empty',
   'completed': 'check',
   'done': 'check',
@@ -31,7 +34,7 @@ const KNOWN: Record<string, string> = {
   'canceled': 'cancel',
 }
 
-const FALLBACKS = ['article', 'play_arrow', 'construction', 'check', 'back_hand', 'hourglass_empty', 'label', 'flag']
+const FALLBACKS = ['article', 'campaign', 'play_arrow', 'check', 'back_hand', 'hourglass_empty', 'label', 'flag']
 
 export function stateIcon(state: string): string {
   const known = KNOWN[state.toLowerCase()]
