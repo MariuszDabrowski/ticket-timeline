@@ -686,7 +686,7 @@ function onDrop(event: DragEvent, day: number) {
                 'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
               }"
               :style="info.isOnVacation
-                ? { '--tc': '#666', background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 4px, #424242 4px, #424242 8px)' }
+                ? { '--tc': '#666', background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 5px, #424242 5px, #424242 10px)' }
                 : { '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
               @mouseenter="showTicketTooltip($event, info)"
