@@ -297,7 +297,7 @@ h3 span {
 }
 
 .action-btn.delete .material-symbols-rounded {
-  font-size: 14px;
+  font-size: 0.76rem;
 }
 
 .action-btn.danger {
