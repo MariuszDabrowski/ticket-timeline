@@ -857,6 +857,10 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   text-decoration-color: rgba(255, 255, 255, 0.4);
 }
 
+.load-more-btn:hover::after {
+  display: none;
+}
+
 .trim-btn {
 }
 
