@@ -846,7 +846,7 @@ h2 {
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.5);
   min-height: unset;
   padding: 0.5rem 0.25rem;
   text-shadow:
@@ -879,6 +879,7 @@ h2 {
 
 .day-number {
   font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .day-number-wrap {
