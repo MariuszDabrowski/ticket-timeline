@@ -665,7 +665,12 @@ function onDrop(event: DragEvent, day: number) {
             <div
               v-if="dayMarkers.getMarker(props.year, props.month, day)?.note"
               class="day-marker-tooltip"
-              :class="{ 'always-visible': options.showAllTooltips }"
+              :class="{
+                'always-visible': options.showAllTooltips,
+                'tooltip-edge-left': colPos(day) === 0,
+                'tooltip-edge-right': colPos(day) === columnCount - 1,
+              }"
+              :style="{ '--marker-color': dayMarkers.getMarker(props.year, props.month, day)!.color }"
             >{{ dayMarkers.getMarker(props.year, props.month, day)!.note }}</div>
           </div>
           <span v-if="holidayMap.has(day)" class="holiday-label">{{ holidayMap.get(day) }}</span>
@@ -933,9 +938,10 @@ h2 {
 .day-marker-tooltip {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(40, 40, 40, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--marker-color, rgba(255, 255, 255, 0.15));
   color: #fff;
   padding: 0.3rem 0.6rem;
   border-radius: 6px;
@@ -943,7 +949,7 @@ h2 {
   width: max-content;
   max-width: 250px;
   white-space: normal;
-  text-align: left;
+  text-align: center;
   line-height: 1.4;
   pointer-events: none;
   z-index: 9999;
@@ -955,9 +961,34 @@ h2 {
   content: '';
   position: absolute;
   bottom: 100%;
-  left: 0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
   border: 5px solid transparent;
-  border-bottom-color: rgba(40, 40, 40, 0.95);
+  border-bottom-color: var(--marker-color, rgba(255, 255, 255, 0.15));
+}
+
+.day-marker-tooltip.tooltip-edge-left {
+  left: 0;
+  transform: none;
+  text-align: left;
+}
+
+.day-marker-tooltip.tooltip-edge-left::after {
+  left: 0.65rem;
+  transform: none;
+}
+
+.day-marker-tooltip.tooltip-edge-right {
+  left: auto;
+  right: 0;
+  transform: none;
+  text-align: right;
+}
+
+.day-marker-tooltip.tooltip-edge-right::after {
+  left: auto;
+  right: 0.65rem;
+  transform: none;
 }
 
 .day-number-wrap:hover .day-marker-tooltip,
@@ -1154,7 +1185,7 @@ h2 {
   opacity: 0.25;
 }
 
-.ticket-pill.is-on-vacation {
+.ticket-pill.is-on-vacation:not(.is-dimmed) {
   opacity: 0.7;
   cursor: default;
 }
