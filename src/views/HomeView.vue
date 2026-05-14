@@ -439,7 +439,7 @@ function onTicketListDrop(event: DragEvent) {
 
       <section :class="{ 'drawer-open': !collapsed.labels, 'drawer-closing': closingSection.has('labels') }">
         <button class="section-header" @click="toggleSection('labels')">
-          <span>Labels</span>
+          <span>Events</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.labels" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
