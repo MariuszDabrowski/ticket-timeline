@@ -1332,7 +1332,7 @@ section {
     margin: 0;
     position: static;
     order: -1;
-    padding: 0 2rem;
+    padding: 1.5rem 2rem 0;
   }
 
   .panel-body {
