@@ -219,8 +219,8 @@ const headline = computed(() => {
 }
 
 .divider {
-  height: 1px;
-  background: rgba(128, 128, 128, 0.2);
+  height: 0;
+  border-top: 1px dotted rgba(255, 255, 255, 0.1);
 }
 
 .section {
