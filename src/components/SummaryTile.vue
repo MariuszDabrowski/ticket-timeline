@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
+import { stateIcon } from '../utils/stateIcons'
 
 
 const ticketsStore = useTicketsStore()
@@ -92,6 +93,18 @@ const teamStats = computed<PersonStat[]>(() => {
 
 const activePersonCount = computed(() => teamStats.value.filter((s) => s.id !== null).length)
 
+const stateBreakdown = computed(() => {
+  const counts = new Map<string, number>()
+  for (const placement of ticketsStore.placements) {
+    const ticket = nonLabelTickets.value.find((t) => t.id === placement.ticketId)
+    if (!ticket?.state) continue
+    counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([state, count]) => ({ state, count, icon: stateIcon(state) }))
+    .sort((a, b) => b.count - a.count)
+})
+
 const headline = computed(() => {
   if (totalCount.value === 0) return 'No tickets yet — add some to get started.'
   if (scheduledCount.value === 0)
@@ -140,6 +153,13 @@ const headline = computed(() => {
           <span class="sep">·</span>
           <span class="sub-stat backlog">{{ backlogCount }} backlog</span>
         </div>
+        <ul v-if="stateBreakdown.length > 0" class="state-breakdown">
+          <li v-for="s in stateBreakdown" :key="s.state" class="state-breakdown-row">
+            <span class="state-breakdown-icon">{{ s.icon }}</span>
+            <span class="state-breakdown-name">{{ s.state }}</span>
+            <span class="state-breakdown-count">{{ s.count }}</span>
+          </li>
+        </ul>
       </div>
 
       <template v-if="projectStart && projectEnd">
@@ -252,6 +272,39 @@ const headline = computed(() => {
   gap: 0.4rem;
   font-size: 14px;
   opacity: 0.9;
+}
+
+.state-breakdown {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.35rem;
+  padding: 0;
+}
+
+.state-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.state-breakdown-icon {
+  font-size: 11px;
+  min-width: 1rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.state-breakdown-name {
+  flex: 1;
+}
+
+.state-breakdown-count {
+  opacity: 0.65;
+  font-size: 12px;
 }
 
 .sep {

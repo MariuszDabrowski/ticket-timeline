@@ -19,6 +19,7 @@ import ImportModal from '../components/ImportModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
+import { stateIcon } from '../utils/stateIcons'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
@@ -459,7 +460,6 @@ function onTicketListDrop(event: DragEvent) {
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
           <div v-if="unplacedTickets.length > 0" class="ticket-groups">
             <template v-for="group in unplacedTicketsByState" :key="group.state ?? '__none__'">
-              <div v-if="group.state" class="ticket-state-heading">{{ group.state }}</div>
               <ol class="ticket-list" :start="group.start">
                 <li v-for="ticket in group.tickets" :key="ticket.id">
                   <span
@@ -470,10 +470,16 @@ function onTicketListDrop(event: DragEvent) {
                     @click.stop="editingTicket = ticket"
                     @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                  >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+                  ><span v-if="ticket.state" class="pill-state-icon">{{ stateIcon(ticket.state) }}</span>{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
                 </li>
               </ol>
             </template>
+          </div>
+          <div v-if="ticketStates.length > 0" class="state-legend">
+            <div v-for="state in ticketStates" :key="state" class="legend-row">
+              <span class="legend-icon">{{ stateIcon(state) }}</span>
+              <span class="legend-label">{{ state }}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -961,17 +967,36 @@ section {
   margin-top: 0.5rem;
 }
 
-.ticket-state-heading {
+.pill-state-icon {
+  margin-right: 0.25em;
+  opacity: 0.9;
+}
+
+.state-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 1rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: 0.25rem;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.5);
-  padding: 0 1rem;
-  margin: 8px 0;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.2);
-  text-underline-offset: 2px;
+}
+
+.legend-icon {
+  min-width: 1rem;
+  text-align: center;
+  font-size: 10px;
+}
+
+.legend-label {
+  flex: 1;
 }
 
 .ticket-list {

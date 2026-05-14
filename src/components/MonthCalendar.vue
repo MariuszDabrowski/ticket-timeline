@@ -8,6 +8,7 @@ import { useDayMarkersStore } from '../stores/dayMarkers'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
+import { stateIcon } from '../utils/stateIcons'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
@@ -659,7 +660,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
+              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ (!info.ticket.isLabel && info.ticket.state ? stateIcon(info.ticket.state) + ' ' : '') + (info.ticket.isLabel ? info.ticket.title : info.ticket.number) }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"

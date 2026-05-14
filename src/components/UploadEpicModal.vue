@@ -212,8 +212,8 @@ label {
 
 .hint {
   font-weight: normal;
-  font-size: 12px;
-  opacity: 0.7;
+  font-size: 13px;
+  opacity: 0.85;
   text-transform: none;
   letter-spacing: 0;
 }
