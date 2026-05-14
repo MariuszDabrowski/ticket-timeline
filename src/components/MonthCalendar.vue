@@ -149,13 +149,25 @@ function assignedName(ticket: Ticket): string {
   return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.name ?? 'Unassigned'
 }
 
-function durationDays(start: CalendarDate, end: CalendarDate): number {
+function durationDays(start: CalendarDate, end: CalendarDate, personId?: number | null): number {
   let count = 0
   const d = new Date(start.year, start.month, start.day)
   const endDate = new Date(end.year, end.month, end.day)
   while (d <= endDate) {
     const dow = d.getDay()
-    if (dow !== 0 && dow !== 6) count++
+    if (dow !== 0 && dow !== 6) {
+      if (personId != null) {
+        const cd: CalendarDate = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
+        const onVacation = vacationsStore.entries.some(
+          (v) => v.personId === personId &&
+            compareCalendarDates(v.startDate, cd) <= 0 &&
+            compareCalendarDates(cd, v.endDate) >= 0
+        )
+        if (!onVacation) count++
+      } else {
+        count++
+      }
+    }
     d.setDate(d.getDate() + 1)
   }
   return count
@@ -194,7 +206,7 @@ function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
     startDate: info.placement.startDate,
     endDate: info.placement.endDate,
     assignedTo: assignedName(info.ticket),
-    duration: durationDays(info.placement.startDate, info.placement.endDate),
+    duration: durationDays(info.placement.startDate, info.placement.endDate, info.ticket.assignedTo),
     x: rect.left + rect.width / 2,
     y: rect.top,
   }
@@ -371,18 +383,44 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     if (!ticket) continue
     const slot = slotMap.value.get(placement.ticketId)
     if (slot === undefined) continue
+
+    // Skip rendering on assignee's vacation days
+    if (!ticket.isLabel && ticket.assignedTo !== null) {
+      const onVacation = vacationsStore.getVacationsForMonth(props.year, props.month).some(
+        (v) => v.personId === ticket.assignedTo &&
+          compareCalendarDates(v.startDate, thisDate) <= 0 &&
+          compareCalendarDates(thisDate, v.endDate) >= 0
+      )
+      if (onVacation) continue
+    }
+
     const isStart = compareCalendarDates(eff.startDate, thisDate) === 0
     const isEnd = compareCalendarDates(eff.endDate, thisDate) === 0
     const isPreview =
       dragState.moveDrag?.ticketId === placement.ticketId ||
       dragState.resizeDrag?.ticketId === placement.ticketId
+
+    // Treat days adjacent to vacation as row breaks so the pill caps correctly
+    const prevDayVacation = !ticket.isLabel && ticket.assignedTo !== null && day > 1 &&
+      vacationsStore.getVacationsForMonth(props.year, props.month).some(
+        (v) => v.personId === ticket.assignedTo &&
+          compareCalendarDates(v.startDate, calDate(day - 1)) <= 0 &&
+          compareCalendarDates(calDate(day - 1), v.endDate) >= 0
+      )
+    const nextDayVacation = !ticket.isLabel && ticket.assignedTo !== null && day < daysInMonth.value &&
+      vacationsStore.getVacationsForMonth(props.year, props.month).some(
+        (v) => v.personId === ticket.assignedTo &&
+          compareCalendarDates(v.startDate, calDate(day + 1)) <= 0 &&
+          compareCalendarDates(calDate(day + 1), v.endDate) >= 0
+      )
+
     slots[slot] = {
       ticket,
       placement: eff,
       isStart,
       isEnd,
-      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
-      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
+      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value || nextDayVacation),
+      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value || prevDayVacation),
       isPreview,
     }
   }

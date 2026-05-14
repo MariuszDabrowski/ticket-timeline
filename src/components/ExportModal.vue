@@ -7,11 +7,11 @@ import {
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
 
-const props = defineProps<{ data: Omit<ProjectData, 'name'>; exportingImage?: boolean }>()
-const emit = defineEmits<{ close: []; exportImage: [includeSummary: boolean] }>()
+const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
+const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
 
 const includeSummary = ref(true)
-const projectName = ref('My Project')
+const projectName = ref(props.initialName ?? 'REPLACE-ME')
 const { trapRef, onKeydown } = useFocusTrap()
 
 const existingProject = computed(() =>
@@ -44,6 +44,7 @@ function saveToStorage() {
     saveStatus.value = 'saved'
   }
   setSavedProjects(projects)
+  emit('save', name)
   setTimeout(() => (saveStatus.value = 'idle'), 2500)
 }
 
@@ -57,6 +58,7 @@ function downloadJSON() {
   a.download = `${name.replace(/\s+/g, '-').toLowerCase()}.json`
   a.click()
   URL.revokeObjectURL(url)
+  emit('save', name)
 }
 
 function fmtDate(iso: string) {

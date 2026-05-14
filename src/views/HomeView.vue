@@ -267,6 +267,7 @@ function togglePanel(key: 'brief' | 'filters') {
 const vacations = useVacationsStore()
 const showExport = ref(false)
 const showImport = ref(false)
+const currentProjectName = ref('REPLACE-ME')
 
 const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
   tickets: toRaw(tickets.tickets),
@@ -280,6 +281,7 @@ function handleImport(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
+  if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
     selectedMonths.value = data.selectedMonths
     visibleStart.value = Math.min(...data.selectedMonths)
@@ -679,8 +681,10 @@ function onTicketListDrop(event: DragEvent) {
   <ExportModal
     v-if="showExport"
     :data="exportData"
+    :initial-name="currentProjectName"
     :exporting-image="exportingImage"
     @close="showExport = false"
+    @save="(name) => currentProjectName = name"
     @export-image="(v) => handleExportImage(v)"
   />
 
