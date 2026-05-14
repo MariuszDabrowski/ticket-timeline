@@ -88,10 +88,10 @@ const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length
 const holidayMap = computed(() => {
   const map = new Map<number, string>()
   for (const h of getCanadianHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `CA ${h.name}`)
+    if (h.date.month === props.month) map.set(h.date.day, `CAN ${h.name}`)
   }
   for (const h of getAmericanHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `US ${h.name}`)
+    if (h.date.month === props.month) map.set(h.date.day, `USA ${h.name}`)
   }
   return map
 })
@@ -576,7 +576,7 @@ function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): 
 
 function vacationStyle(): Record<string, string> {
   return {
-    background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 5px, #424242 5px, #424242 10px)',
+    background: 'repeating-linear-gradient(45deg, #2e2e2e 0px, #2e2e2e 5px, #272727 5px, #272727 10px)',
   }
 }
 
@@ -916,23 +916,6 @@ h2 {
 }
 
 
-.day.is-today .day-number {
-  background: #e05252;
-  color: #fff;
-  font-weight: 700;
-}
-
-.day-number.today-flash {
-  animation: todayPulse 2s ease-out forwards;
-}
-
-@keyframes todayPulse {
-  0%   { box-shadow: 0 0 0 0   rgba(224, 82, 82, 0.8); }
-  25%  { box-shadow: 0 0 0 8px rgba(224, 82, 82, 0); }
-  50%  { box-shadow: 0 0 0 0   rgba(224, 82, 82, 0.6); }
-  75%  { box-shadow: 0 0 0 6px rgba(224, 82, 82, 0); }
-  100% { box-shadow: none; }
-}
 
 .day.is-holiday {
   background: rgba(255, 255, 255, 0.02);
