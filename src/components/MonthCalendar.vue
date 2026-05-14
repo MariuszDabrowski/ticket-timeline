@@ -965,6 +965,7 @@ h2 {
   color: #fff;
   overflow: visible;
   position: relative;
+  z-index: 0;
   border-radius: 0;
   padding: 0.1rem 0;
   cursor: grab;
