@@ -937,7 +937,8 @@ h2 {
 
 .day-marker-tooltip {
   position: absolute;
-  top: calc(100% + 4px);
+  bottom: calc(100% + 4px);
+  top: auto;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(40, 40, 40, 0.95);
@@ -949,7 +950,7 @@ h2 {
   width: max-content;
   max-width: 250px;
   white-space: normal;
-  text-align: center;
+  text-align: left;
   line-height: 1.4;
   pointer-events: none;
   z-index: 9999;
@@ -960,11 +961,11 @@ h2 {
 .day-marker-tooltip::after {
   content: '';
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-bottom-color: var(--marker-color, rgba(255, 255, 255, 0.15));
+  border-top-color: var(--marker-color, rgba(255, 255, 255, 0.15));
 }
 
 .day-marker-tooltip.tooltip-edge-left {
@@ -976,6 +977,7 @@ h2 {
 .day-marker-tooltip.tooltip-edge-left::after {
   left: 0.65rem;
   transform: translateX(-3px);
+  right: auto;
 }
 
 .day-marker-tooltip.tooltip-edge-right {
@@ -989,6 +991,7 @@ h2 {
   left: auto;
   right: 0.65rem;
   transform: translateX(3px);
+  top: 100%;
 }
 
 .day-number-wrap:hover .day-marker-tooltip,
