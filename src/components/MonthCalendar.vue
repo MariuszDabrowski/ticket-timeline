@@ -559,7 +559,7 @@ function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): 
 
 function vacationStyle(): Record<string, string> {
   return {
-    background: 'repeating-linear-gradient(45deg, #2e2e2e 0px, #2e2e2e 5px, #272727 5px, #272727 10px)',
+    background: 'repeating-linear-gradient(45deg, #2e2e2e 0px, #2e2e2e 3px, #272727 3px, #272727 9px)',
   }
 }
 
