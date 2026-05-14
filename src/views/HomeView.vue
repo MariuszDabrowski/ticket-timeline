@@ -333,21 +333,23 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.months }">›</span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }">
-          <div class="section-body">
-            <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
-            <template v-for="group in monthsByYear" :key="group.year">
-              <span class="year-label">{{ group.year }}</span>
-              <label v-for="abs in group.months" :key="abs" class="month-option">
-                <input type="checkbox" :value="abs" v-model="selectedMonths" />
-                {{ MONTH_NAMES[absToYearMonth(abs).month] }}
-              </label>
-            </template>
-            <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
-            <button
-              v-if="selectedMonths.length > 0"
-              class="load-more-btn trim-btn"
-              @click="trimToSelection"
-            >Hide unselected</button>
+          <div class="slide-inner">
+            <div class="section-body">
+              <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
+              <template v-for="group in monthsByYear" :key="group.year">
+                <span class="year-label">{{ group.year }}</span>
+                <label v-for="abs in group.months" :key="abs" class="month-option">
+                  <input type="checkbox" :value="abs" v-model="selectedMonths" />
+                  {{ MONTH_NAMES[absToYearMonth(abs).month] }}
+                </label>
+              </template>
+              <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
+              <button
+                v-if="selectedMonths.length > 0"
+                class="load-more-btn trim-btn"
+                @click="trimToSelection"
+              >Hide unselected</button>
+            </div>
           </div>
         </div>
       </section>
@@ -358,18 +360,20 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.people }">›</span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }">
-          <div class="section-body">
-            <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
-            <button class="add-btn" @click="showAddPerson = true">Add Person</button>
-            <ul v-if="people.people.length > 0" class="people-list">
-              <li v-for="person in people.people" :key="person.id" class="person">
-                <span class="color-dot" :style="{ background: person.color }" />
-                <span
-                  class="person-name"
-                  @click="editingPerson = person"
-                >{{ person.name }}</span>
-              </li>
-            </ul>
+          <div class="slide-inner">
+            <div class="section-body">
+              <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
+              <button class="add-btn" @click="showAddPerson = true">Add Person</button>
+              <ul v-if="people.people.length > 0" class="people-list">
+                <li v-for="person in people.people" :key="person.id" class="person">
+                  <span class="color-dot" :style="{ background: person.color }" />
+                  <span
+                    class="person-name"
+                    @click="editingPerson = person"
+                  >{{ person.name }}</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -386,22 +390,24 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.tickets }">›</span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }">
-          <div class="section-body">
-            <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
-            <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-            <ol v-if="unplacedTickets.length > 0" class="ticket-list">
-              <li v-for="ticket in unplacedTickets" :key="ticket.id">
-                <span
-                  class="ticket-pill"
-                  :class="{ dragging: draggingTicketId === ticket.id }"
-                  :style="{ background: ticketColor(ticket.assignedTo) }"
-                  draggable="true"
-                  @click.stop="editingTicket = ticket"
-                  @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-                  @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
-              </li>
-            </ol>
+          <div class="slide-inner">
+            <div class="section-body">
+              <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
+              <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
+              <ol v-if="unplacedTickets.length > 0" class="ticket-list">
+                <li v-for="ticket in unplacedTickets" :key="ticket.id">
+                  <span
+                    class="ticket-pill"
+                    :class="{ dragging: draggingTicketId === ticket.id }"
+                    :style="{ background: ticketColor(ticket.assignedTo) }"
+                    draggable="true"
+                    @click.stop="editingTicket = ticket"
+                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+                  >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
       </section>
@@ -412,22 +418,24 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.labels }">›</span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
-          <div class="section-body">
-            <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
-            <button class="add-btn" @click="showAddLabel = true">Add Label</button>
-            <ol v-if="unplacedLabels.length > 0" class="ticket-list">
-              <li v-for="label in unplacedLabels" :key="label.id">
-                <span
-                  class="ticket-pill label-pill"
-                  :class="{ dragging: draggingTicketId === label.id }"
-                  :style="{ background: label.labelColor }"
-                  draggable="true"
-                  @click.stop="editingLabel = label"
-                  @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
-                  @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                >{{ label.title }}</span>
-              </li>
-            </ol>
+          <div class="slide-inner">
+            <div class="section-body">
+              <p class="label-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
+              <button class="add-btn" @click="showAddLabel = true">Add Label</button>
+              <ol v-if="unplacedLabels.length > 0" class="ticket-list">
+                <li v-for="label in unplacedLabels" :key="label.id">
+                  <span
+                    class="ticket-pill label-pill"
+                    :class="{ dragging: draggingTicketId === label.id }"
+                    :style="{ background: label.labelColor }"
+                    draggable="true"
+                    @click.stop="editingLabel = label"
+                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
+                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+                  >{{ label.title }}</span>
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
       </section>
@@ -438,13 +446,15 @@ function onTicketListDrop(event: DragEvent) {
           <span class="chevron" :class="{ rotated: !collapsed.sync }">›</span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.sync }">
-          <div class="section-body">
-            <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
-            <button
-              v-if="vacations.entries.length > 0"
-              class="add-btn clear-sync-btn"
-              @click="vacations.clearVacations()"
-            >Clear Synced Data</button>
+          <div class="slide-inner">
+            <div class="section-body">
+              <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
+              <button
+                v-if="vacations.entries.length > 0"
+                class="add-btn clear-sync-btn"
+                @click="vacations.clearVacations()"
+              >Clear Synced Data</button>
+            </div>
           </div>
         </div>
       </section>
@@ -712,7 +722,6 @@ section {
 .slide-wrap {
   display: grid;
   grid-template-rows: 1fr;
-  overflow: hidden;
   transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -721,24 +730,27 @@ section {
   pointer-events: none;
 }
 
-.section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0.15rem 0 0.85rem;
+.slide-inner {
   overflow: hidden;
   min-height: 0;
   opacity: 1;
   transition: opacity 0.35s ease 0.18s;
 }
 
-.section-body > * {
-  flex-shrink: 0;
-}
-
-.slide-closed .section-body {
+.slide-closed .slide-inner {
   opacity: 0;
   transition: opacity 0.18s ease;
+}
+
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0.15rem 0 0.85rem;
+}
+
+.section-body > * {
+  flex-shrink: 0;
 }
 
 .load-more-btn {
