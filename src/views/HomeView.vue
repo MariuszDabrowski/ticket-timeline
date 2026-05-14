@@ -502,17 +502,6 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <div class="summary-column">
-          <div class="panel-section">
-            <div class="panel-header-static">
-              <span>Project Brief</span>
-            </div>
-            <div class="panel-body">
-              <SummaryTile />
-            </div>
-          </div>
-
-        </div>
         <div class="months-stack">
           <div
             v-for="m in sortedMonths"
@@ -524,6 +513,17 @@ function onTicketListDrop(event: DragEvent) {
             />
           </div>
           <div class="months-row-end" />
+        </div>
+        <div class="summary-column">
+          <div class="panel-section">
+            <div class="panel-header-static">
+              <span>Project Brief</span>
+            </div>
+            <div class="panel-body">
+              <SummaryTile />
+            </div>
+          </div>
+
         </div>
       </div>
     </main>
@@ -1107,7 +1107,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   align-self: flex-start;
   width: 280px;
   flex-shrink: 0;
-  margin: 68px 0 1rem 2rem;
+  margin: 68px 2rem 1rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
