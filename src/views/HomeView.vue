@@ -339,7 +339,7 @@ function onTicketListDrop(event: DragEvent) {
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
           <span class="chevron">
-            <Transition name="arrow">
+            <Transition :name="collapsed.months ? 'arrow-close' : 'arrow-open'">
               <svg :key="String(collapsed.months)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path :d="collapsed.months ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -372,7 +372,7 @@ function onTicketListDrop(event: DragEvent) {
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
           <span class="chevron">
-            <Transition name="arrow">
+            <Transition :name="collapsed.people ? 'arrow-close' : 'arrow-open'">
               <svg :key="String(collapsed.people)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path :d="collapsed.people ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -407,7 +407,7 @@ function onTicketListDrop(event: DragEvent) {
         <button class="section-header" @click="toggleSection('tickets')">
           <span>Tickets</span>
           <span class="chevron">
-            <Transition name="arrow">
+            <Transition :name="collapsed.tickets ? 'arrow-close' : 'arrow-open'">
               <svg :key="String(collapsed.tickets)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path :d="collapsed.tickets ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -441,7 +441,7 @@ function onTicketListDrop(event: DragEvent) {
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
           <span class="chevron">
-            <Transition name="arrow">
+            <Transition :name="collapsed.labels ? 'arrow-close' : 'arrow-open'">
               <svg :key="String(collapsed.labels)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path :d="collapsed.labels ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -475,7 +475,7 @@ function onTicketListDrop(event: DragEvent) {
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
           <span class="chevron">
-            <Transition name="arrow">
+            <Transition :name="collapsed.sync ? 'arrow-close' : 'arrow-open'">
               <svg :key="String(collapsed.sync)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path :d="collapsed.sync ? 'M7 10l5 5 5-5' : 'M7 14l5-5 5 5'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -766,29 +766,45 @@ section:not(:has(.slide-wrap:not(.slide-closed))):not(.drawer-closing) .section-
   height: 24px;
 }
 
-.arrow-enter-active {
-  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-}
-
-.arrow-leave-active {
+/* Opening: old arrow falls out, new arrow appears instantly */
+.arrow-open-leave-active {
   transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1), opacity 0.35s ease;
 }
 
-.arrow-enter-from {
-  transform: translateY(-500%);
-  opacity: 0;
-}
-
-.arrow-enter-to {
-  transform: translateY(0);
-}
-
-.arrow-leave-from {
+.arrow-open-leave-from {
   transform: translateY(0);
   opacity: 1;
 }
 
-.arrow-leave-to {
+.arrow-open-leave-to {
+  transform: translateY(500%);
+  opacity: 0;
+}
+
+/* Closing: old arrow falls out, new arrow drops in */
+.arrow-close-enter-active {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.arrow-close-leave-active {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1), opacity 0.35s ease;
+}
+
+.arrow-close-enter-from {
+  transform: translateY(-500%);
+  opacity: 0;
+}
+
+.arrow-close-enter-to {
+  transform: translateY(0);
+}
+
+.arrow-close-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.arrow-close-leave-to {
   transform: translateY(500%);
   opacity: 0;
 }
