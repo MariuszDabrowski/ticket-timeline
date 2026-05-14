@@ -1301,6 +1301,10 @@ h2 {
   opacity: 1;
 }
 
+.resize-handle::after {
+  display: none;
+}
+
 .right-handle {
   margin-left: auto;
 }
