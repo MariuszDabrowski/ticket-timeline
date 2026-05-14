@@ -447,33 +447,35 @@ const headline = computed(() => {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
   position: relative;
+  overflow: visible;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .team-visibility input[type='checkbox']:checked {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(167, 139, 250, 0.25);
+  border-color: rgba(167, 139, 250, 0.6);
 }
 
 .team-visibility input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
-  left: 3px;
-  top: 1px;
-  width: 5px;
-  height: 8px;
-  border: 2px solid #141414;
+  left: 6px;
+  top: -3px;
+  width: 6px;
+  height: 12px;
+  border: 2px solid rgba(200, 180, 255, 0.9);
   border-top: none;
   border-left: none;
+  border-radius: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
 .team-visibility input[type='checkbox']:hover {
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 </style>
