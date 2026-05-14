@@ -104,10 +104,10 @@ const editingLabel = ref<Ticket | null>(null)
 const dayMarkers = useDayMarkersStore()
 const markerDay = ref<number | null>(null)
 
-function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
-  ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link })
+  ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link, state: data.state })
   if (data.startDate && data.endDate) {
     ticketsStore.moveTicket(id, data.startDate, data.endDate)
   } else {
