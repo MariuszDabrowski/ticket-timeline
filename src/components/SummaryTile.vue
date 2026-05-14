@@ -365,7 +365,8 @@ const headline = computed(() => {
   flex: 1;
   height: 10px;
   min-width: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='10'%3E%3Cpath d='M 0,5 C 6.25,0 18.75,0 25,5 C 31.25,10 43.75,10 50,5' fill='none' stroke='%23ffffff' stroke-opacity='0.5' stroke-width='1'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='10'%3E%3Cpath d='M 0,5 C 6.25,0 18.75,0 25,5 C 31.25,10 43.75,10 50,5' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
+  opacity: 0.5;
   background-repeat: repeat-x;
   background-size: 50px 10px;
   background-position: center;
