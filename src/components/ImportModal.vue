@@ -69,25 +69,28 @@ function fmtDate(iso: string) {
             No projects saved yet.
           </div>
           <ul v-else class="project-list">
-            <li v-for="project in savedProjects" :key="project.id" class="project-row">
-              <div class="project-info">
-                <span class="project-name">{{ project.name }}</span>
-                <span class="project-meta">
-                  {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
-                  · {{ project.data.people.length }} people
-                  · saved {{ fmtDate(project.savedAt) }}
-                </span>
-              </div>
-              <div class="project-actions">
-                <template v-if="confirmId === project.id">
-                  <span class="confirm-text">Delete?</span>
-                  <button class="action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
-                  <button class="action-btn" @click="confirmId = null">No</button>
-                </template>
-                <template v-else>
-                  <button class="action-btn" @click="confirmId = project.id" title="Delete">🗑</button>
-                  <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
-                </template>
+            <li v-for="(project, index) in savedProjects" :key="project.id" class="project-row">
+              <div class="project-index">{{ String(index + 1).padStart(2, '0') }}</div>
+              <div class="project-body">
+                <div class="project-info">
+                  <span class="project-name">{{ project.name }}</span>
+                  <span class="project-meta">
+                    {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
+                    · {{ project.data.people.length }} people
+                    · saved {{ fmtDate(project.savedAt) }}
+                  </span>
+                </div>
+                <div class="project-actions">
+                  <template v-if="confirmId === project.id">
+                    <span class="confirm-text">Delete?</span>
+                    <button class="action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
+                    <button class="action-btn" @click="confirmId = null">No</button>
+                  </template>
+                  <template v-else>
+                    <button class="action-btn" @click="confirmId = project.id" title="Delete">🗑</button>
+                    <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
+                  </template>
+                </div>
               </div>
             </li>
           </ul>
@@ -209,11 +212,34 @@ h3 span {
 
 .project-row {
   display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.project-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.03em;
+}
+
+.project-body {
+  flex: 1;
+  display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.8rem;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
+  min-width: 0;
 }
 
 .project-info {
