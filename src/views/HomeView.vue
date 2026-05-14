@@ -971,6 +971,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 .ticket-list {
   list-style: none;
   padding: 0.1rem 1rem 0.25rem 1rem;
+  margin-top: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
