@@ -640,7 +640,7 @@ function onTicketListDrop(event: DragEvent) {
   gap: 6px;
   font-size: 20px;
   font-weight: 800;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.9);
   letter-spacing: 0.02em;
   transform: translateX(-3px);
 }
@@ -761,7 +761,7 @@ section {
 }
 
 .arrow-enter-active {
-  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
 }
 
 .arrow-leave-active {
@@ -770,6 +770,7 @@ section {
 
 .arrow-enter-from {
   transform: translateY(-500%);
+  opacity: 0;
 }
 
 .arrow-enter-to {
