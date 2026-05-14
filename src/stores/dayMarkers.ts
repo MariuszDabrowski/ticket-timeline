@@ -23,5 +23,10 @@ export const useDayMarkersStore = defineStore('dayMarkers', () => {
     else delete markers[k]
   }
 
-  return { getMarker, setMarker }
+  function loadData(data: Record<string, DayMarker>) {
+    Object.keys(markers).forEach((k) => delete markers[k])
+    Object.assign(markers, data)
+  }
+
+  return { markers, getMarker, setMarker, loadData }
 })

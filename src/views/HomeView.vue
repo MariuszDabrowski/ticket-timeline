@@ -23,6 +23,7 @@ import { stateIcon } from '../utils/stateIcons'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
+import { useDayMarkersStore } from '../stores/dayMarkers'
 import type { ICSPersonGroup } from '../utils/icsParser'
 
 
@@ -264,6 +265,7 @@ function togglePanel(key: 'brief' | 'filters') {
 }
 
 const vacations = useVacationsStore()
+const dayMarkers = useDayMarkersStore()
 const showExport = ref(false)
 const showImport = ref(false)
 const currentProjectName = ref('REPLACE-ME')
@@ -274,12 +276,14 @@ const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
   people: toRaw(people.people),
   vacations: toRaw(vacations.entries),
   selectedMonths: toRaw(selectedMonths.value),
+  dayMarkers: toRaw(dayMarkers.markers),
 }))
 
 function handleImport(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
+  dayMarkers.loadData(data.dayMarkers ?? {})
   if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
     selectedMonths.value = data.selectedMonths
