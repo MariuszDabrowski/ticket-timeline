@@ -644,7 +644,7 @@ function onDrop(event: DragEvent, day: number) {
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div v-if="info" class="pill-slot">
               <div
-                v-if="info.isStart"
+                v-if="info.isStart && !info.ticket.isLabel"
                 class="pill-marker s-marker"
                 :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
               >S</div>
@@ -686,7 +686,7 @@ function onDrop(event: DragEvent, day: number) {
                 >›</button>
               </div>
               <div
-                v-if="info.isEnd"
+                v-if="info.isEnd && !info.ticket.isLabel"
                 class="pill-marker f-marker"
                 :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
               >F</div>
@@ -988,7 +988,8 @@ h2 {
   pointer-events: none;
   z-index: 0;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-  transition: transform 0.1s ease-in;
+  opacity: 0;
+  transition: transform 0.1s ease-in, opacity 0s;
 }
 
 .s-marker {
@@ -1002,8 +1003,9 @@ h2 {
 }
 
 .pill-marker.is-visible {
+  opacity: 1;
   transform: translateX(0);
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0s;
 }
 
 .ticket-pill {
