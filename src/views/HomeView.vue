@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw } from 'vue'
+import { ref, computed, toRaw, nextTick } from 'vue'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -131,7 +131,7 @@ function handleDeleteLabel() {
   editingLabel.value = null
 }
 
-function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   const { startDate, endDate, ...ticketData } = ticket
   const id = tickets.addTicket(ticketData)
   if (startDate) {
@@ -182,7 +182,7 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 
 const editingTicket = ref<Ticket | null>(null)
 
-function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
   const { startDate, endDate, ...ticketData } = data
@@ -289,7 +289,22 @@ function handleImport(data: ProjectData) {
 }
 
 const monthsRowRef = ref<HTMLElement | null>(null)
+const monthsStackRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
+const flashToday = ref(false)
+
+async function jumpToToday() {
+  if (!selectedMonths.value.includes(currentAbs)) {
+    selectedMonths.value = [...selectedMonths.value, currentAbs]
+  }
+  if (currentAbs < visibleStart.value) visibleStart.value = currentAbs
+  if (currentAbs > visibleEnd.value) visibleEnd.value = currentAbs
+  await nextTick()
+  const calEl = monthsStackRef.value?.querySelector(`[data-calendar="${currentYear}-${currentMonth}"]`)
+  calEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  flashToday.value = true
+  setTimeout(() => { flashToday.value = false }, 2500)
+}
 
 async function handleExportImage(includeSummary: boolean) {
   if (!monthsRowRef.value || exportingImage.value) return
@@ -529,16 +544,22 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <div class="months-stack">
-          <MonthCalendar
+        <div class="months-stack" ref="monthsStackRef">
+          <div
             v-for="m in sortedMonths"
             :key="`${m.year}-${m.month}`"
-            :year="m.year"
-            :month="m.month"
-          />
+            :data-calendar="`${m.year}-${m.month}`"
+          >
+            <MonthCalendar
+              :year="m.year"
+              :month="m.month"
+              :flash-today="flashToday && m.year === currentYear && m.month === currentMonth"
+            />
+          </div>
           <div class="months-row-end" />
         </div>
         <div class="summary-column">
+          <button class="jump-today-btn" @click="jumpToToday">Jump to Today</button>
           <div class="panel-section">
             <button class="panel-header" @click="togglePanel('filters')">
               <span>Calendar Filters</span>
@@ -614,6 +635,7 @@ function onTicketListDrop(event: DragEvent) {
   <AddTicketModal
     v-if="showAddTicket"
     :people="people.people"
+    :states="ticketStates"
     @submit="handleAddTicket"
     @cancel="showAddTicket = false"
   />
@@ -643,6 +665,7 @@ function onTicketListDrop(event: DragEvent) {
     v-if="editingTicket"
     :ticket="editingTicket"
     :people="people.people"
+    :states="ticketStates"
     :placement="tickets.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
     @submit="handleEditTicket"
     @delete="handleDeleteTicket"
@@ -1085,6 +1108,29 @@ section {
 
 .ticket-pill.dragging .sidebar-pill-tooltip {
   display: none;
+}
+
+.jump-today-btn {
+  padding: 6px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1;
+  align-self: flex-start;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.jump-today-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .panel {

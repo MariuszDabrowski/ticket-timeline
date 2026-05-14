@@ -6,10 +6,11 @@ import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{
   people: Person[]
+  states?: string[]
 }>()
 
 const emit = defineEmits<{
-  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }]
+  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
 }>()
 
@@ -17,6 +18,7 @@ const number = ref('')
 const title = ref('')
 const assignedTo = ref<number | null>(null)
 const link = ref('')
+const state = ref('')
 const startDateStr = ref('')
 const endDateStr = ref('')
 const { trapRef, onKeydown } = useFocusTrap()
@@ -40,6 +42,7 @@ function handleSubmit() {
     title: title.value.trim(),
     assignedTo: assignedTo.value,
     link: link.value.trim(),
+    state: state.value.trim() || undefined,
     startDate: parseDate(startDateStr.value),
     endDate: parseDate(endDateStr.value),
   })
@@ -69,6 +72,14 @@ function handleSubmit() {
             {{ person.name }}
           </option>
         </select>
+      </div>
+
+      <div class="field">
+        <label>State <span class="label-hint">— optional</span></label>
+        <input v-model="state" type="text" placeholder="e.g. In Development" list="add-ticket-states" @keydown.enter.prevent="handleSubmit" />
+        <datalist id="add-ticket-states">
+          <option v-for="s in props.states" :key="s" :value="s" />
+        </datalist>
       </div>
 
       <div class="field">

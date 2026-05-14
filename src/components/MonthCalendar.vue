@@ -17,6 +17,7 @@ import DayMarkerModal from './DayMarkerModal.vue'
 const props = defineProps<{
   year: number
   month: number
+  flashToday?: boolean
 }>()
 
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -618,7 +619,7 @@ function onDrop(event: DragEvent, day: number) {
           <div class="day-number-wrap">
             <span
               class="day-number"
-              :class="{ 'has-marker': !!dayMarkers.getMarker(props.year, props.month, day) }"
+              :class="{ 'has-marker': !!dayMarkers.getMarker(props.year, props.month, day), 'today-flash': isToday(day) && props.flashToday }"
               :style="dayMarkers.getMarker(props.year, props.month, day) ? { background: dayMarkers.getMarker(props.year, props.month, day)!.color } : {}"
               @click.stop="markerDay = day"
             >{{ day }}</span>
@@ -808,6 +809,13 @@ h2 {
 
 .cell:not(.day):not(.header) {
   position: relative;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 12px
+  );
 }
 
 .cell:not(.day):not(.header)::before {
@@ -924,6 +932,18 @@ h2 {
   background: #e05252;
   color: #fff;
   font-weight: 700;
+}
+
+.day-number.today-flash {
+  animation: todayPulse 2s ease-out forwards;
+}
+
+@keyframes todayPulse {
+  0%   { box-shadow: 0 0 0 0   rgba(224, 82, 82, 0.8); }
+  25%  { box-shadow: 0 0 0 8px rgba(224, 82, 82, 0); }
+  50%  { box-shadow: 0 0 0 0   rgba(224, 82, 82, 0.6); }
+  75%  { box-shadow: 0 0 0 6px rgba(224, 82, 82, 0); }
+  100% { box-shadow: none; }
 }
 
 .day.is-holiday {

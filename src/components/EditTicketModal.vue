@@ -8,10 +8,11 @@ const props = defineProps<{
   ticket: Ticket
   people: Person[]
   placement: Placement | null
+  states?: string[]
 }>()
 
 const emit = defineEmits<{
-  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }]
+  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
   delete: []
 }>()
@@ -20,6 +21,7 @@ const number = ref(props.ticket.number)
 const title = ref(props.ticket.title)
 const assignedTo = ref<number | null>(props.ticket.assignedTo)
 const link = ref(props.ticket.link)
+const state = ref(props.ticket.state ?? '')
 const { trapRef, onKeydown } = useFocusTrap()
 
 function calToStr(d: CalendarDate): string {
@@ -53,6 +55,7 @@ function handleSubmit() {
     title: title.value.trim(),
     assignedTo: assignedTo.value,
     link: link.value.trim(),
+    state: state.value.trim() || undefined,
     startDate: parseDate(startDateStr.value),
     endDate: parseDate(endDateStr.value),
   })
@@ -82,6 +85,14 @@ function handleSubmit() {
             {{ person.name }}
           </option>
         </select>
+      </div>
+
+      <div class="field">
+        <label>State <span class="label-hint">— optional</span></label>
+        <input v-model="state" type="text" placeholder="e.g. In Development" list="edit-ticket-states" @keydown.enter.prevent="handleSubmit" />
+        <datalist id="edit-ticket-states">
+          <option v-for="s in props.states" :key="s" :value="s" />
+        </datalist>
       </div>
 
       <div class="field">
@@ -163,6 +174,13 @@ label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
+}
+
+.label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
 }
 
 .link-label {
