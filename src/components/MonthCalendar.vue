@@ -88,10 +88,10 @@ const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length
 const holidayMap = computed(() => {
   const map = new Map<number, string>()
   for (const h of getCanadianHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `🇨🇦 ${h.name}`)
+    if (h.date.month === props.month) map.set(h.date.day, `CA ${h.name}`)
   }
   for (const h of getAmericanHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `🇺🇸 ${h.name}`)
+    if (h.date.month === props.month) map.set(h.date.day, `US ${h.name}`)
   }
   return map
 })
@@ -1022,35 +1022,11 @@ h2 {
   z-index: 1;
 }
 
-.vacation-pill.row-end::after {
-  content: '';
-  position: absolute;
-  right: -0.35rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.35rem;
-  height: 0.7rem;
-  border-radius: 0 50% 50% 0;
-  background: var(--vac-color);
-  z-index: 2;
-}
 
 .vacation-pill.row-start {
   z-index: 2;
 }
 
-.vacation-pill.row-start::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.35rem;
-  height: 0.7rem;
-  border-radius: 0 50% 50% 0;
-  background: #1a1a1a;
-  z-index: 2;
-}
 
 .vacation-pill.is-start {
   border-radius: 999px 0 0 999px;
@@ -1242,18 +1218,6 @@ h2 {
   z-index: 1;
 }
 
-.ticket-pill.row-end::after {
-  content: '';
-  position: absolute;
-  right: -0.35rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.35rem;
-  height: 0.7rem;
-  border-radius: 0 50% 50% 0;
-  background: inherit;
-  z-index: 2;
-}
 
 .ticket-pill.row-start .ticket-label {
   padding-left: 0.6rem;
@@ -1263,18 +1227,6 @@ h2 {
   z-index: 2;
 }
 
-.ticket-pill.row-start::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.35rem;
-  height: 0.7rem;
-  border-radius: 0 50% 50% 0;
-  background: #1a1a1a;
-  z-index: 2;
-}
 
 .resize-handle {
   flex-shrink: 0;
