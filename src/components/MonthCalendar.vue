@@ -740,7 +740,7 @@ function onDrop(event: DragEvent, day: number) {
       <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
       <div v-if="ticketTooltip.state" class="tooltip-row">
         <span class="tooltip-label">Status</span>
-        <span class="tooltip-state"><span class="material-symbols-rounded tooltip-state-icon">{{ stateIcon(ticketTooltip.state) }}</span>{{ ticketTooltip.state }}</span>
+        <span>{{ ticketTooltip.state }}</span>
       </div>
     </div>
     <div
@@ -1227,16 +1227,6 @@ h2 {
   min-width: 4.5rem;
 }
 
-:global(.global-tooltip .tooltip-state) {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-:global(.global-tooltip .tooltip-state-icon) {
-  font-size: 14px;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-}
 
 .ticket-label {
   flex: 1;
