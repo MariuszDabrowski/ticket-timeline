@@ -32,3 +32,21 @@ button:hover:not(:disabled)::after {
   background: rgba(255, 255, 255, 0.07);
 }
 
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.backdrop {
+  animation: backdropFadeIn 0.2s ease forwards;
+}
+
+.backdrop > .modal {
+  animation: modalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
