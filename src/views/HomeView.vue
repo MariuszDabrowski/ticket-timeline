@@ -1095,7 +1095,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .panel-header-static {
@@ -1105,11 +1105,11 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #fff;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
 }
 
 .panel-body {
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
 }
