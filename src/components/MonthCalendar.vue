@@ -1031,8 +1031,19 @@ h2 {
   transition: opacity 0.2s ease;
 }
 
-.ticket-pill.is-hovered:not(.is-on-vacation) {
-  background: var(--tc) !important;
+.ticket-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tc);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.ticket-pill.is-hovered:not(.is-on-vacation)::before {
+  opacity: 1;
 }
 
 .ticket-pill.is-dimmed {
