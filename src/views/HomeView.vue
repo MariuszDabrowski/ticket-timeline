@@ -75,7 +75,7 @@ function toggleSection(key: string) {
     closingSection.value = new Set([...closingSection.value, key])
     setTimeout(() => {
       closingSection.value = new Set([...closingSection.value].filter(k => k !== key))
-    }, 500)
+    }, 320)
   }
 }
 
@@ -797,12 +797,13 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 .slide-wrap {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-wrap.slide-closed {
   grid-template-rows: 0fr;
   pointer-events: none;
+  transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 1, 1);
 }
 
 .slide-inner {
