@@ -370,7 +370,7 @@ const headline = computed(() => {
   background-size: 50px 6px;
   background-position: center;
   animation: sineScroll 4s linear infinite;
-  opacity: 0.5;
+  opacity: 0.25;
 }
 
 @keyframes sineScroll {
