@@ -731,6 +731,10 @@ section {
   transition: opacity 0.35s ease 0.18s;
 }
 
+.section-body > * {
+  flex-shrink: 0;
+}
+
 .slide-closed .section-body {
   opacity: 0;
   transition: opacity 0.18s ease;
