@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useOptionsStore = defineStore('options', () => {
   const hideWeekends = ref(true)
-  const showAllTooltips = ref(false)
+  const showAllTooltips = ref(true)
   const hiddenPersonIds = ref<Set<number>>(new Set())
   const hiddenStates = ref<Set<string>>(new Set())
 

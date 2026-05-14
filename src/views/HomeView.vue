@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, nextTick } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -74,7 +74,6 @@ function toggleSection(key: string) {
 }
 
 const collapsed = computed<Record<string, boolean>>(() => ({
-  options: openSection.value !== 'options',
   months: openSection.value !== 'months',
   people: openSection.value !== 'people',
   tickets: openSection.value !== 'tickets',
@@ -291,22 +290,7 @@ function handleImport(data: ProjectData) {
 }
 
 const monthsRowRef = ref<HTMLElement | null>(null)
-const monthsStackRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
-const flashToday = ref(false)
-
-async function jumpToToday() {
-  if (!selectedMonths.value.includes(currentAbs)) {
-    selectedMonths.value = [...selectedMonths.value, currentAbs]
-  }
-  if (currentAbs < visibleStart.value) visibleStart.value = currentAbs
-  if (currentAbs > visibleEnd.value) visibleEnd.value = currentAbs
-  await nextTick()
-  const calEl = monthsStackRef.value?.querySelector(`[data-calendar="${currentYear}-${currentMonth}"]`)
-  calEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  flashToday.value = true
-  setTimeout(() => { flashToday.value = false }, 2500)
-}
 
 async function handleExportImage(includeSummary: boolean) {
   if (!monthsRowRef.value || exportingImage.value) return
@@ -425,23 +409,6 @@ function onTicketListDrop(event: DragEvent) {
       </section>
 
       <section>
-        <button class="section-header" @click="toggleSection('options')">
-          <span>Options</span>
-          <span class="chevron" :class="{ rotated: !collapsed.options }">›</span>
-        </button>
-        <div v-show="!collapsed.options" class="section-body">
-          <label class="option">
-            <input type="checkbox" v-model="options.hideWeekends" />
-            Hide Weekends
-          </label>
-          <label class="option">
-            <input type="checkbox" v-model="options.showAllTooltips" />
-            Show Day Notes
-          </label>
-        </div>
-      </section>
-
-      <section>
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
           <span class="chevron" :class="{ rotated: !collapsed.people }">›</span>
@@ -546,16 +513,14 @@ function onTicketListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <div class="months-stack" ref="monthsStackRef">
+        <div class="months-stack">
           <div
             v-for="m in sortedMonths"
             :key="`${m.year}-${m.month}`"
-            :data-calendar="`${m.year}-${m.month}`"
           >
             <MonthCalendar
               :year="m.year"
               :month="m.month"
-              :flash-today="flashToday && m.year === currentYear && m.month === currentMonth"
             />
           </div>
           <div class="months-row-end" />
@@ -614,11 +579,6 @@ function onTicketListDrop(event: DragEvent) {
             </div>
           </div>
 
-          <div class="panel-section">
-            <button class="panel-header" @click="jumpToToday">
-              <span>Jump to Today</span>
-            </button>
-          </div>
         </div>
       </div>
     </main>
@@ -1226,17 +1186,6 @@ section {
   flex-shrink: 0;
 }
 
-.option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-  padding: 0.15rem 1rem;
-  color: rgba(255, 255, 255, 0.55);
-  transition: color 0.15s;
-}
 
 .filter-group-label {
   display: block;
@@ -1303,7 +1252,6 @@ section {
 }
 
 /* Custom checkboxes */
-.option input[type='checkbox'],
 .month-option input[type='checkbox'],
 .filter-option input[type='checkbox'] {
   appearance: none;
@@ -1319,14 +1267,12 @@ section {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.option input[type='checkbox']:checked,
 .month-option input[type='checkbox']:checked,
 .filter-option input[type='checkbox']:checked {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.option input[type='checkbox']:checked::after,
 .month-option input[type='checkbox']:checked::after,
 .filter-option input[type='checkbox']:checked::after {
   content: '';
@@ -1341,7 +1287,6 @@ section {
   transform: rotate(45deg);
 }
 
-.option input[type='checkbox']:hover,
 .month-option input[type='checkbox']:hover,
 .filter-option input[type='checkbox']:not(:disabled):hover {
   border-color: rgba(255, 255, 255, 0.45);
