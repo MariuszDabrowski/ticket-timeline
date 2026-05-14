@@ -363,14 +363,14 @@ const headline = computed(() => {
 
 .timeline-line {
   flex: 1;
-  height: 10px;
+  height: 6px;
   min-width: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='10'%3E%3Cpath d='M 0,5 C 6.25,0 18.75,0 25,5 C 31.25,10 43.75,10 50,5' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
-  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='6'%3E%3Cpath d='M 0,3 C 6.25,0 18.75,0 25,3 C 31.25,6 43.75,6 50,3' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
-  background-size: 50px 10px;
+  background-size: 50px 6px;
   background-position: center;
-  animation: sineScroll 8s linear infinite;
+  animation: sineScroll 6s linear infinite;
+  opacity: 0.5;
 }
 
 @keyframes sineScroll {
