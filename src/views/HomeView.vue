@@ -19,7 +19,6 @@ import ImportModal from '../components/ImportModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
-import { stateIcon } from '../utils/stateIcons'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
@@ -130,7 +129,7 @@ function handleDeleteLabel() {
   editingLabel.value = null
 }
 
-function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleAddTicket(ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   const { startDate, endDate, ...ticketData } = ticket
   const id = tickets.addTicket(ticketData)
   if (startDate) {
@@ -181,7 +180,7 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 
 const editingTicket = ref<Ticket | null>(null)
 
-function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
   const { startDate, endDate, ...ticketData } = data
@@ -206,12 +205,6 @@ const dragState = useDragStateStore()
 const options = useOptionsStore()
 const ticketListIsOver = ref(false)
 
-const ticketStates = computed(() => {
-  const seen = new Set<string>()
-  for (const t of tickets.tickets) if (t.state) seen.add(t.state)
-  return [...seen].sort()
-})
-
 const calendarCountByPerson = computed(() => {
   const counts = new Map<number, number>()
   for (const placement of tickets.placements) {
@@ -222,41 +215,7 @@ const calendarCountByPerson = computed(() => {
   return counts
 })
 
-const calendarCountByState = computed(() => {
-  const counts = new Map<string, number>()
-  for (const placement of tickets.placements) {
-    const ticket = tickets.tickets.find((t) => t.id === placement.ticketId)
-    if (!ticket || ticket.isLabel || !ticket.state) continue
-    counts.set(ticket.state, (counts.get(ticket.state) ?? 0) + 1)
-  }
-  return counts
-})
-
 const hasCalendarTickets = computed(() => tickets.placements.length > 0)
-
-const unplacedTicketsByState = computed(() => {
-  const grouped = new Map<string, Ticket[]>()
-  const noState: Ticket[] = []
-  for (const ticket of unplacedTickets.value) {
-    if (ticket.state) {
-      if (!grouped.has(ticket.state)) grouped.set(ticket.state, [])
-      grouped.get(ticket.state)!.push(ticket)
-    } else {
-      noState.push(ticket)
-    }
-  }
-  const result: { state: string | null; tickets: Ticket[]; start: number }[] = []
-  let start = 1
-  for (const state of ticketStates.value) {
-    const group = grouped.get(state)
-    if (group && group.length > 0) {
-      result.push({ state, tickets: group, start })
-      start += group.length
-    }
-  }
-  if (noState.length > 0) result.push({ state: null, tickets: noState, start })
-  return result
-})
 
 const openPanel = ref<'brief' | 'filters' | null>(null)
 function togglePanel(key: 'brief' | 'filters') {
@@ -442,29 +401,19 @@ function onTicketListDrop(event: DragEvent) {
         <div v-show="!collapsed.tickets" class="section-body">
           <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
           <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
-          <div v-if="ticketStates.length > 0" class="state-legend" :class="{ 'state-legend--bordered': unplacedTickets.length > 0 }">
-            <div v-for="state in ticketStates" :key="state" class="legend-row">
-              <span class="material-symbols-rounded legend-icon">{{ stateIcon(state) }}</span>
-              <span class="legend-label">{{ state }}</span>
-            </div>
-          </div>
-          <div v-if="unplacedTickets.length > 0" class="ticket-groups">
-            <template v-for="group in unplacedTicketsByState" :key="group.state ?? '__none__'">
-              <ol class="ticket-list" :start="group.start">
-                <li v-for="ticket in group.tickets" :key="ticket.id">
-                  <span
-                    class="ticket-pill"
-                    :class="{ dragging: draggingTicketId === ticket.id }"
-                    :style="{ background: ticketColor(ticket.assignedTo) }"
-                    draggable="true"
-                    @click.stop="editingTicket = ticket"
-                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                  ><span v-if="ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(ticket.state) }}</span>{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
-                </li>
-              </ol>
-            </template>
-          </div>
+          <ol v-if="unplacedTickets.length > 0" class="ticket-list">
+            <li v-for="ticket in unplacedTickets" :key="ticket.id">
+              <span
+                class="ticket-pill"
+                :class="{ dragging: draggingTicketId === ticket.id }"
+                :style="{ background: ticketColor(ticket.assignedTo) }"
+                draggable="true"
+                @click.stop="editingTicket = ticket"
+                @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
+              >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -549,22 +498,8 @@ function onTicketListDrop(event: DragEvent) {
                     <span class="filter-count" :style="{ opacity: !calendarCountByPerson.get(person.id) ? 0.3 : 0.8 }">{{ calendarCountByPerson.get(person.id) ?? 0 }}</span>
                   </label>
                 </template>
-                <template v-if="ticketStates.some(s => calendarCountByState.get(s))">
-                  <span class="filter-group-label" :style="{ marginTop: people.people.some(p => calendarCountByPerson.get(p.id)) ? '0.6rem' : '0' }">States</span>
-                  <label v-for="state in ticketStates.filter(s => calendarCountByState.get(s))" :key="state" class="filter-option">
-                    <input
-                      type="checkbox"
-                      :checked="!!calendarCountByState.get(state) && !options.hiddenStates.has(state)"
-                      :disabled="!calendarCountByState.get(state)"
-                      @change="options.toggleStateVisibility(state)"
-                    />
-                    <span class="material-symbols-rounded filter-state-icon" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ stateIcon(state) }}</span>
-                    <span class="filter-name" :style="{ opacity: !calendarCountByState.get(state) ? 0.35 : 1 }">{{ state }}</span>
-                    <span class="filter-count" :style="{ opacity: !calendarCountByState.get(state) ? 0.3 : 0.8 }">{{ calendarCountByState.get(state) ?? 0 }}</span>
-                  </label>
-                </template>
               </template>
-              <p v-else-if="people.people.length > 0 || ticketStates.length > 0" class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
+              <p v-else-if="people.people.length > 0" class="filter-hint filter-hint--empty">Add some tickets to the calendar to begin filtering.</p>
               <p v-else class="filter-hint filter-hint--empty">Add tickets to the calendar to get started.</p>
             </div>
           </div>
@@ -953,50 +888,6 @@ section {
   outline: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
-.ticket-groups {
-  counter-reset: ticket-counter;
-  margin-top: 0.5rem;
-}
-
-.pill-state-icon {
-  font-size: 16px;
-  line-height: 1;
-  margin-right: 0.2em;
-  vertical-align: middle;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  opacity: 0.92;
-}
-
-.state-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem 0.35rem;
-}
-
-.state-legend--bordered {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  margin-bottom: 0.15rem;
-}
-
-.legend-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.legend-icon {
-  font-size: 16px;
-  line-height: 1;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-}
-
-.legend-label {
-  flex: 1;
-}
-
 .ticket-list {
   list-style: none;
   padding: 0.1rem 1rem 0.25rem 1rem;
@@ -1224,13 +1115,6 @@ section {
 .filter-count {
   font-size: 13px;
   opacity: 0.8;
-  flex-shrink: 0;
-}
-
-.filter-state-icon {
-  font-size: 16px;
-  line-height: 1;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
   flex-shrink: 0;
 }
 

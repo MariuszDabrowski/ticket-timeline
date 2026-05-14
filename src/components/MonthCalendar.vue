@@ -7,7 +7,6 @@ import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
-import { stateIcon } from '../utils/stateIcons'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
@@ -100,10 +99,10 @@ const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
 
-function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
+function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
-  ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link, state: data.state })
+  ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link })
   if (data.startDate && data.endDate) {
     ticketsStore.moveTicket(id, data.startDate, data.endDate)
   } else {
@@ -171,7 +170,6 @@ function durationDays(start: CalendarDate, end: CalendarDate, personId?: number 
 
 interface TicketTooltipState {
   title: string | undefined
-  state: string | undefined
   startDate: CalendarDate
   endDate: CalendarDate
   assignedTo: string
@@ -198,7 +196,6 @@ function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   dragState.hoveredTicketId = info.ticket.id
   ticketTooltip.value = {
     title: info.ticket.title || undefined,
-    state: info.ticket.state,
     startDate: info.placement.startDate,
     endDate: info.placement.endDate,
     assignedTo: assignedName(info.ticket),
@@ -268,7 +265,6 @@ function isTicketVisible(ticketId: number): boolean {
   const ticket = ticketsStore.tickets.find((t) => t.id === ticketId)
   if (!ticket) return false
   if (ticket.assignedTo !== null && options.hiddenPersonIds.has(ticket.assignedTo)) return false
-  if (ticket.state && options.hiddenStates.has(ticket.state)) return false
   return true
 }
 
@@ -701,7 +697,7 @@ function onDrop(event: DragEvent, day: number) {
                 @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                 @dragend="dragState.clearResizeDrag"
               >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="ticket-label"><span v-if="!info.ticket.isLabel && info.ticket.state" class="material-symbols-rounded pill-state-icon">{{ stateIcon(info.ticket.state) }}</span>{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
+              <span v-if="info.isStart || info.isRowStart" class="ticket-label">{{ info.ticket.isLabel ? info.ticket.title : info.ticket.number }}</span>
               <button
                 v-if="info.isEnd"
                 class="resize-handle right-handle"
@@ -765,10 +761,6 @@ function onDrop(event: DragEvent, day: number) {
       <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(ticketTooltip.startDate) }} – {{ fmtDate(ticketTooltip.endDate) }}</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} day{{ ticketTooltip.duration !== 1 ? 's' : '' }}</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
-      <div v-if="ticketTooltip.state" class="tooltip-row">
-        <span class="tooltip-label">Status</span>
-        <span>{{ ticketTooltip.state }}</span>
-      </div>
     </div>
     <div
       v-if="vacationTooltip"
@@ -1189,13 +1181,6 @@ h2 {
   gap: 0.2rem;
 }
 
-.pill-state-icon {
-  font-size: 16px;
-  line-height: 1;
-  flex-shrink: 0;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  opacity: 0.9;
-}
 
 .ticket-pill.row-end {
   z-index: 1;

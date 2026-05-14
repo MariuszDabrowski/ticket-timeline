@@ -4,10 +4,6 @@ import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import type { Person } from '../stores/people'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
-const STATE_OPTIONS = [
-  'Tech Speccing', 'Ready for Development', 'In Development', 'Ready for Review', 'Awaiting Signoff', 'Blocked', 'Completed',
-]
-
 const props = defineProps<{
   ticket: Ticket
   people: Person[]
@@ -15,7 +11,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; state: string | undefined; startDate: CalendarDate | null; endDate: CalendarDate | null }]
+  submit: [ticket: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }]
   cancel: []
   delete: []
 }>()
@@ -24,7 +20,6 @@ const number = ref(props.ticket.number)
 const title = ref(props.ticket.title)
 const assignedTo = ref<number | null>(props.ticket.assignedTo)
 const link = ref(props.ticket.link)
-const state = ref(props.ticket.state ?? '')
 const { trapRef, onKeydown } = useFocusTrap()
 
 function calToStr(d: CalendarDate): string {
@@ -58,7 +53,6 @@ function handleSubmit() {
     title: title.value.trim(),
     assignedTo: assignedTo.value,
     link: link.value.trim(),
-    state: state.value.trim() || undefined,
     startDate: parseDate(startDateStr.value),
     endDate: parseDate(endDateStr.value),
   })
@@ -87,14 +81,6 @@ function handleSubmit() {
           <option v-for="person in props.people" :key="person.id" :value="person.id">
             {{ person.name }}
           </option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>State <span class="label-hint">— optional</span></label>
-        <select v-model="state">
-          <option value="">No state</option>
-          <option v-for="s in STATE_OPTIONS" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
 

@@ -80,7 +80,6 @@ export function importEpicCSV(
   const ownersIdx = header.indexOf('owners')
   const startedAtIdx = header.indexOf('started_at')
   const completedAtIdx = header.indexOf('completed_at')
-  const stateIdx = header.indexOf('state')
   const archivedIdx = header.indexOf('is_archived')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
@@ -114,7 +113,6 @@ export function importEpicCSV(
 
     const firstEmail = (row[ownersIdx] ?? '').split(/[,;]/).map((e) => e.trim()).find(isPersonEmail) ?? ''
     const assignedTo = firstEmail ? (emailToPersonId.get(firstEmail) ?? null) : null
-    const state = stateIdx !== -1 ? (row[stateIdx]?.trim() || undefined) : undefined
 
     const ticketId = ticketsStore.addTicket({
       number,
@@ -123,7 +121,6 @@ export function importEpicCSV(
       link: workspaceSlug
         ? `https://app.shortcut.com/${workspaceSlug}/story/${number}`
         : '',
-      state,
     })
 
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
