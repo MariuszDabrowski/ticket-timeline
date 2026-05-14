@@ -178,17 +178,7 @@ interface TicketTooltipState {
   y: number
 }
 
-interface VacationTooltipState {
-  personName: string
-  startDate: CalendarDate
-  endDate: CalendarDate
-  duration: number
-  x: number
-  y: number
-}
-
 const ticketTooltip = ref<TicketTooltipState | null>(null)
-const vacationTooltip = ref<VacationTooltipState | null>(null)
 
 function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
   if (info.ticket.isLabel) return
@@ -210,23 +200,6 @@ function hideTicketTooltip() {
   dragState.hoveredTicketId = null
 }
 
-function showVacationTooltip(e: MouseEvent, info: DayVacationInfo) {
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  dragState.hoveredVacationId = info.vacationId
-  vacationTooltip.value = {
-    personName: info.personName,
-    startDate: info.startDate,
-    endDate: info.endDate,
-    duration: durationDays(info.startDate, info.endDate),
-    x: rect.left + rect.width / 2,
-    y: rect.top,
-  }
-}
-
-function hideVacationTooltip() {
-  vacationTooltip.value = null
-  dragState.hoveredVacationId = null
-}
 
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
   if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
@@ -679,7 +652,7 @@ function onDrop(event: DragEvent, day: number) {
                 'row-start': info.isRowStart,
                 'is-on-vacation': info.isOnVacation,
                 'is-hovered': dragState.hoveredTicketId === info.ticket.id,
-                'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
+                'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
               }"
               :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
               draggable="true"
@@ -717,12 +690,8 @@ function onDrop(event: DragEvent, day: number) {
                 'is-end': info.isEnd,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
-                'is-hovered': dragState.hoveredVacationId === info.vacationId,
-                'is-dimmed': dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId,
               }"
               :style="{ ...vacationStyle(), '--vac-color': '#5a5a5a' }"
-              @mouseenter="showVacationTooltip($event, info)"
-              @mouseleave="hideVacationTooltip()"
             >
               <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
             </div>
@@ -761,15 +730,6 @@ function onDrop(event: DragEvent, day: number) {
       <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtDate(ticketTooltip.startDate) : `${fmtDate(ticketTooltip.startDate)} – ${fmtDate(ticketTooltip.endDate)}` }}</span></div>
       <div v-if="ticketTooltip.duration !== 1" class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} days</span></div>
       <div class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
-    </div>
-    <div
-      v-if="vacationTooltip"
-      class="global-tooltip"
-      :style="{ left: vacationTooltip.x + 'px', top: vacationTooltip.y + 'px' }"
-    >
-      <div class="tooltip-title">{{ vacationTooltip.personName }} — Vacation</div>
-      <div class="tooltip-row"><span class="tooltip-label">Dates</span><span>{{ fmtDate(vacationTooltip.startDate) }} – {{ fmtDate(vacationTooltip.endDate) }}</span></div>
-      <div class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ vacationTooltip.duration }} day{{ vacationTooltip.duration !== 1 ? 's' : '' }}</span></div>
     </div>
   </Teleport>
 
@@ -953,46 +913,6 @@ h2 {
 }
 
 
-.vacation-pill.is-hovered {
-  opacity: 1;
-}
-
-.vacation-pill.is-dimmed {
-  opacity: 0.2;
-}
-
-.vacation-pill.is-start.is-hovered::before,
-.vacation-pill.is-end.is-hovered::after {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: 0;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  font-size: 11px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  z-index: 5;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-}
-
-.vacation-pill.is-start.is-hovered::before {
-  content: 'S';
-  right: calc(100% + 2px);
-}
-
-.vacation-pill.is-end.is-hovered::after {
-  content: 'F';
-  left: calc(100% + 2px);
-}
 
 .vacation-pill.row-end {
   z-index: 1;
