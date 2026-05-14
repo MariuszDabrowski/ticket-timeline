@@ -1087,6 +1087,17 @@ h2 {
   opacity: 1;
 }
 
+.ticket-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url('/foil.gif') 50% no-repeat;
+  background-size: 120% 120%;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
 .ticket-pill.is-label::after {
   content: '';
   position: absolute;
