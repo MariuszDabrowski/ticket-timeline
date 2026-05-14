@@ -81,12 +81,14 @@ export function importEpicCSV(
   const startedAtIdx = header.indexOf('started_at')
   const completedAtIdx = header.indexOf('completed_at')
   const stateIdx = header.indexOf('state')
+  const archivedIdx = header.indexOf('archived')
   if (idIdx === -1 || nameIdx === -1 || ownersIdx === -1) return
 
   // Map email → person ID, reusing existing people matched by name
   const emailToPersonId = new Map<string, number>()
 
   for (const row of rows.slice(1)) {
+    if (archivedIdx !== -1 && row[archivedIdx]?.trim().toLowerCase() === 'true') continue
     const ownersRaw = row[ownersIdx] ?? ''
     const emails = ownersRaw.split(/[,;]/).map((e) => e.trim()).filter(Boolean).filter(isPersonEmail)
 
@@ -105,6 +107,7 @@ export function importEpicCSV(
   }
 
   for (const row of rows.slice(1)) {
+    if (archivedIdx !== -1 && row[archivedIdx]?.trim().toLowerCase() === 'true') continue
     const number = row[idIdx]?.trim()
     const title = row[nameIdx]?.trim()
     if (!number || !title) continue
