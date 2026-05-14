@@ -356,6 +356,8 @@ interface DayTicketInfo {
   isRowStart: boolean
   isPreview: boolean
   isOnVacation: boolean
+  spanIndex: number
+  spanTotal: number
 }
 
 function colPos(day: number): number {
@@ -394,6 +396,9 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
           compareCalendarDates(thisDate, v.endDate) <= 0
       )
 
+    const spanTotal = Math.max(1, workingDaysBetween(eff.startDate, eff.endDate) + 1)
+    const spanIndex = workingDaysBetween(eff.startDate, thisDate)
+
     slots[slot] = {
       ticket,
       placement: eff,
@@ -403,6 +408,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
       isPreview,
       isOnVacation,
+      spanIndex,
+      spanTotal,
     }
   }
 
@@ -419,6 +426,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       if (ticket) {
         const isStart = compareCalendarDates(ep.startDate, thisDate) === 0
         const isEnd = compareCalendarDates(ep.endDate, thisDate) === 0
+        const epSpanTotal = Math.max(1, workingDaysBetween(ep.startDate, ep.endDate) + 1)
+        const epSpanIndex = workingDaysBetween(ep.startDate, thisDate)
         slots[previewSlot] = {
           ticket,
           placement: { ticketId: ep.ticketId, startDate: ep.startDate, endDate: ep.endDate },
@@ -428,6 +437,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
           isRowStart: !isStart && (col === 0 || day === 1),
           isPreview: true,
           isOnVacation: false,
+          spanIndex: epSpanIndex,
+          spanTotal: epSpanTotal,
         }
       }
     }
@@ -553,13 +564,21 @@ function darkenColor(hex: string, amount: number): string {
   return `rgb(${Math.round(r * (1 - amount))}, ${Math.round(g * (1 - amount))}, ${Math.round(b * (1 - amount))})`
 }
 
-function withAlpha(hex: string, alpha: number): string {
+
+function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): string {
+  const hex = ticketColor(ticket)
   let h = hex.startsWith('#') ? hex.slice(1) : hex
-  if (h.length === 3) h = h[0]!+h[0]+h[1]!+h[1]+h[2]!+h[2]
+  if (h.length === 3) h = h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2]
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
   const b = parseInt(h.slice(4, 6), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  const p0 = spanIndex / spanTotal
+  const p1 = Math.min(1, (spanIndex + 1) / spanTotal)
+  const shade = (p: number) => {
+    const d = 1 - p * 0.4
+    return `rgba(${Math.round(r * d)}, ${Math.round(g * d)}, ${Math.round(b * d)}, 0.75)`
+  }
+  return `linear-gradient(to right, ${shade(p0)}, ${shade(p1)})`
 }
 
 function vacationStyle(color: string): Record<string, string> {
@@ -676,7 +695,7 @@ function onDrop(event: DragEvent, day: number) {
               }"
               :style="info.isOnVacation
                 ? { '--tc': '#666', background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 5px, #424242 5px, #424242 10px)' }
-                : { '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
+                : { '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
               draggable="true"
               @mouseenter="showTicketTooltip($event, info)"
               @mouseleave="hideTicketTooltip()"
