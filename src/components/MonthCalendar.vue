@@ -161,7 +161,7 @@ function durationDays(start: CalendarDate, end: CalendarDate, personId?: number 
         const onVacation = vacationsStore.entries.some(
           (v) => v.personId === personId &&
             compareCalendarDates(v.startDate, cd) <= 0 &&
-            compareCalendarDates(cd, v.endDate) >= 0
+            compareCalendarDates(cd, v.endDate) <= 0
         )
         if (!onVacation) count++
       } else {
@@ -359,6 +359,7 @@ interface DayTicketInfo {
   isRowEnd: boolean
   isRowStart: boolean
   isPreview: boolean
+  isOnVacation: boolean
 }
 
 function colPos(day: number): number {
@@ -384,34 +385,17 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     const slot = slotMap.value.get(placement.ticketId)
     if (slot === undefined) continue
 
-    // Skip rendering on assignee's vacation days
-    if (!ticket.isLabel && ticket.assignedTo !== null) {
-      const onVacation = vacationsStore.getVacationsForMonth(props.year, props.month).some(
-        (v) => v.personId === ticket.assignedTo &&
-          compareCalendarDates(v.startDate, thisDate) <= 0 &&
-          compareCalendarDates(thisDate, v.endDate) <= 0
-      )
-      if (onVacation) continue
-    }
-
     const isStart = compareCalendarDates(eff.startDate, thisDate) === 0
     const isEnd = compareCalendarDates(eff.endDate, thisDate) === 0
     const isPreview =
       dragState.moveDrag?.ticketId === placement.ticketId ||
       dragState.resizeDrag?.ticketId === placement.ticketId
 
-    // Treat days adjacent to vacation as row breaks so the pill caps correctly
-    const prevDayVacation = !ticket.isLabel && ticket.assignedTo !== null && day > 1 &&
+    const isOnVacation = !ticket.isLabel && ticket.assignedTo !== null &&
       vacationsStore.getVacationsForMonth(props.year, props.month).some(
         (v) => v.personId === ticket.assignedTo &&
-          compareCalendarDates(v.startDate, calDate(day - 1)) <= 0 &&
-          compareCalendarDates(calDate(day - 1), v.endDate) <= 0
-      )
-    const nextDayVacation = !ticket.isLabel && ticket.assignedTo !== null && day < daysInMonth.value &&
-      vacationsStore.getVacationsForMonth(props.year, props.month).some(
-        (v) => v.personId === ticket.assignedTo &&
-          compareCalendarDates(v.startDate, calDate(day + 1)) <= 0 &&
-          compareCalendarDates(calDate(day + 1), v.endDate) <= 0
+          compareCalendarDates(v.startDate, thisDate) <= 0 &&
+          compareCalendarDates(thisDate, v.endDate) <= 0
       )
 
     slots[slot] = {
@@ -419,9 +403,10 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
       placement: eff,
       isStart,
       isEnd,
-      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value || nextDayVacation),
-      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value || prevDayVacation),
+      isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
+      isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
       isPreview,
+      isOnVacation,
     }
   }
 
@@ -446,6 +431,7 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
           isRowEnd: !isEnd && (col === 6 || day === daysInMonth.value),
           isRowStart: !isStart && (col === 0 || day === 1),
           isPreview: true,
+          isOnVacation: false,
         }
       }
     }
@@ -695,10 +681,13 @@ function onDrop(event: DragEvent, day: number) {
                 'is-preview': info.isPreview,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
+                'is-on-vacation': info.isOnVacation,
                 'is-hovered': dragState.hoveredTicketId === info.ticket.id,
                 'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
               }"
-              :style="{ '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
+              :style="info.isOnVacation
+                ? { '--tc': '#666', background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 4px, #424242 4px, #424242 8px)' }
+                : { '--tc': ticketColor(info.ticket), background: withAlpha(ticketColor(info.ticket), 0.75) }"
               draggable="true"
               @mouseenter="showTicketTooltip($event, info)"
               @mouseleave="hideTicketTooltip()"
@@ -1165,6 +1154,11 @@ h2 {
 
 .ticket-pill.is-dimmed {
   opacity: 0.25;
+}
+
+.ticket-pill.is-on-vacation {
+  opacity: 0.7;
+  cursor: default;
 }
 
 .ticket-pill.is-start.is-hovered::before,
