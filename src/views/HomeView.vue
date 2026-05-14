@@ -761,15 +761,15 @@ section {
 }
 
 .arrow-enter-active {
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .arrow-leave-active {
-  transition: transform 0.3s ease-in, opacity 0.25s ease;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1), opacity 0.35s ease;
 }
 
 .arrow-enter-from {
-  transform: translateY(-250%);
+  transform: translateY(-500%);
 }
 
 .arrow-enter-to {
@@ -782,7 +782,7 @@ section {
 }
 
 .arrow-leave-to {
-  transform: translateY(250%);
+  transform: translateY(500%);
   opacity: 0;
 }
 
