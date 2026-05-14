@@ -1084,6 +1084,26 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   opacity: 0.4;
 }
 
+.ticket-pill.event-pill {
+  position: relative;
+  overflow: hidden;
+}
+
+.ticket-pill.event-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 3px,
+    transparent 3px,
+    transparent 9px
+  );
+  pointer-events: none;
+}
+
 .ticket-pill.dragging .sidebar-pill-tooltip {
   display: none;
 }
