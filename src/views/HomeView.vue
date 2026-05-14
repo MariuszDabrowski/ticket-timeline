@@ -330,7 +330,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>
-          <span class="material-symbols-rounded chevron" :class="{ rotated: !collapsed.months }">arrow_drop_down</span>
+          <span class="chevron" :class="{ rotated: !collapsed.months }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }">
           <div class="slide-inner">
@@ -357,7 +357,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('people')">
           <span>People</span>
-          <span class="material-symbols-rounded chevron" :class="{ rotated: !collapsed.people }">arrow_drop_down</span>
+          <span class="chevron" :class="{ rotated: !collapsed.people }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }">
           <div class="slide-inner">
@@ -387,7 +387,7 @@ function onTicketListDrop(event: DragEvent) {
       >
         <button class="section-header" @click="toggleSection('tickets')">
           <span>Tickets</span>
-          <span class="material-symbols-rounded chevron" :class="{ rotated: !collapsed.tickets }">arrow_drop_down</span>
+          <span class="chevron" :class="{ rotated: !collapsed.tickets }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }">
           <div class="slide-inner">
@@ -415,7 +415,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('labels')">
           <span>Labels</span>
-          <span class="material-symbols-rounded chevron" :class="{ rotated: !collapsed.labels }">arrow_drop_down</span>
+          <span class="chevron" :class="{ rotated: !collapsed.labels }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
           <div class="slide-inner">
@@ -443,7 +443,7 @@ function onTicketListDrop(event: DragEvent) {
       <section>
         <button class="section-header" @click="toggleSection('sync')">
           <span>Sync</span>
-          <span class="material-symbols-rounded chevron" :class="{ rotated: !collapsed.sync }">arrow_drop_down</span>
+          <span class="chevron" :class="{ rotated: !collapsed.sync }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></span>
         </button>
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.sync }">
           <div class="slide-inner">
@@ -711,13 +711,18 @@ section {
 }
 
 .chevron {
-  font-size: 24px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   transform: rotate(0deg);
   opacity: 0.7;
   color: rgba(255, 255, 255, 0.8);
-  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  flex-shrink: 0;
+}
+
+.chevron svg {
+  width: 24px;
+  height: 24px;
 }
 
 .chevron.rotated {
