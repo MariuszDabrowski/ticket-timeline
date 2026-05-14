@@ -557,13 +557,6 @@ function effectiveVacationSlots(day: number, rowIdx: number): (DayVacationInfo |
   return slots
 }
 
-function darkenColor(hex: string, amount: number): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgb(${Math.round(r * (1 - amount))}, ${Math.round(g * (1 - amount))}, ${Math.round(b * (1 - amount))})`
-}
-
 
 function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): string {
   const hex = ticketColor(ticket)
@@ -581,10 +574,9 @@ function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): 
   return `linear-gradient(to right, ${shade(p0)}, ${shade(p1)})`
 }
 
-function vacationStyle(color: string): Record<string, string> {
-  const dark = darkenColor(color, 0.18)
+function vacationStyle(): Record<string, string> {
   return {
-    background: `repeating-linear-gradient(45deg, ${color}, ${color} 5px, ${dark} 5px, ${dark} 10px)`,
+    background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 5px, #424242 5px, #424242 10px)',
   }
 }
 
@@ -693,9 +685,7 @@ function onDrop(event: DragEvent, day: number) {
                 'is-hovered': dragState.hoveredTicketId === info.ticket.id,
                 'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
               }"
-              :style="info.isOnVacation
-                ? { '--tc': '#666', background: 'repeating-linear-gradient(45deg, #5a5a5a 0px, #5a5a5a 5px, #424242 5px, #424242 10px)' }
-                : { '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
+              :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
               draggable="true"
               @mouseenter="showTicketTooltip($event, info)"
               @mouseleave="hideTicketTooltip()"
@@ -734,7 +724,7 @@ function onDrop(event: DragEvent, day: number) {
                 'is-hovered': dragState.hoveredVacationId === info.vacationId,
                 'is-dimmed': dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId,
               }"
-              :style="{ ...vacationStyle(info.color), '--vac-color': info.color }"
+              :style="{ ...vacationStyle(), '--vac-color': '#5a5a5a' }"
               @mouseenter="showVacationTooltip($event, info)"
               @mouseleave="hideVacationTooltip()"
             >
@@ -1115,9 +1105,8 @@ h2 {
   opacity: 0.25;
 }
 
-.ticket-pill.is-on-vacation:not(.is-dimmed) {
-  opacity: 0.7;
-  cursor: default;
+.ticket-pill.is-on-vacation {
+  display: none;
 }
 
 .ticket-pill.is-start.is-hovered::before,
