@@ -714,7 +714,7 @@ section {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: none;
+  background: transparent;
   border: none;
   padding: 0.5rem 1rem;
   font-size: 14px;
@@ -723,21 +723,15 @@ section {
   cursor: pointer;
   text-align: left;
   color: rgba(255, 255, 255, 0.8);
+  transition: background 0.25s ease;
 }
 
 .section-header::after {
   display: none;
 }
 
-.section-header > span:not(.chevron) {
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 2px;
-  transition: text-decoration-color 0.15s;
-}
-
-.section-header:hover > span:not(.chevron) {
-  text-decoration-color: rgba(255, 255, 255, 0.4);
+.section-header:hover {
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .chevron {
