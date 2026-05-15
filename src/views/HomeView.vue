@@ -962,7 +962,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 1rem 0;
+  padding: 0 0 1rem;
 }
 
 .section-body > * {
