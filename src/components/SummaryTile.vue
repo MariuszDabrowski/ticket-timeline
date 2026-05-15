@@ -4,13 +4,11 @@ import { computed } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useOptionsStore } from '../stores/options'
-import { useVacationsStore } from '../stores/vacations'
 import type { CalendarDate } from '../stores/tickets'
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const optionsStore = useOptionsStore()
-const vacationsStore = useVacationsStore()
 
 const calendarCountByPerson = computed(() => {
   const counts = new Map<number, number>()

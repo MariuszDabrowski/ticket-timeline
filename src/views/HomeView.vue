@@ -312,7 +312,6 @@ const HINT_DISMISSED_KEY = 'ticket-timeline:hint-dismissed'
 const hintDismissed = ref(localStorage.getItem(HINT_DISMISSED_KEY) === '1')
 const hintFadingOut = ref(false)
 const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
-let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
 const layoutRef = ref<HTMLElement | null>(null)
 const hintTop = ref<number | null>(null)
@@ -463,7 +462,6 @@ onMounted(() => {
   if (hintsActive.value) {
     nextTick(() => computeHintPosition())
   }
-  nextTick(() => { hintBootstrapDone = true })
 })
 
 
