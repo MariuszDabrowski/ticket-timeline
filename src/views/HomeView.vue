@@ -903,6 +903,15 @@ function onEventListDrop(event: DragEvent) {
         </div>
       </div>
     </main>
+    <div class="sidebar-footer sidebar-footer--mobile">
+      <div class="sidebar-footer-by">by <a class="sidebar-footer-link" href="https://www.linkedin.com/in/mariuszpdabrowski/" target="_blank" rel="noopener noreferrer">Mariusz Dabrowski</a></div>
+      <div class="sidebar-footer-divider" />
+      <div class="sidebar-footer-links">
+        <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        <span class="sidebar-footer-sep">·</span>
+        <a class="sidebar-footer-link" :href="bugReportUrl" target="_blank" rel="noopener noreferrer">Report a bug</a>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -1384,6 +1393,10 @@ function onEventListDrop(event: DragEvent) {
   display: flex;
   flex-direction: column;
   contain: layout style;
+}
+
+.sidebar-footer--mobile {
+  display: none;
 }
 
 .sidebar-footer {
@@ -2201,6 +2214,13 @@ section.drawer-closing .section-header > span:first-child::after {
     overflow-y: visible;
   }
 
+  .sidebar-wrap .sidebar-footer:not(.sidebar-footer--mobile) {
+    display: none;
+  }
+
+  .sidebar-footer--mobile {
+    display: flex;
+  }
 
   .panel {
     overflow: visible;
