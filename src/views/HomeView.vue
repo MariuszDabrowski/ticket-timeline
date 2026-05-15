@@ -313,7 +313,7 @@ const anyHintVisible = computed(() => hintsActive.value && hintDismissed.value.s
 let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
 
-interface HintPos { x: number; y: number; arrow: 'up' | 'left' }
+interface HintPos { x: number; y: number; arrow: 'up' | 'down' | 'left' }
 const hintPositions = ref<(HintPos | null)[]>([null, null])
 
 let _hintRetries = 0
@@ -326,7 +326,8 @@ function computeHintPositions() {
 
   if (monthsStackRef.value) {
     const r = monthsStackRef.value.getBoundingClientRect()
-    positions[0] = { x: r.right - 130, y: r.top + 80, arrow: 'up' }
+    const x = Math.max(r.left + 220, r.right - 130)
+    positions[0] = { x, y: r.top + 220, arrow: 'down' }
   }
   if (ticketsSectionRef.value) {
     const r = ticketsSectionRef.value.getBoundingClientRect()
@@ -1088,10 +1089,10 @@ function onEventListDrop(event: DragEvent) {
     <div v-if="anyHintVisible && !anyModalOpen" class="hints-layer">
       <div
         v-if="hintPositions[0] && !hintDismissed[0]"
-        class="hint-anchor"
+        class="hint-anchor hint-anchor-down"
         :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
       >
-        <div class="hint-bubble hint-arrow-up">
+        <div class="hint-bubble hint-arrow-down">
           <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Interact with items by moving, scaling, and clicking into them</span>
           <button class="hint-gotit" @click.stop="dismissHint(0)">Got it</button>
         </div>
@@ -1276,6 +1277,8 @@ function onEventListDrop(event: DragEvent) {
 .hint-gotit:active {
   background: none;
   outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hint-icon {
@@ -1302,6 +1305,24 @@ function onEventListDrop(event: DragEvent) {
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
   border-bottom: 7px solid #665c22;
+}
+
+.hint-arrow-down::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  top: 100%;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #665c22;
+}
+
+.hint-anchor-down .hint-bubble {
+  transform: translateY(calc(-100% - 8px));
+  width: 200px;
 }
 
 .hint-arrow-left::after {
@@ -1709,7 +1730,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 14px;
+  font-size: 13px;
   padding: 0.15rem 1rem;
   color: rgba(255, 255, 255, 0.6);
   transition: color 0.15s;
