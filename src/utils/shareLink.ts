@@ -3,10 +3,12 @@ import type { ProjectData } from './projectStorage'
 import type { CalendarDate } from '../stores/tickets'
 
 // Compact share payload — independent of ProjectData so it can evolve separately
-interface SharePayload {
+
+// v1 (legacy) — long ticket field names
+interface SharePayloadV1 {
   v: 1
   name: string
-  linkBase?: string  // common URL prefix for all ticket links
+  linkBase?: string
   tickets: Array<{
     id: number
     number: string
@@ -14,7 +16,24 @@ interface SharePayload {
     assignedTo: number | null
     isLabel?: boolean
     labelColor?: string
-    // link omitted — reconstructed as linkBase + number
+  }>
+  placements: Array<{ t: number; s: number; e: number }>
+  vacations: Array<{ p: number; s: number; e: number }>
+  people: ProjectData['people']
+  selectedMonths: number[]
+}
+
+// v2 — compact ticket field names; isLabel inferred from lc presence
+interface SharePayload {
+  v: 2
+  name: string
+  linkBase?: string
+  tickets: Array<{
+    id: number
+    n: string         // number
+    ti: string        // title
+    a: number | null  // assignedTo
+    lc?: string       // labelColor — presence implies isLabel: true
   }>
   // dates stored as YYYYMMDD integers instead of {year,month,day} objects
   placements: Array<{ t: number; s: number; e: number }>
@@ -47,13 +66,12 @@ export function encodeShareLink(data: ProjectData): string {
   const linkBase = extractLinkBase(data.tickets)
 
   const payload: SharePayload = {
-    v: 1,
+    v: 2,
     name: data.name,
     linkBase,
-    tickets: data.tickets.map(({ id, number, title, assignedTo, isLabel, labelColor }) => ({
-      id, number, title, assignedTo,
-      ...(isLabel !== undefined && { isLabel }),
-      ...(labelColor !== undefined && { labelColor }),
+    tickets: data.tickets.map(({ id, number, title, assignedTo, labelColor }) => ({
+      id, n: number, ti: title, a: assignedTo,
+      ...(labelColor !== undefined && { lc: labelColor }),
     })),
     placements: data.placements.map((p) => ({
       t: p.ticketId,
@@ -76,15 +94,9 @@ export function decodeShareLink(encoded: string): ProjectData | null {
   try {
     const json = LZString.decompressFromEncodedURIComponent(encoded)
     if (!json) return null
-    const payload = JSON.parse(json) as SharePayload
-    if (payload.v !== 1) return null
+    const raw = JSON.parse(json) as SharePayload | SharePayloadV1
 
-    return {
-      name: payload.name,
-      tickets: payload.tickets.map((t) => ({
-        ...t,
-        link: payload.linkBase ? payload.linkBase + t.number : '',
-      })),
+    const sharedFields = (payload: SharePayload | SharePayloadV1) => ({
       placements: payload.placements.map((p) => ({
         ticketId: p.t,
         startDate: intToDate(p.s),
@@ -97,7 +109,35 @@ export function decodeShareLink(encoded: string): ProjectData | null {
       })),
       people: payload.people,
       selectedMonths: payload.selectedMonths,
+    })
+
+    if (raw.v === 2) {
+      return {
+        name: raw.name,
+        tickets: raw.tickets.map((t) => ({
+          id: t.id,
+          number: t.n,
+          title: t.ti,
+          assignedTo: t.a,
+          link: raw.linkBase ? raw.linkBase + t.n : '',
+          ...(t.lc !== undefined && { isLabel: true, labelColor: t.lc }),
+        })),
+        ...sharedFields(raw),
+      }
     }
+
+    if (raw.v === 1) {
+      return {
+        name: raw.name,
+        tickets: raw.tickets.map((t) => ({
+          ...t,
+          link: raw.linkBase ? raw.linkBase + t.number : '',
+        })),
+        ...sharedFields(raw),
+      }
+    }
+
+    return null
   } catch {
     return null
   }
@@ -120,10 +160,9 @@ export interface ShareFieldStat {
 export function analyzeSharePayload(data: ProjectData): ShareFieldStat[] {
   const linkBase = extractLinkBase(data.tickets)
 
-  const compactTickets = data.tickets.map(({ id, number, title, assignedTo, isLabel, labelColor }) => ({
-    id, number, title, assignedTo,
-    ...(isLabel !== undefined && { isLabel }),
-    ...(labelColor !== undefined && { labelColor }),
+  const compactTickets = data.tickets.map(({ id, number, title, assignedTo, labelColor }) => ({
+    id, n: number, ti: title, a: assignedTo,
+    ...(labelColor !== undefined && { lc: labelColor }),
   }))
   const compactPlacements = data.placements.map((p) => ({
     t: p.ticketId, s: dateToInt(p.startDate), e: dateToInt(p.endDate),
