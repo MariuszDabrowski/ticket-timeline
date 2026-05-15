@@ -1184,6 +1184,11 @@ function onEventListDrop(event: DragEvent) {
   letter-spacing: 0.03em;
   text-decoration: underline;
   text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.hint-gotit:hover {
+  color: rgba(255, 223, 7, 1);
 }
 
 
