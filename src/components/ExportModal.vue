@@ -190,15 +190,16 @@ function fmtDate(iso: string) {
                 no account or upload needed.
               </div>
               <div class="share-breakdown">
+                <div class="breakdown-label">Raw size by field</div>
                 <div v-for="row in shareInfo.breakdown" :key="row.field" class="share-breakdown-row">
                   <span class="breakdown-field">{{ row.field }}</span>
                   <div class="breakdown-bar-wrap">
                     <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
                   </div>
-                  <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} chars ({{ row.pct }}%)</span>
+                  <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} ({{ row.pct }}%)</span>
                 </div>
                 <div class="share-total" :class="{ 'share-total--warn': shareInfo.urlLength > URL_WARN_THRESHOLD }">
-                  {{ shareInfo.urlLength.toLocaleString() }} chars total
+                  {{ shareInfo.urlLength.toLocaleString() }} chars after compression
                   <span v-if="shareInfo.urlLength > URL_WARN_THRESHOLD"> — too long, try JSON export</span>
                 </div>
               </div>
@@ -370,6 +371,14 @@ h3 span {
   flex-direction: column;
   gap: 0.3rem;
   margin-top: 0.6rem;
+}
+
+.breakdown-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.35;
+  margin-bottom: 0.1rem;
 }
 
 .share-breakdown-row {
