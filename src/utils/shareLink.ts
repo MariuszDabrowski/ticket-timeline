@@ -194,6 +194,32 @@ export function buildShareUrl(data: ProjectData): string {
   return `${window.location.origin}${window.location.pathname}#share=${compressed}`
 }
 
+export const TITLE_TRUNCATE_LENGTH = 25
+const URL_LIMIT = 2000
+
+export type ShareTier = 'full' | 'truncated' | 'stripped' | 'too-long'
+
+export interface SmartShareResult {
+  url: string | null
+  tier: ShareTier
+  urlLength: number
+}
+
+export function buildSmartShareUrl(data: ProjectData): SmartShareResult {
+  const full = buildShareUrl(data)
+  if (full.length <= URL_LIMIT) return { url: full, tier: 'full', urlLength: full.length }
+
+  const truncatedData = { ...data, tickets: data.tickets.map((t) => ({ ...t, title: t.title.slice(0, TITLE_TRUNCATE_LENGTH) })) }
+  const truncated = buildShareUrl(truncatedData)
+  if (truncated.length <= URL_LIMIT) return { url: truncated, tier: 'truncated', urlLength: truncated.length }
+
+  const strippedData = { ...data, tickets: data.tickets.map((t) => ({ ...t, title: '' })) }
+  const stripped = buildShareUrl(strippedData)
+  if (stripped.length <= URL_LIMIT) return { url: stripped, tier: 'stripped', urlLength: stripped.length }
+
+  return { url: null, tier: 'too-long', urlLength: stripped.length }
+}
+
 export interface ShareFieldStat {
   field: string
   count: number | null

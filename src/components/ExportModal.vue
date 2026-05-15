@@ -6,7 +6,7 @@ import {
   setSavedProjects,
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
-import { buildShareUrl, analyzeSharePayload } from '../utils/shareLink'
+import { buildSmartShareUrl, analyzeSharePayload, TITLE_TRUNCATE_LENGTH } from '../utils/shareLink'
 import type { ShareFieldStat } from '../utils/shareLink'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
@@ -63,9 +63,7 @@ function downloadJSON() {
   emit('save', name)
 }
 
-const URL_WARN_THRESHOLD = 2000
-
-type ShareStatus = 'idle' | 'copied' | 'toolong'
+type ShareStatus = 'idle' | 'copied'
 const shareStatus = ref<ShareStatus>('idle')
 
 const expandedField = ref<string | null>(null)
@@ -73,17 +71,15 @@ const expandedField = ref<string | null>(null)
 const shareInfo = computed(() => {
   const data = snapshot()
   const name = projectName.value.trim() || 'project'
-  const url = buildShareUrl({ name, ...data })
-  const breakdown: ShareFieldStat[] = analyzeSharePayload({ name, ...data })
-  return { url, urlLength: url.length, breakdown }
+  const projectData = { name, ...data }
+  const smart = buildSmartShareUrl(projectData)
+  const breakdown: ShareFieldStat[] = analyzeSharePayload(projectData)
+  return { ...smart, breakdown }
 })
 
 function copyShareLink() {
-  const { url, urlLength } = shareInfo.value
-  if (urlLength > URL_WARN_THRESHOLD) {
-    shareStatus.value = 'toolong'
-    return
-  }
+  const { url, tier } = shareInfo.value
+  if (tier === 'too-long' || !url) return
   navigator.clipboard.writeText(url)
   shareStatus.value = 'copied'
   setTimeout(() => (shareStatus.value = 'idle'), 2500)
@@ -195,14 +191,18 @@ function fmtDate(iso: string) {
                     </div>
                   </div>
                 </div>
-                <div class="share-total" :class="{ 'share-total--warn': shareInfo.urlLength > URL_WARN_THRESHOLD }">
+                <div v-if="shareInfo.tier !== 'full'" class="share-tier-note" :class="{ 'share-tier-note--error': shareInfo.tier === 'too-long' }">
+                  <template v-if="shareInfo.tier === 'truncated'">Titles truncated to {{ TITLE_TRUNCATE_LENGTH }} chars to fit</template>
+                  <template v-else-if="shareInfo.tier === 'stripped'">Titles omitted to fit</template>
+                  <template v-else>Too large even without titles — use JSON export instead</template>
+                </div>
+                <div class="share-total" :class="{ 'share-total--warn': shareInfo.tier === 'too-long' }">
                   {{ shareInfo.urlLength.toLocaleString() }} chars after compression
-                  <span v-if="shareInfo.urlLength > URL_WARN_THRESHOLD"> — too long, try JSON export</span>
                 </div>
               </div>
             </div>
             <div class="option-action">
-              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim() || shareInfo.urlLength > URL_WARN_THRESHOLD">
+              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim() || shareInfo.tier === 'too-long'">
                 <template v-if="shareStatus === 'copied'">✓ Copied</template>
                 <template v-else>Copy Link</template>
               </button>
@@ -461,6 +461,17 @@ h3 span {
   opacity: 0.8;
 }
 
+.share-tier-note {
+  font-size: 0.72rem;
+  color: #e8a735;
+  opacity: 0.85;
+  margin-top: 0.25rem;
+}
+
+.share-tier-note--error {
+  color: #e05252;
+}
+
 .share-total {
   margin-top: 0.2rem;
   font-size: 0.73rem;
@@ -470,7 +481,7 @@ h3 span {
 }
 
 .share-total--warn {
-  color: #e8a735;
+  color: #e05252;
   opacity: 0.9;
 }
 
