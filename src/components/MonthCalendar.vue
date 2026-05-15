@@ -1529,6 +1529,8 @@ h2 {
 
 .resize-handle {
   flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
   background: transparent;
   border: none;
   color: #fff;

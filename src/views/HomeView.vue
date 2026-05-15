@@ -699,11 +699,13 @@ function onEventListDrop(event: DragEvent) {
 
     </aside>
     <div class="sidebar-footer">
-      <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-      <span class="sidebar-footer-sep">·</span>
-      <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">Report a bug</a>
-      <span class="sidebar-footer-sep">·</span>
-      <span class="sidebar-footer-by">by <a class="sidebar-footer-link" href="https://www.linkedin.com/in/mariuszpdabrowski/" target="_blank" rel="noopener noreferrer">Mariusz Dabrowski</a></span>
+      <div class="sidebar-footer-by">by <a class="sidebar-footer-link" href="https://www.linkedin.com/in/mariuszpdabrowski/" target="_blank" rel="noopener noreferrer">Mariusz Dabrowski</a></div>
+      <div class="sidebar-footer-divider" />
+      <div class="sidebar-footer-links">
+        <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        <span class="sidebar-footer-sep">·</span>
+        <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">Report a bug</a>
+      </div>
     </div>
     </div>
 
@@ -1111,11 +1113,25 @@ function onEventListDrop(event: DragEvent) {
   padding: 0.65rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 0.4rem;
   font-size: 0.78rem;
   line-height: 1.5;
+}
+
+.sidebar-footer-by {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.sidebar-footer-divider {
+  height: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .sidebar-footer-link {
@@ -1130,10 +1146,6 @@ function onEventListDrop(event: DragEvent) {
 
 .sidebar-footer-sep {
   color: rgba(255, 255, 255, 0.2);
-}
-
-.sidebar-footer-by {
-  color: rgba(255, 255, 255, 0.3);
 }
 
 section {
