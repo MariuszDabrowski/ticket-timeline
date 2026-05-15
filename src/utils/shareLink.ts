@@ -198,7 +198,10 @@ export function buildShareUrl(data: ProjectData): string {
 }
 
 export const TITLE_TRUNCATE_LENGTH = 25
-const URL_LIMIT = 2000
+// Hash-fragment URLs never leave the browser (no server, no proxy, no log truncation),
+// so the only ceiling is browser address-bar / clipboard handling. 8000 is comfortably
+// within Chrome (~32k), Firefox (~64k), and Safari (~80k) limits.
+const URL_LIMIT = 8000
 
 export type ShareTier = 'full' | 'truncated' | 'stripped' | 'too-long'
 

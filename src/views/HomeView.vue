@@ -1463,6 +1463,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   overflow: hidden;
   min-height: 0;
   opacity: 1;
+  contain: paint;
   transition: opacity 0.35s ease 0.18s;
 }
 

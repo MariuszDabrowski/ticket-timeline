@@ -1030,7 +1030,7 @@ function onDrop(event: DragEvent, day: number) {
       <div
         v-if="ticketTooltip && !dragState.moveDrag && !dragState.resizeDrag"
         class="global-tooltip"
-        :style="{ left: ticketTooltip.x + 'px', top: ticketTooltip.y + 'px' }"
+        :style="{ '--tx': ticketTooltip.x + 'px', '--ty': ticketTooltip.y + 'px' }"
       >
         <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
         <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtDate(ticketTooltip.startDate) : `${fmtDate(ticketTooltip.startDate)} – ${fmtDate(ticketTooltip.endDate)}` }}</span></div>
@@ -1458,7 +1458,7 @@ h2 {
 
 :global(.tooltip-enter-from.global-tooltip) {
   opacity: 0;
-  transform: translate(-50%, calc(-100% + 8px));
+  transform: translate3d(var(--tx, 0), var(--ty, 0), 0) translate(-50%, calc(-100% + 8px));
 }
 
 :global(.tooltip-leave-to) {
@@ -1467,8 +1467,10 @@ h2 {
 
 :global(.global-tooltip) {
   position: fixed;
-  transform: translate(-50%, calc(-100% - 6px));
-  transition: left 0.3s cubic-bezier(0.1, 1, 0.2, 1), top 0.3s cubic-bezier(0.1, 1, 0.2, 1);
+  top: 0;
+  left: 0;
+  transform: translate3d(var(--tx, 0), var(--ty, 0), 0) translate(-50%, calc(-100% - 6px));
+  transition: transform 0.3s cubic-bezier(0.1, 1, 0.2, 1);
   background: rgb(30, 30, 35);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
