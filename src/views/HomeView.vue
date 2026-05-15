@@ -473,7 +473,7 @@ function seedDefaultData() {
   tickets.placeTicket(e1Id, e1Start)
   tickets.moveTicket(e1Id, e1Start, e1End)
 
-  tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
+  tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
 
   const vacId = vacations.addVacation(user1Id)
   vacations.placeVacation(vacId, vacStart, vacEnd)
