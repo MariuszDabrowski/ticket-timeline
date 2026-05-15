@@ -17,6 +17,8 @@ const props = defineProps<{
   flashToday?: boolean
 }>()
 
+const emit = defineEmits<{ editVacation: [vacationId: number] }>()
+
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -954,6 +956,7 @@ function onDrop(event: DragEvent, day: number) {
                 draggable="true"
                 @mouseenter="dragState.hoveredVacationId = info.vacationId"
                 @mouseleave="dragState.hoveredVacationId = null"
+                @click.stop="emit('editVacation', info.vacationId)"
                 @dragstart="onVacationDragStart($event, info)"
                 @dragend="dragState.clearVacationMoveDrag()"
               >

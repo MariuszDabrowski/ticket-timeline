@@ -103,6 +103,8 @@ function fmtDate(iso: string) {
             </div>
           </div>
 
+          <div class="option-divider" />
+
           <div class="option-card">
             <div class="option-body">
               <div class="option-title">Export as Image</div>
@@ -121,6 +123,8 @@ function fmtDate(iso: string) {
               </button>
             </div>
           </div>
+
+          <div class="option-divider" />
 
           <div class="option-card">
             <div class="option-body">
@@ -251,7 +255,10 @@ h3 span {
 .options {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 7px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .option-card {
@@ -259,9 +266,11 @@ h3 span {
   align-items: center;
   gap: 0.85rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 7px;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.option-divider {
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.2);
+  margin: 0;
 }
 
 .option-body {

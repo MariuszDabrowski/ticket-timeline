@@ -16,6 +16,7 @@ import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
 import AddLabelModal from '../components/AddLabelModal.vue'
 import AddVacationModal from '../components/AddVacationModal.vue'
+import EditVacationModal from '../components/EditVacationModal.vue'
 import SaveModal from '../components/SaveModal.vue'
 import LoadModal from '../components/LoadModal.vue'
 import ShareInfoModal from '../components/ShareInfoModal.vue'
@@ -222,6 +223,7 @@ const eventListIsOver = ref(false)
 const vacations = useVacationsStore()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
+const editingVacationId = ref<number | null>(null)
 const draggingPersonId = ref<number | null>(null)
 const vacationListIsOver = ref(false)
 
@@ -251,6 +253,17 @@ function handleAddVacation(personId: number, startDate: CalendarDate | null, end
   vacationModalPersonId.value = null
 }
 
+function handleEditVacation(vacationId: number, personId: number) {
+  const entry = vacations.entries.find((e) => e.id === vacationId)
+  if (entry) entry.personId = personId
+  editingVacationId.value = null
+}
+
+function handleDeleteVacation(vacationId: number) {
+  vacations.removeVacation(vacationId)
+  editingVacationId.value = null
+}
+
 function onVacationPersonClick(personId: number) {
   if (!window.matchMedia('(pointer: coarse)').matches) return
   vacationModalPersonId.value = personId
@@ -264,7 +277,7 @@ const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
 
 // Hints system
-const isDesktop = ref(window.matchMedia('(pointer: fine)').matches)
+const isDesktop = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
 const hintsActive = ref(isDesktop.value)
 const hintSampleTicketId = ref<number | null>(null)
 const hintSampleEventId = ref<number | null>(null)
@@ -848,6 +861,7 @@ function onEventListDrop(event: DragEvent) {
             <MonthCalendar
               :year="m.year"
               :month="m.month"
+              @edit-vacation="editingVacationId = $event"
             />
           </div>
           <div class="months-row-end" />
@@ -977,6 +991,18 @@ function onEventListDrop(event: DragEvent) {
       v-if="showLoad"
       @load="handleLoad"
       @close="showLoad = false"
+    />
+  </Transition>
+
+  <Transition name="modal">
+    <EditVacationModal
+      v-if="editingVacationId !== null"
+      :vacation-id="editingVacationId"
+      :current-person-id="vacations.entries.find(e => e.id === editingVacationId)?.personId ?? 0"
+      :people="people.people"
+      @save="handleEditVacation"
+      @delete="handleDeleteVacation"
+      @cancel="editingVacationId = null"
     />
   </Transition>
 
@@ -2158,6 +2184,7 @@ section.drawer-closing .section-header > span:first-child::after {
   .below-header {
     flex-direction: column;
     overflow: auto;
+    padding-bottom: 56px;
   }
 
   .sidebar-wrap {
@@ -2169,6 +2196,16 @@ section.drawer-closing .section-header > span:first-child::after {
 
   .sidebar {
     overflow-y: visible;
+  }
+
+  .sidebar-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #141414;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    z-index: 10;
   }
 
   .panel {

@@ -92,6 +92,7 @@ function fmtDate(iso: string) {
                   </template>
                 </div>
               </div>
+              <div v-if="index < savedProjects.length - 1" class="project-divider" />
             </li>
           </ul>
         </div>
@@ -213,15 +214,23 @@ h3 span {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 7px;
+  overflow: hidden;
 }
 
 .project-row {
   display: flex;
   align-items: stretch;
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 7px;
-  overflow: hidden;
+  position: relative;
+}
+
+.project-divider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.2);
 }
 
 .project-index {
