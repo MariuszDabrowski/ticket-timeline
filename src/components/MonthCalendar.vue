@@ -483,19 +483,30 @@ interface DayVacationInfo {
 }
 
 function effectiveVacation(entry: { id: number; personId: number; startDate: CalendarDate | null; endDate: CalendarDate | null }): { startDate: CalendarDate; endDate: CalendarDate } {
+  let startDate = entry.startDate!
+  let endDate = entry.endDate!
+
   if (dragState.vacationResizeDrag?.vacationId === entry.id && dragState.vacationResizePreviewDate) {
     const previewDate = dragState.vacationResizePreviewDate
-    if (dragState.vacationResizeDrag.side === 'start' && compareCalendarDates(previewDate, entry.endDate!) <= 0)
-      return { startDate: previewDate, endDate: entry.endDate! }
-    if (dragState.vacationResizeDrag.side === 'end' && compareCalendarDates(previewDate, entry.startDate!) >= 0)
-      return { startDate: entry.startDate!, endDate: previewDate }
+    if (dragState.vacationResizeDrag.side === 'start' && compareCalendarDates(previewDate, endDate) <= 0)
+      startDate = previewDate
+    else if (dragState.vacationResizeDrag.side === 'end' && compareCalendarDates(previewDate, startDate) >= 0)
+      endDate = previewDate
+  } else if (dragState.vacationMoveDrag?.vacationId === entry.id && dragState.vacationMovePreviewDate) {
+    startDate = dragState.vacationMovePreviewDate
+    endDate = options.hideWeekends
+      ? addWorkingDays(startDate, dragState.vacationMoveDrag.span)
+      : addDays(startDate, dragState.vacationMoveDrag.span)
   }
-  if (dragState.vacationMoveDrag?.vacationId === entry.id && dragState.vacationMovePreviewDate) {
-    const newStart = dragState.vacationMovePreviewDate
-    const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
-    return { startDate: newStart, endDate: newEnd }
+
+  if (options.hideWeekends) {
+    startDate = snapToWeekday(startDate, 'forward')
+    let snappedEnd = snapToWeekday(endDate, 'backward')
+    if (compareCalendarDates(snappedEnd, startDate) < 0) snappedEnd = startDate
+    endDate = snappedEnd
   }
-  return { startDate: entry.startDate!, endDate: entry.endDate! }
+
+  return { startDate, endDate }
 }
 
 const vacationSlotMap = computed(() => {
@@ -521,7 +532,9 @@ const extraVacationPreview = computed(() => {
 
   if (vacationMoveDrag && vacationMovePreviewDate && !vacationSlotMap.value.has(vacationMoveDrag.vacationId)) {
     const previewStart = vacationMovePreviewDate
-    const previewEnd = addDays(previewStart, vacationMoveDrag.span)
+    const previewEnd = options.hideWeekends
+      ? addWorkingDays(previewStart, vacationMoveDrag.span)
+      : addDays(previewStart, vacationMoveDrag.span)
     if (overlapsMonth(previewStart, previewEnd))
       return { vacationId: vacationMoveDrag.vacationId, startDate: previewStart, endDate: previewEnd }
   }
@@ -695,7 +708,10 @@ function onVacationHandleDragStart(event: DragEvent, vacationId: number, side: '
 
 function onVacationDragStart(event: DragEvent, info: DayVacationInfo) {
   event.dataTransfer?.setData('moveCalendarVacation', String(info.vacationId))
-  dragState.startVacationMoveDrag(info.vacationId, spanInDays(info.startDate, info.endDate))
+  const span = options.hideWeekends
+    ? workingDaysBetween(info.startDate, info.endDate)
+    : spanInDays(info.startDate, info.endDate)
+  dragState.startVacationMoveDrag(info.vacationId, span)
 }
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {

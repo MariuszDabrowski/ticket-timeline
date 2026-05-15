@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, toRaw, onMounted } from 'vue'
-import { decodeShareLink } from '../utils/shareLink'
+import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -18,6 +18,7 @@ import AddLabelModal from '../components/AddLabelModal.vue'
 import AddVacationModal from '../components/AddVacationModal.vue'
 import SaveModal from '../components/SaveModal.vue'
 import LoadModal from '../components/LoadModal.vue'
+import ShareInfoModal from '../components/ShareInfoModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
@@ -277,6 +278,27 @@ const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
   selectedMonths: toRaw(selectedMonths.value),
 }))
 
+const shareResult = computed(() =>
+  buildSmartShareUrl({
+    name: currentProjectName.value,
+    tickets: toRaw(tickets.tickets),
+    placements: toRaw(tickets.placements),
+    people: toRaw(people.people),
+    vacations: toRaw(vacations.entries),
+    selectedMonths: toRaw(selectedMonths.value),
+  })
+)
+type CopyStatus = 'idle' | 'copied'
+const copyStatus = ref<CopyStatus>('idle')
+const showShareInfo = ref(false)
+function copyShareLink() {
+  const { url, tier } = shareResult.value
+  if (tier === 'too-long' || !url) return
+  navigator.clipboard.writeText(url)
+  copyStatus.value = 'copied'
+  setTimeout(() => (copyStatus.value = 'idle'), 2500)
+}
+
 function handleLoad(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
@@ -292,28 +314,51 @@ function handleLoad(data: ProjectData) {
 
 function seedDefaultData() {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const mid = 14
+
+  function toCalDate(d: Date): CalendarDate {
+    return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
+  }
+  function calAddDays(d: Date, n: number): Date {
+    const r = new Date(d); r.setDate(r.getDate() + n); return r
+  }
+
+  // Find the Monday of the week containing the 14th of the current month
+  const anchor = new Date(now.getFullYear(), now.getMonth(), 14)
+  const dow = anchor.getDay()
+  const monday1 = calAddDays(anchor, dow === 0 ? -6 : 1 - dow)
+  const monday2 = calAddDays(monday1, 7)
+
+  // Vacation week: Tue–Thu (3 working days centered in the week)
+  const vacStart = toCalDate(calAddDays(monday1, 1))
+  const vacEnd   = toCalDate(calAddDays(monday1, 3))
+
+  // Ticket week: Mon–Wed (3 days) and Thu–Fri (2 days)
+  const t1Start  = toCalDate(calAddDays(monday2, 1))  // Tue
+  const t1End    = toCalDate(calAddDays(monday2, 3))  // Thu
+  const t2Start  = toCalDate(calAddDays(monday2, 3))  // Thu (overlaps last day of T1, different row)
+  const t2End    = toCalDate(calAddDays(monday2, 4))  // Fri
+
+  // Sample Event 2: next working day after Ticket 2 (following Monday)
+  const e2Day = toCalDate(calAddDays(monday2, 7))
 
   const mariuszId = people.addPerson('Mariusz', '#3498db')
   const myraId = people.addPerson('Myra', '#e91e63')
 
-  const t1Id = tickets.addTicket({ number: '', title: 'Sample Ticket 1', assignedTo: mariuszId, link: '' })
-  tickets.placeTicket(t1Id, { year, month, day: mid })
+  const t1Id = tickets.addTicket({ number: 'Sample Ticket 1', title: 'Sample Ticket 1', assignedTo: mariuszId, link: '' })
+  tickets.placeTicket(t1Id, t1Start)
+  tickets.moveTicket(t1Id, t1Start, t1End)
 
-  const t2Id = tickets.addTicket({ number: '', title: 'Sample Ticket 2', assignedTo: myraId, link: '' })
-  tickets.placeTicket(t2Id, { year, month, day: mid + 1 })
-  tickets.moveTicket(t2Id, { year, month, day: mid + 1 }, { year, month, day: mid + 2 })
+  const t2Id = tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: myraId, link: '' })
+  tickets.placeTicket(t2Id, t2Start)
+  tickets.moveTicket(t2Id, t2Start, t2End)
 
   tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
 
-  const e2Start: CalendarDate = { year, month, day: mid + 7 }
   const e2Id = tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
-  tickets.placeTicket(e2Id, e2Start)
+  tickets.placeTicket(e2Id, e2Day)
 
   const vacId = vacations.addVacation(myraId)
-  vacations.placeVacation(vacId, { year, month, day: mid - 7 }, { year, month, day: mid - 6 })
+  vacations.placeVacation(vacId, vacStart, vacEnd)
 }
 
 onMounted(() => {
@@ -446,10 +491,11 @@ function onEventListDrop(event: DragEvent) {
       <div class="header-actions">
         <button class="header-btn" @click="showLoad = true">Load</button>
         <button class="header-btn" @click="showSave = true">Save</button>
-        <button class="header-btn header-btn-danger" @click="showReset = true">Reset</button>
+        <button class="header-btn" @click="showReset = true">Reset</button>
       </div>
     </header>
     <div class="below-header">
+    <div class="sidebar-wrap">
     <aside class="sidebar" v-simplebar>
       <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
         <button class="section-header" @click="toggleSection('months')">
@@ -498,7 +544,6 @@ function onEventListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }" :inert="collapsed.people || undefined">
           <div class="slide-inner">
             <div class="section-body">
-              <p class="people-blurb">People appear here as you add them or import data.</p>
               <button class="add-btn" @click="showAddPerson = true">Add Person</button>
               <ul v-if="people.people.length > 0" class="people-list">
                 <li v-for="person in people.people" :key="person.id" class="person">
@@ -552,7 +597,7 @@ function onEventListDrop(event: DragEvent) {
               </ol>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showUploadEpic = true"><span class="import-arrow">➜</span>Shortcut Epic CSV</button>
+                <button class="import-btn" @click="showUploadEpic = true">Shortcut Epic CSV</button>
               </div>
             </div>
           </div>
@@ -641,7 +686,7 @@ function onEventListDrop(event: DragEvent) {
               </div>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showHiBob = true"><span class="import-arrow">➜</span>HiBob Vacation Days</button>
+                <button class="import-btn" @click="showHiBob = true">HiBob Vacation Days</button>
               </div>
             </div>
           </div>
@@ -649,7 +694,13 @@ function onEventListDrop(event: DragEvent) {
       </section>
 
     </aside>
-
+    <a class="sidebar-footer" href="https://github.com/wayrse/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">
+      <svg class="sidebar-footer-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      Report a bug
+    </a>
+    </div>
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
@@ -672,8 +723,33 @@ function onEventListDrop(event: DragEvent) {
               <span>Project Brief</span>
             </div>
             <div class="panel-body">
-              <SummaryTile :project-name="currentProjectName" :selected-months="selectedMonths" />
+              <SummaryTile />
             </div>
+          </div>
+
+          <div class="share-panel">
+            <button
+              class="share-btn"
+              :class="{ 'share-btn--copied': copyStatus === 'copied' }"
+              :disabled="shareResult.tier === 'too-long'"
+              @click="copyShareLink"
+            >
+              <div class="share-btn-icon-wrap">
+                <svg class="share-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                  <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z"/>
+                </svg>
+              </div>
+              <div class="share-btn-body">
+                <div class="share-btn-labels">
+                  <span class="label-idle">
+                    <template v-if="shareResult.tier === 'too-long'">Project too large to share</template>
+                    <template v-else>Copy share link</template>
+                  </span>
+                  <span class="label-copied">Link copied</span>
+                </div>
+              </div>
+            </button>
+            <button class="info-btn" @click="showShareInfo = true">?</button>
           </div>
 
         </div>
@@ -796,6 +872,8 @@ function onEventListDrop(event: DragEvent) {
       @cancel="hibobGroups = []"
     />
   </Transition>
+
+  <ShareInfoModal v-if="showShareInfo" @close="showShareInfo = false" />
 
   <Transition name="modal">
     <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
@@ -940,11 +1018,12 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .reset-modal h3 span {
-  background: linear-gradient(to right, #e74c3c 20%, #e67e22 80%);
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
   padding-top: 2px;
 }
 
@@ -989,7 +1068,10 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .reset-confirm-btn {
-  color: rgba(231, 76, 60, 0.85) !important;
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%) !important;
+  border-color: rgba(0, 0, 0, 0.55) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .below-header {
@@ -998,17 +1080,49 @@ function onEventListDrop(event: DragEvent) {
   overflow: hidden;
 }
 
-.sidebar {
+.sidebar-wrap {
   width: 230px;
   flex-shrink: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   background: #141414;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  flex: 1;
+  min-height: 0;
+  background: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
   contain: layout style;
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 0.55rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.sidebar-footer:hover {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.sidebar-footer-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 section {
@@ -1450,6 +1564,101 @@ section.drop-target {
   overflow-y: auto;
 }
 
+.share-panel {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.share-btn {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  font-size: 14px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: color 0.2s ease;
+  line-height: 1;
+  font-family: 'Nunito', sans-serif;
+}
+
+.share-btn:hover:not(:disabled) { color: rgba(255, 255, 255, 0.95); }
+.share-btn--copied { color: #27ae60 !important; }
+.share-btn:disabled { opacity: 0.4; cursor: default; }
+
+.share-btn-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.share-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.share-btn-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 10px 0.75rem 8px;
+}
+
+.share-btn-labels {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  height: 1.1em;
+}
+
+.label-idle,
+.label-copied {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.label-idle { transform: translateY(0); }
+.label-copied { transform: translateY(-100%); }
+.share-btn--copied .label-idle { transform: translateY(100%); }
+.share-btn--copied .label-copied { transform: translateY(0); }
+
+.info-btn {
+  flex-shrink: 0;
+  width: 32px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.info-btn:hover { color: rgba(255, 255, 255, 0.85); }
+
 .months-stack {
   display: flex;
   flex-direction: column;
@@ -1550,9 +1759,6 @@ section.drop-target {
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   transition: color 0.15s, text-decoration-color 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .import-btn:hover {
@@ -1562,12 +1768,6 @@ section.drop-target {
 
 .import-btn::after {
   display: none;
-}
-
-.import-arrow {
-  color: rgba(255, 255, 255, 0.2);
-  font-style: normal;
-  flex-shrink: 0;
 }
 
 .vacation-person-list {
@@ -1664,11 +1864,14 @@ section.drawer-open .section-header > span:first-child {
     overflow: auto;
   }
 
-  .sidebar {
+  .sidebar-wrap {
     width: 100%;
     flex-shrink: 0;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .sidebar {
     overflow-y: visible;
   }
 
