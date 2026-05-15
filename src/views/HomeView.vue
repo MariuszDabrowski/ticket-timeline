@@ -2201,7 +2201,8 @@ section.drawer-closing .section-header > span:first-child::after {
   }
 }
 
-:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; animation: none; }
+:global(.hints-fade-leave-from) { opacity: 1; animation: none; }
+:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; }
 :global(.hints-fade-leave-to) { opacity: 0; }
 
 :global(.conflict-toast) {
