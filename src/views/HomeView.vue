@@ -308,7 +308,8 @@ const currentProjectName = ref('your-project-name')
 
 // Hints system
 const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
-const hintDismissed = ref(false)
+const HINT_DISMISSED_KEY = 'ticket-timeline:hint-dismissed'
+const hintDismissed = ref(localStorage.getItem(HINT_DISMISSED_KEY) === '1')
 const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
 let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -326,6 +327,7 @@ function computeHintPosition() {
 
 function dismissHint() {
   hintDismissed.value = true
+  localStorage.setItem(HINT_DISMISSED_KEY, '1')
 }
 
 function resetAll() {
@@ -1189,6 +1191,7 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-gotit:hover {
   color: rgba(255, 223, 7, 1);
+  background: rgba(255, 223, 7, 0.08);
 }
 
 @media (max-width: 920px), (pointer: coarse) {
@@ -2206,7 +2209,7 @@ section.drawer-closing .section-header > span:first-child::after {
   }
 }
 
-:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; }
+:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; animation: none; }
 :global(.hints-fade-leave-to) { opacity: 0; }
 
 :global(.conflict-toast) {
