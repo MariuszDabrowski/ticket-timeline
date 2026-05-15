@@ -125,7 +125,8 @@ export function decodeShareLink(encoded: string): ProjectData | null {
           startDate: offsetToDate(p[1]),
           endDate: offsetToDate(p[2]),
         })),
-        vacations: raw.vacations.map((v) => ({
+        vacations: raw.vacations.map((v, i) => ({
+          id: i,
           personId: v[0],
           startDate: offsetToDate(v[1]),
           endDate: offsetToDate(v[2]),
@@ -151,7 +152,8 @@ export function decodeShareLink(encoded: string): ProjectData | null {
           startDate: intToDate(p.s),
           endDate: intToDate(p.e),
         })),
-        vacations: raw.vacations.map((v) => ({
+        vacations: raw.vacations.map((v, i) => ({
+          id: i,
           personId: v.p,
           startDate: intToDate(v.s),
           endDate: intToDate(v.e),
@@ -173,7 +175,8 @@ export function decodeShareLink(encoded: string): ProjectData | null {
           startDate: intToDate(p.s),
           endDate: intToDate(p.e),
         })),
-        vacations: raw.vacations.map((v) => ({
+        vacations: raw.vacations.map((v, i) => ({
+          id: i,
           personId: v.p,
           startDate: intToDate(v.s),
           endDate: intToDate(v.e),
