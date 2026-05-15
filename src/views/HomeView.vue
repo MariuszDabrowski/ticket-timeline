@@ -1183,7 +1183,7 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .hint-gotit:hover {
-  color: rgba(180, 145, 0, 1);
+  color: #fff;
 }
 
 @media (max-width: 920px), (pointer: coarse) {

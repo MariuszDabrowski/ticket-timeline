@@ -447,7 +447,7 @@ const headline = computed(() => {
 }
 
 .team-visibility--disabled {
-  opacity: 0.25;
+  opacity: 0;
   cursor: default;
   pointer-events: none;
 }
