@@ -103,6 +103,7 @@ function handleAddPerson(name: string, color: string) {
   people.addPerson(name, color)
   showAddPerson.value = false
   openSection.value = 'people'
+  dismissHint(1)
 }
 
 function handleEditPersonSave(name: string, color: string) {
@@ -135,6 +136,7 @@ function handleAddLabel(text: string, color: string, startDate: CalendarDate | n
     tickets.moveTicket(id, startDate, endDate ?? startDate)
   }
   showAddLabel.value = false
+  dismissHint(1)
 }
 
 function handleSaveLabel(text: string, color: string) {
@@ -156,6 +158,7 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
     tickets.moveTicket(id, startDate, end)
   }
   showAddTicket.value = false
+  dismissHint(1)
 }
 
 function ticketColor(assignedTo: number | null): string {
@@ -305,14 +308,13 @@ const currentProjectName = ref('your-project-name')
 
 // Hints system
 const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
-const hintDismissed = ref([false, false, false])
+const hintDismissed = ref([false, false])
 const anyHintVisible = computed(() => hintsActive.value && hintDismissed.value.some((d) => !d))
-const hintSampleTicketId = ref<number | null>(null)
-const hintSampleEventId = ref<number | null>(null)
+let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
 
 interface HintPos { x: number; y: number; arrow: 'up' | 'left' }
-const hintPositions = ref<(HintPos | null)[]>([null, null, null])
+const hintPositions = ref<(HintPos | null)[]>([null, null])
 
 let _hintRetries = 0
 let _hintRetryTimer: ReturnType<typeof setTimeout> | null = null
@@ -320,41 +322,20 @@ let _hintRetryTimer: ReturnType<typeof setTimeout> | null = null
 function computeHintPositions() {
   if (_hintRetryTimer) { clearTimeout(_hintRetryTimer); _hintRetryTimer = null }
 
-  // Fallback: resolve IDs by ticket name in case of a page reload
-  if (!hintSampleTicketId.value) {
-    const t = tickets.tickets.find((t) => t.number === 'Sample Ticket 1')
-    if (t) hintSampleTicketId.value = t.id
-  }
-  if (!hintSampleEventId.value) {
-    const e = tickets.tickets.find((t) => t.title === 'Sample Event 1')
-    if (e) hintSampleEventId.value = e.id
-  }
+  const positions: (HintPos | null)[] = [null, null]
 
-  const positions: (HintPos | null)[] = [null, null, null]
-  if (hintSampleTicketId.value !== null) {
-    const el = document.querySelector<HTMLElement>(`[data-ticket-id="${hintSampleTicketId.value}"].is-start`)
-    if (el) {
-      const r = el.getBoundingClientRect()
-      positions[0] = { x: r.left + r.width / 2, y: r.bottom + 8, arrow: 'up' }
-    }
-  }
-  if (hintSampleEventId.value !== null) {
-    const el = document.querySelector<HTMLElement>(`[data-ticket-id="${hintSampleEventId.value}"].is-start`)
-    if (el) {
-      const r = el.getBoundingClientRect()
-      positions[1] = { x: r.left + r.width / 2, y: r.bottom + 8, arrow: 'up' }
-    }
+  if (monthsRowRef.value) {
+    const r = monthsRowRef.value.getBoundingClientRect()
+    positions[0] = { x: r.left + Math.min(r.width * 0.3, 260), y: r.top + 80, arrow: 'up' }
   }
   if (ticketsSectionRef.value) {
     const r = ticketsSectionRef.value.getBoundingClientRect()
-    positions[2] = { x: r.right + 18, y: r.top + r.height / 2, arrow: 'left' }
+    positions[1] = { x: r.right + 18, y: r.top + r.height / 2, arrow: 'left' }
   }
   hintPositions.value = positions
 
-  // Retry until calendar pills appear in the DOM (up to ~2 seconds)
-  const pillsMissing = (hintSampleTicketId.value !== null && !positions[0]) ||
-                       (hintSampleEventId.value !== null && !positions[1])
-  if (hintsActive.value && pillsMissing && _hintRetries < 10) {
+  const missing = !positions[0] || !positions[1]
+  if (anyHintVisible.value && missing && _hintRetries < 10) {
     _hintRetries++
     _hintRetryTimer = setTimeout(() => computeHintPositions(), 200)
   } else {
@@ -414,6 +395,15 @@ const bugReportUrl = computed(() => {
 type CopyStatus = 'idle' | 'copied'
 const copyStatus = ref<CopyStatus>('idle')
 const showShareInfo = ref(false)
+
+const anyModalOpen = computed(() =>
+  showSave.value || showLoad.value || showReset.value ||
+  showAddPerson.value || editingPerson.value !== null ||
+  showHiBob.value || hibobGroups.value.length > 0 ||
+  showShareInfo.value || editingVacationId.value !== null ||
+  showAddVacation.value || showAddLabel.value ||
+  editingLabel.value !== null || editingTicket.value !== null
+)
 function copyShareLink() {
   const { url, tier } = shareResult.value
   if (tier === 'too-long' || !url) return
@@ -488,8 +478,6 @@ function seedDefaultData() {
   const vacId = vacations.addVacation(user1Id)
   vacations.placeVacation(vacId, vacStart, vacEnd)
 
-  hintSampleTicketId.value = t1Id
-  hintSampleEventId.value = e1Id
   isSampleData.value = true
 }
 
@@ -511,6 +499,7 @@ onMounted(() => {
     setTimeout(() => computeHintPositions(), 350)
   }
   document.addEventListener('scroll', onScrollForHints, true)
+  nextTick(() => { hintBootstrapDone = true })
 })
 
 watch(
@@ -520,6 +509,15 @@ watch(
       nextTick(() => computeHintPositions())
     }
   }
+)
+
+// Auto-dismiss hints when the user performs the described action
+watch(editingTicket, (val) => {
+  if (val !== null && hintBootstrapDone) dismissHint(0)
+})
+watch(
+  () => tickets.placements.map((p) => `${p.ticketId}:${p.startDate.year}-${p.startDate.month}-${p.startDate.day}:${p.endDate.year}-${p.endDate.month}-${p.endDate.day}`).join('|'),
+  () => { if (hintBootstrapDone) dismissHint(0) }
 )
 
 onUnmounted(() => {
@@ -1086,35 +1084,25 @@ function onEventListDrop(event: DragEvent) {
 
   <Teleport to="body">
     <Transition name="hints-fade">
-    <div v-if="anyHintVisible" class="hints-layer">
+    <div v-if="anyHintVisible && !anyModalOpen" class="hints-layer">
       <div
         v-if="hintPositions[0] && !hintDismissed[0]"
         class="hint-anchor"
         :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-up">
-          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Click on tickets and events to edit them</span>
+          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Interact with items by moving, scaling, and clicking into them</span>
           <button class="hint-gotit" @click.stop="dismissHint(0)">Got it</button>
         </div>
       </div>
       <div
         v-if="hintPositions[1] && !hintDismissed[1]"
-        class="hint-anchor"
-        :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
-      >
-        <div class="hint-bubble hint-arrow-up">
-          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Drag the tickets around, or use the handles to expand</span>
-          <button class="hint-gotit" @click.stop="dismissHint(1)">Got it</button>
-        </div>
-      </div>
-      <div
-        v-if="hintPositions[2] && !hintDismissed[2]"
         class="hint-anchor hint-anchor-left"
-        :style="{ left: hintPositions[2].x + 'px', top: hintPositions[2].y + 'px' }"
+        :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-left">
           <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items here, drag them onto the calendar when ready</span>
-          <button class="hint-gotit" @click.stop="dismissHint(2)">Got it</button>
+          <button class="hint-gotit" @click.stop="dismissHint(1)">Got it</button>
         </div>
       </div>
     </div>
@@ -1233,6 +1221,7 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-bubble {
   position: relative;
+  pointer-events: all;
   background:
     linear-gradient(to top left, rgba(0, 0, 0, 0.3) 0%, transparent 55%),
     #665c22;
@@ -1278,9 +1267,6 @@ function onEventListDrop(event: DragEvent) {
   text-underline-offset: 2px;
 }
 
-.hint-gotit:hover {
-  color: #ffdf07;
-}
 
 .hint-icon {
   width: 16px;
