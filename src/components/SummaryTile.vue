@@ -241,12 +241,20 @@ const headline = computed(() => {
           :disabled="shareResult.tier === 'too-long'"
           @click="copyShareLink"
         >
-          <svg class="share-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
-            <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z"/>
-          </svg>
-          <template v-if="copyStatus === 'copied'">✓ Link copied</template>
-          <template v-else-if="shareResult.tier === 'too-long'">Project too large to share</template>
-          <template v-else>Copy share link</template>
+          <div class="share-btn-icon-wrap">
+            <svg class="share-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+              <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z"/>
+            </svg>
+          </div>
+          <div class="share-btn-body">
+            <div class="share-btn-labels">
+              <span class="label-idle">
+                <template v-if="shareResult.tier === 'too-long'">Project too large to share</template>
+                <template v-else>Copy share link</template>
+              </span>
+              <span class="label-copied">Link copied</span>
+            </div>
+          </div>
         </button>
         <button class="info-btn" @click="showInfoModal = true">?</button>
       </div>
@@ -549,14 +557,14 @@ const headline = computed(() => {
 .share-btn {
   flex: 1;
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
   font-size: 14px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 3px;
-  padding: 10px 0.75rem 8px;
   text-align: left;
   color: rgba(255, 255, 255, 0.7);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -565,11 +573,61 @@ const headline = computed(() => {
   font-family: 'Nunito', sans-serif;
 }
 
+.share-btn-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+}
+
 .share-icon {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
   opacity: 0.75;
+}
+
+.share-btn-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 10px 0.75rem 8px;
+}
+
+.share-btn-labels {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  height: 1.1em;
+}
+
+.label-idle,
+.label-copied {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.label-idle {
+  transform: translateY(0);
+}
+
+.label-copied {
+  transform: translateY(-100%);
+}
+
+.share-btn--copied .label-idle {
+  transform: translateY(100%);
+}
+
+.share-btn--copied .label-copied {
+  transform: translateY(0);
 }
 
 .share-btn:hover:not(:disabled) {
