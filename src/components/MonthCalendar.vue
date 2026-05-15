@@ -780,6 +780,13 @@ function onDrop(event: DragEvent, day: number) {
     return
   }
 
+  const newVacationPersonId = event.dataTransfer?.getData('newVacationPersonId')
+  if (newVacationPersonId) {
+    const id = vacationsStore.addVacation(Number(newVacationPersonId))
+    vacationsStore.placeVacation(id, calDate(day), calDate(day))
+    return
+  }
+
   const moveVacationData = event.dataTransfer?.getData('moveCalendarVacation')
   if (moveVacationData && dragState.vacationMoveDrag) {
     const newStart = calDate(day)

@@ -4,10 +4,10 @@ import { useFocusTrap } from '../composables/useFocusTrap'
 import type { Person } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
 
-const props = defineProps<{ people: Person[] }>()
+const props = defineProps<{ people: Person[]; preselectedPersonId?: number | null }>()
 const emit = defineEmits<{ save: [personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null]; cancel: [] }>()
 
-const selectedPersonId = ref<number | null>(props.people[0]?.id ?? null)
+const selectedPersonId = ref<number | null>(props.preselectedPersonId ?? props.people[0]?.id ?? null)
 const startDateStr = ref('')
 const endDateStr = ref('')
 const { trapRef, onKeydown } = useFocusTrap()
@@ -19,9 +19,8 @@ function parseDate(str: string): CalendarDate | null {
 }
 
 const datesValid = computed(() => {
-  if (!startDateStr.value && !endDateStr.value) return true
-  if (startDateStr.value && endDateStr.value) return endDateStr.value >= startDateStr.value
-  return false
+  if (!startDateStr.value || !endDateStr.value) return false
+  return endDateStr.value >= startDateStr.value
 })
 </script>
 
@@ -47,17 +46,15 @@ const datesValid = computed(() => {
             </button>
           </div>
         </div>
-        <div class="field schedule-field">
-          <label>Schedule <span class="label-hint">— optional</span></label>
+        <div class="field">
+          <label>Dates</label>
           <div class="date-row">
             <input v-model="startDateStr" type="date" />
             <span class="date-sep">to</span>
             <input v-model="endDateStr" type="date" :min="startDateStr" />
           </div>
-          <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
+          <p v-if="startDateStr && endDateStr && !datesValid" class="date-error">End date must be on or after start date.</p>
         </div>
-
-        <p class="hint">After adding, drag the vacation from the sidebar onto the calendar to place it.</p>
       </div>
 
       <div class="actions">
@@ -65,7 +62,7 @@ const datesValid = computed(() => {
           <button @click="emit('cancel')">Cancel</button>
           <button
             @click="selectedPersonId !== null && emit('save', selectedPersonId, parseDate(startDateStr), parseDate(endDateStr))"
-            :disabled="selectedPersonId === null || people.length === 0 || !datesValid"
+            :disabled="selectedPersonId === null || people.length === 0 || !startDateStr || !endDateStr || !datesValid"
           >Add</button>
         </div>
       </div>
@@ -257,16 +254,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .date-error {
   font-size: 12px;
   color: #e74c3c;
-}
-
-.schedule-field {
-  display: none;
-}
-
-@media (pointer: coarse) {
-  .schedule-field {
-    display: flex;
-  }
 }
 
 .actions {

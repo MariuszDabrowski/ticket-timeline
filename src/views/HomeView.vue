@@ -220,21 +220,22 @@ const ticketListIsOver = ref(false)
 
 const vacations = useVacationsStore()
 const showAddVacation = ref(false)
-const draggingVacationId = ref<number | null>(null)
+const vacationModalPersonId = ref<number | null>(null)
+const draggingPersonId = ref<number | null>(null)
 
 function handleAddVacation(personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null) {
   const id = vacations.addVacation(personId)
   if (startDate) vacations.placeVacation(id, startDate, endDate ?? startDate)
   showAddVacation.value = false
+  vacationModalPersonId.value = null
 }
 
-function vacationPersonColor(personId: number): string {
-  return people.people.find((p) => p.id === personId)?.color ?? '#555'
+function onVacationPersonClick(personId: number) {
+  if (!window.matchMedia('(pointer: coarse)').matches) return
+  vacationModalPersonId.value = personId
+  showAddVacation.value = true
 }
 
-function vacationPersonName(personId: number): string {
-  return people.people.find((p) => p.id === personId)?.name ?? 'Unknown'
-}
 
 const showSave = ref(false)
 const showLoad = ref(false)
@@ -518,25 +519,26 @@ function onTicketListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }">
           <div class="slide-inner">
             <div class="section-body">
-              <button class="add-btn" @click="showAddVacation = true">Add Vacation</button>
               <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
               <button
                 v-if="vacations.entries.length > 0"
                 class="add-btn clear-sync-btn"
                 @click="vacations.clearVacations()"
               >Clear All Vacations</button>
-              <ol v-if="vacations.unplacedVacations.length > 0" class="ticket-list vacation-list">
-                <li v-for="vacation in vacations.unplacedVacations" :key="vacation.id">
+              <p v-if="people.people.length === 0" class="people-blurb" style="padding-top:0.3rem">Add people to the team first.</p>
+              <ul v-else class="people-list vacation-people-list">
+                <li v-for="person in people.people" :key="person.id" class="person">
+                  <span class="color-dot" :style="{ background: person.color }" />
                   <span
-                    class="ticket-pill"
-                    :class="{ dragging: draggingVacationId === vacation.id }"
-                    :style="{ background: vacationPersonColor(vacation.personId) }"
+                    class="person-name vacation-person-draggable"
+                    :class="{ dragging: draggingPersonId === person.id }"
                     draggable="true"
-                    @dragstart="(e) => { e.dataTransfer?.setData('vacationId', String(vacation.id)); draggingVacationId = vacation.id; dragState.startVacationMoveDrag(vacation.id, 0) }"
-                    @dragend="draggingVacationId = null; dragState.clearVacationMoveDrag()"
-                  >{{ vacationPersonName(vacation.personId) }}</span>
+                    @click="onVacationPersonClick(person.id)"
+                    @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
+                    @dragend="draggingPersonId = null"
+                  >{{ person.name }}</span>
                 </li>
-              </ol>
+              </ul>
             </div>
           </div>
         </div>
@@ -667,8 +669,9 @@ function onTicketListDrop(event: DragEvent) {
     <AddVacationModal
       v-if="showAddVacation"
       :people="people.people"
+      :preselected-person-id="vacationModalPersonId"
       @save="handleAddVacation"
-      @cancel="showAddVacation = false"
+      @cancel="showAddVacation = false; vacationModalPersonId = null"
     />
   </Transition>
 
@@ -1296,8 +1299,29 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   font-size: 0.9rem;
 }
 
-.vacation-list li::before {
-  display: none;
+.vacation-people-list {
+  margin-top: 0.4rem;
+}
+
+.vacation-person-draggable {
+  cursor: grab;
+}
+
+.vacation-person-draggable:active {
+  cursor: grabbing;
+}
+
+.vacation-person-draggable.dragging {
+  opacity: 0.4;
+}
+
+section.drawer-open .section-header > span:first-child {
+  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
 }
 
 .clear-sync-btn {
