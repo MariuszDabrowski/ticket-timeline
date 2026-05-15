@@ -297,6 +297,18 @@ function computeHintPositions() {
   hintPositions.value = positions
 }
 
+let hintDismissListener: (() => void) | null = null
+
+function setupHintDismissal() {
+  if (hintDismissListener) return
+  hintDismissListener = () => {
+    dismissHints()
+    document.removeEventListener('click', hintDismissListener!, true)
+    hintDismissListener = null
+  }
+  document.addEventListener('click', hintDismissListener, true)
+}
+
 function dismissHints() {
   hintsActive.value = false
   localStorage.setItem(HINTS_KEY, '1')
@@ -307,6 +319,7 @@ function dismissHints() {
 function showHelp() {
   hintsActive.value = true
   nextTick(() => computeHintPositions())
+  setupHintDismissal()
 }
 
 function resetAll() {
@@ -429,6 +442,7 @@ onMounted(() => {
   }
   if (hintsActive.value) {
     setTimeout(() => computeHintPositions(), 350)
+    setupHintDismissal()
   }
 })
 
@@ -552,8 +566,7 @@ function onEventListDrop(event: DragEvent) {
           class="header-btn help-btn"
           :class="{ 'is-flashing': helpFlashing }"
           @click="showHelp"
-          title="Show hints"
-        ><span class="icon">lightbulb</span></button>
+        >Help</button>
       </div>
     </header>
     <div class="below-header">
@@ -768,7 +781,7 @@ function onEventListDrop(event: DragEvent) {
     </div>
     </div>
 
-    <main class="panel" @click.capture="hintsActive && dismissHints()">
+    <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
         <div class="months-stack">
@@ -958,6 +971,7 @@ function onEventListDrop(event: DragEvent) {
   </Transition>
 
   <Teleport to="body">
+    <Transition name="hints-fade">
     <div v-if="hintsActive" class="hints-layer">
       <div
         v-if="hintPositions[0]"
@@ -981,6 +995,7 @@ function onEventListDrop(event: DragEvent) {
         <div class="hint-bubble hint-arrow-left">Create new items here, drag them onto the calendar when ready</div>
       </div>
     </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -1078,8 +1093,8 @@ function onEventListDrop(event: DragEvent) {
 }
 
 @keyframes helpFlash {
-  0%, 100% { color: rgba(255, 255, 255, 0.55); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.1); }
-  50% { color: rgba(167, 139, 250, 1); box-shadow: inset 0 1px 0 rgba(167, 139, 250, 0.2), 0 0 8px rgba(167, 139, 250, 0.35); }
+  0%, 100% { color: rgba(255, 255, 255, 0.55); }
+  50% { color: rgba(167, 139, 250, 1); }
 }
 
 .help-btn.is-flashing {
@@ -1104,15 +1119,15 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-bubble {
   position: relative;
-  background: rgba(20, 17, 34, 0.97);
-  border: 1px solid rgba(167, 139, 250, 0.28);
-  border-radius: 8px;
-  padding: 0.55rem 0.8rem;
+  background: rgb(30, 30, 35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
   max-width: 175px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(167, 139, 250, 0.06);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
 }
@@ -1135,13 +1150,13 @@ function onEventListDrop(event: DragEvent) {
   bottom: calc(100% + 1px);
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 8px solid rgba(167, 139, 250, 0.28);
+  border-bottom: 8px solid rgba(255, 255, 255, 0.12);
 }
 .hint-arrow-up::after {
   bottom: 100%;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid rgba(20, 17, 34, 0.97);
+  border-bottom: 7px solid rgb(30, 30, 35);
 }
 
 .hint-arrow-left::before,
@@ -1157,13 +1172,13 @@ function onEventListDrop(event: DragEvent) {
   right: calc(100% + 1px);
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  border-right: 8px solid rgba(167, 139, 250, 0.28);
+  border-right: 8px solid rgba(255, 255, 255, 0.12);
 }
 .hint-arrow-left::after {
   right: 100%;
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-right: 7px solid rgba(20, 17, 34, 0.97);
+  border-right: 7px solid rgb(30, 30, 35);
 }
 
 .reset-backdrop {
@@ -1289,17 +1304,17 @@ function onEventListDrop(event: DragEvent) {
 
 .sidebar-footer {
   flex-shrink: 0;
-  padding: 0.65rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.78rem;
+  gap: 0.3rem;
+  font-size: 0.7rem;
   line-height: 1.5;
 }
 
 .sidebar-footer-by {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.22);
 }
 
 .sidebar-footer-divider {
@@ -1314,17 +1329,17 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .sidebar-footer-link {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.28);
   text-decoration: none;
   transition: color 0.15s;
 }
 
 .sidebar-footer-link:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .sidebar-footer-sep {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.15);
 }
 
 section {
@@ -2111,4 +2126,7 @@ section.drawer-closing .section-header > span:first-child::after {
     overflow-x: auto;
   }
 }
+
+:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; }
+:global(.hints-fade-leave-to) { opacity: 0; }
 </style>
