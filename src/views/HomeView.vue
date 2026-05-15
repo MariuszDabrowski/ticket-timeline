@@ -1017,8 +1017,8 @@ function onEventListDrop(event: DragEvent) {
           <p class="reset-warning">This action cannot be undone.</p>
         </div>
         <div class="reset-actions">
-          <button @click="showReset = false">Cancel</button>
-          <button class="reset-confirm-btn" @click="resetAll">Clear Everything</button>
+          <button class="btn" @click="showReset = false">Cancel</button>
+          <button class="btn reset-confirm-btn" @click="resetAll">Clear Everything</button>
         </div>
       </div>
     </div>
@@ -1310,26 +1310,10 @@ function onEventListDrop(event: DragEvent) {
   flex-shrink: 0;
 }
 
-.reset-actions button {
-  padding: 5px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  line-height: 1;
-}
-
 .reset-confirm-btn {
-  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%) !important;
-  border-color: rgba(0, 0, 0, 0.55) !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
+  color: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .below-header {

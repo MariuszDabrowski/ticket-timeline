@@ -110,10 +110,10 @@ function handleSubmit() {
       </div>
 
       <div class="actions">
-        <button class="delete-btn" @click="emit('delete')">Delete</button>
+        <button class="btn delete-btn" @click="emit('delete')">Delete</button>
         <div class="actions-right">
-          <button @click="emit('cancel')">Cancel</button>
-          <button @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Save</button>
+          <button class="btn" @click="emit('cancel')">Cancel</button>
+          <button class="btn" @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Save</button>
         </div>
       </div>
     </div>
@@ -335,31 +335,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 0.5rem;
 }
 
-button {
-  padding: 5px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 5px rgba(0, 0, 0, 0.1);
-  line-height: 1;
-}
-
-button:disabled {
-  opacity: 0.4;
-  cursor: default;
-  pointer-events: none;
-  outline: none;
-}
-
 .delete-btn {
   background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
-  border-color: rgba(0, 0, 0, 0.55);
   color: rgba(255, 255, 255, 0.8);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
 }

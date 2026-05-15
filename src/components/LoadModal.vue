@@ -83,12 +83,12 @@ function fmtDate(iso: string) {
                 <div class="project-actions">
                   <template v-if="confirmId === project.id">
                     <span class="confirm-text">Delete?</span>
-                    <button class="action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
-                    <button class="action-btn" @click="confirmId = null">No</button>
+                    <button class="btn action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
+                    <button class="btn action-btn" @click="confirmId = null">No</button>
                   </template>
                   <template v-else>
-                    <button class="action-btn delete" @click="confirmId = project.id" title="Delete">✕</button>
-                    <button class="action-btn primary" @click="loadSaved(project.id)">Load</button>
+                    <button class="btn action-btn delete" @click="confirmId = project.id" title="Delete">✕</button>
+                    <button class="btn action-btn primary" @click="loadSaved(project.id)">Load</button>
                   </template>
                 </div>
               </div>
@@ -101,7 +101,7 @@ function fmtDate(iso: string) {
           <div class="section-label">Load from file</div>
           <div class="upload-area">
             <p class="upload-desc">Upload a <code>.json</code> file saved from this app.</p>
-            <label class="file-btn">
+            <label class="btn file-btn">
               Choose File
               <input type="file" accept=".json,application/json" @change="onFileInput" />
             </label>
@@ -293,17 +293,6 @@ h3 span {
 
 .action-btn {
   padding: 4px 0.65rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn.delete {
@@ -347,18 +336,6 @@ h3 span {
 
 .file-btn {
   flex-shrink: 0;
-  padding: 5px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .file-btn input {
@@ -379,18 +356,4 @@ h3 span {
   flex-shrink: 0;
 }
 
-.btn {
-  padding: 5px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 </style>

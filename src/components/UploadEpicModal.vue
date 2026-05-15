@@ -97,8 +97,8 @@ function handleImport() {
       </div>
 
       <div class="actions">
-        <button @click="emit('cancel')">Cancel</button>
-        <button class="primary" :disabled="!csvText || !workspaceSlug.trim()" @click="handleImport">
+        <button class="btn" @click="emit('cancel')">Cancel</button>
+        <button class="btn primary" :disabled="!csvText || !workspaceSlug.trim()" @click="handleImport">
           Create Stories
         </button>
       </div>
@@ -292,25 +292,4 @@ input[type='text']:focus {
   flex-shrink: 0;
 }
 
-button {
-  padding: 5px 1rem;
-  font-size: 0.76rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-  color: rgba(255, 255, 255, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
-  line-height: 1;
-}
-
-button:disabled {
-  opacity: 0.4;
-  cursor: default;
-  pointer-events: none;
-  outline: none;
-}
 </style>
