@@ -1629,7 +1629,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   font-size: 13px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.75);
-  padding: 0 1rem 0.35rem;
+  padding: 0 1rem 1rem;
   margin: 0;
 }
 
@@ -2202,6 +2202,11 @@ section.drawer-closing .section-header > span:first-child::after {
   .below-header {
     flex-direction: column;
     overflow: auto;
+    scrollbar-width: none;
+  }
+
+  .below-header::-webkit-scrollbar {
+    display: none;
   }
 
   .sidebar-wrap {
