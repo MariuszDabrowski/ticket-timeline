@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, toRaw, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
 import { toPng } from 'html-to-image'
 
@@ -264,9 +264,7 @@ const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
 
 // Hints system
-const HINTS_KEY = 'ticketTimeline.hintsShown'
-const hintsActive = ref(!localStorage.getItem(HINTS_KEY))
-const helpFlashing = ref(false)
+const hintsActive = ref(true)
 const hintSampleTicketId = ref<number | null>(null)
 const hintSampleEventId = ref<number | null>(null)
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -322,6 +320,16 @@ function computeHintPositions() {
   }
 }
 
+let _hintScrollRaf: number | null = null
+function onScrollForHints() {
+  if (!hintsActive.value) return
+  if (_hintScrollRaf !== null) return
+  _hintScrollRaf = requestAnimationFrame(() => {
+    _hintScrollRaf = null
+    computeHintPositions()
+  })
+}
+
 let hintDismissListener: (() => void) | null = null
 
 function setupHintDismissal() {
@@ -336,9 +344,6 @@ function setupHintDismissal() {
 
 function dismissHints() {
   hintsActive.value = false
-  localStorage.setItem(HINTS_KEY, '1')
-  helpFlashing.value = true
-  setTimeout(() => { helpFlashing.value = false }, 2500)
 }
 
 function showHelp() {
@@ -351,7 +356,6 @@ function resetAll() {
   people.loadData([])
   tickets.loadData({ tickets: [], placements: [] })
   vacations.loadData([])
-  localStorage.removeItem(HINTS_KEY)
   showReset.value = false
 }
 
@@ -470,6 +474,7 @@ onMounted(() => {
     setTimeout(() => computeHintPositions(), 350)
     setupHintDismissal()
   }
+  document.addEventListener('scroll', onScrollForHints, true)
 })
 
 watch(
@@ -480,6 +485,11 @@ watch(
     }
   }
 )
+
+onUnmounted(() => {
+  document.removeEventListener('scroll', onScrollForHints, true)
+  if (_hintScrollRaf !== null) cancelAnimationFrame(_hintScrollRaf)
+})
 
 const monthsRowRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
@@ -594,14 +604,10 @@ function onEventListDrop(event: DragEvent) {
         Ticket Timeline
       </span>
       <div class="header-actions">
-        <button class="header-btn" @click="showLoad = true">Load</button>
         <button class="header-btn" @click="showSave = true">Save</button>
+        <button class="header-btn" @click="showLoad = true">Load</button>
+        <button class="header-btn help-btn" @click="showHelp">Help</button>
         <button class="header-btn" @click="showReset = true">Reset</button>
-        <button
-          class="header-btn help-btn"
-          :class="{ 'is-flashing': helpFlashing }"
-          @click="showHelp"
-        >Help</button>
       </div>
     </header>
     <div class="below-header">
@@ -1134,15 +1140,6 @@ function onEventListDrop(event: DragEvent) {
 .help-btn {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-}
-
-@keyframes helpFlash {
-  0%, 100% { color: rgba(255, 255, 255, 0.55); }
-  50% { color: rgba(167, 139, 250, 1); }
-}
-
-.help-btn.is-flashing {
-  animation: helpFlash 0.55s ease-in-out 4;
 }
 
 .hints-layer {
@@ -1968,8 +1965,15 @@ section.drop-target {
 }
 
 .month-option input[type='checkbox']:checked {
-  background: rgba(167, 139, 250, 0.25);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
+  background-size: 200% auto;
+  animation: checkboxGradient 2.5s ease-in-out infinite alternate;
   border-color: rgba(167, 139, 250, 0.6);
+}
+
+@keyframes checkboxGradient {
+  0%   { background-position: 0% center; }
+  100% { background-position: 100% center; }
 }
 
 @keyframes checkDraw {
