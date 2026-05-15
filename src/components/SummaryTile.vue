@@ -188,8 +188,9 @@ const headline = computed(() => {
               <span class="team-dot" :style="{ background: stat.color }" />
               <span class="team-name">{{ stat.name }}</span>
               <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
-              <label v-if="stat.id !== null && calendarCountByPerson.get(stat.id)" class="team-visibility">
+              <label class="team-visibility">
                 <input
+                  v-if="stat.id !== null && calendarCountByPerson.get(stat.id)"
                   type="checkbox"
                   :checked="!optionsStore.hiddenPersonIds.has(stat.id)"
                   @change="optionsStore.togglePersonVisibility(stat.id!)"
