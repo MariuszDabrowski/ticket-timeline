@@ -896,7 +896,6 @@ function onDrop(event: DragEvent, day: number) {
                 'is-preview': info.isPreview,
               }"
               draggable="true"
-              @click.stop="vacationsStore.removeVacation(info.vacationId)"
               @dragstart="onVacationDragStart($event, info)"
               @dragend="dragState.clearVacationMoveDrag()"
             >
@@ -1159,7 +1158,7 @@ h2 {
 
 
 .vacation-pill.is-preview {
-  opacity: 0.45;
+  opacity: 0.75;
 }
 
 .vacation-pill.row-end {

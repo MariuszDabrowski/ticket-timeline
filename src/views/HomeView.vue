@@ -222,6 +222,26 @@ const vacations = useVacationsStore()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const draggingPersonId = ref<number | null>(null)
+const vacationListIsOver = ref(false)
+
+function onVacationListDragOver(event: DragEvent) {
+  if (!event.dataTransfer?.types.includes('movecalendarvacation')) return
+  event.preventDefault()
+  vacationListIsOver.value = true
+}
+
+function onVacationListDragLeave() {
+  vacationListIsOver.value = false
+}
+
+function onVacationListDrop(event: DragEvent) {
+  vacationListIsOver.value = false
+  const id = event.dataTransfer?.getData('moveCalendarVacation')
+  if (!id) return
+  event.preventDefault()
+  vacations.removeVacation(Number(id))
+  dragState.clearVacationMoveDrag()
+}
 
 function handleAddVacation(personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null) {
   const id = vacations.addVacation(personId)
@@ -505,7 +525,12 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section :class="{ 'drawer-open': !collapsed.vacations, 'drawer-closing': closingSection.has('vacations') }">
+      <section
+        :class="{ 'drawer-open': !collapsed.vacations, 'drawer-closing': closingSection.has('vacations'), 'drop-target': vacationListIsOver }"
+        @dragover="onVacationListDragOver"
+        @dragleave="onVacationListDragLeave"
+        @drop="onVacationListDrop"
+      >
         <button class="section-header" @click="toggleSection('vacations')">
           <span>Vacations</span>
           <span class="chevron">
@@ -520,25 +545,22 @@ function onTicketListDrop(event: DragEvent) {
           <div class="slide-inner">
             <div class="section-body">
               <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
-              <button
-                v-if="vacations.entries.length > 0"
-                class="add-btn clear-sync-btn"
-                @click="vacations.clearVacations()"
-              >Clear All Vacations</button>
               <p v-if="people.people.length === 0" class="people-blurb" style="padding-top:0.3rem">Add people to the team first.</p>
-              <ul v-else class="people-list vacation-people-list">
-                <li v-for="person in people.people" :key="person.id" class="person">
-                  <span class="color-dot" :style="{ background: person.color }" />
-                  <span
-                    class="person-name vacation-person-draggable"
-                    :class="{ dragging: draggingPersonId === person.id }"
-                    draggable="true"
-                    @click="onVacationPersonClick(person.id)"
-                    @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
-                    @dragend="draggingPersonId = null"
-                  >{{ person.name }}</span>
-                </li>
-              </ul>
+              <div v-else class="vacation-person-list">
+                <span
+                  v-for="person in people.people"
+                  :key="person.id"
+                  class="vacation-person-pill"
+                  :class="{ dragging: draggingPersonId === person.id }"
+                  draggable="true"
+                  @click="onVacationPersonClick(person.id)"
+                  @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
+                  @dragend="draggingPersonId = null"
+                >
+                  <span class="vac-pill-dot" :style="{ background: person.color }" />
+                  {{ person.name }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -1299,20 +1321,47 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   font-size: 0.9rem;
 }
 
-.vacation-people-list {
-  margin-top: 0.4rem;
+.vacation-person-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem 1rem 0.25rem;
 }
 
-.vacation-person-draggable {
+.vacation-person-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.65rem 0.18rem 0.45rem;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
   cursor: grab;
+  width: fit-content;
+  background: repeating-linear-gradient(45deg, #2a2a2a 0px, #2a2a2a 3px, #323232 3px, #323232 9px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: opacity 0.15s;
 }
 
-.vacation-person-draggable:active {
+.vacation-person-pill:active {
   cursor: grabbing;
 }
 
-.vacation-person-draggable.dragging {
+.vacation-person-pill.dragging {
   opacity: 0.4;
+}
+
+.vac-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 section.drawer-open .section-header > span:first-child {
@@ -1324,13 +1373,6 @@ section.drawer-open .section-header > span:first-child {
   animation: textShine 5s ease-in-out infinite alternate;
 }
 
-.clear-sync-btn {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.clear-sync-btn:hover {
-  color: rgba(231, 76, 60, 0.9);
-}
 
 @media (max-width: 1220px) {
   .months-row {
