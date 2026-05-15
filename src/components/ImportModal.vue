@@ -62,7 +62,7 @@ function fmtDate(iso: string) {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
       <h3><span>Import Project</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="section">
           <div class="section-label">Saved in this browser</div>
           <div v-if="savedProjects.length === 0" class="empty">

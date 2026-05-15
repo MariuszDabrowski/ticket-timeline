@@ -73,7 +73,7 @@ function fmtDate(iso: string) {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
       <h3><span>Export Project</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="field">
           <label class="field-label">Project name</label>
           <input class="field-input" v-model="projectName" placeholder="My Project" />

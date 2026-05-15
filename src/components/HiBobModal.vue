@@ -49,7 +49,7 @@ function onFileInput(e: Event) {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>Sync HiBob Vacation Days</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="instructions">
           <p class="instructions-title">How to get your ICS file:</p>
           <ol>

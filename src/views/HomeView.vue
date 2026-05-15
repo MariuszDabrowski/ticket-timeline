@@ -334,7 +334,7 @@ function onTicketListDrop(event: DragEvent) {
       </div>
     </header>
     <div class="below-header">
-    <aside class="sidebar">
+    <aside class="sidebar" v-simplebar>
       <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
         <button class="section-header" @click="toggleSection('months')">
           <span>Months</span>

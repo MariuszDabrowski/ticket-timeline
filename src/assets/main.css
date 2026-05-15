@@ -32,6 +32,27 @@ button:hover:not(:disabled)::after {
   background: rgba(255, 255, 255, 0.07);
 }
 
+.simplebar-scrollbar::before {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.simplebar-scrollbar.simplebar-visible::before {
+  opacity: 1;
+}
+
+.simplebar-track {
+  background: transparent;
+}
+
+.simplebar-track.simplebar-vertical {
+  width: 6px;
+}
+
+.simplebar-track.simplebar-horizontal {
+  height: 6px;
+}
+
 .modal-enter-active {
   transition: opacity 0.35s ease;
 }

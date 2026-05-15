@@ -51,7 +51,7 @@ function handleSubmit() {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>Add Ticket</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="field">
           <label>Ticket Number</label>
           <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" />

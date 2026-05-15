@@ -55,7 +55,7 @@ function handleImport() {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>Import Epic from Shortcut</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <ol class="instructions">
           <li>Head over to your epic in <strong>Shortcut</strong></li>
           <li>Click the <strong>"Export as CSV"</strong> button in the epic menu</li>

@@ -69,14 +69,14 @@ function confirm() {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>Confirm Sync</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <p class="subtitle">
           Found <strong>{{ matchedCount }}</strong> matched
           <template v-if="unmatchedCount > 0"> and <strong>{{ unmatchedCount }}</strong> unmatched</template>
           people. Select who to sync.
         </p>
 
-        <div class="list">
+        <div class="list" v-simplebar>
           <div v-for="row in rows" :key="row.group.personName" class="row">
             <label class="row-label">
               <input type="checkbox" v-model="row.selected" />
@@ -168,7 +168,6 @@ h3 span {
   flex-direction: column;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  overflow-y: auto;
 }
 
 .subtitle {
@@ -181,7 +180,6 @@ h3 span {
 }
 
 .list {
-  overflow-y: auto;
   max-height: 50vh;
   display: flex;
   flex-direction: column;

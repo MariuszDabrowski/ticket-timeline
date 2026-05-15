@@ -27,7 +27,7 @@ const { trapRef, onKeydown } = useFocusTrap()
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>{{ props.existing ? 'Edit Event' : 'Add Event' }}</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="field">
           <label>Event name</label>
           <input

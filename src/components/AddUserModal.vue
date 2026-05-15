@@ -51,7 +51,7 @@ function handleSubmit() {
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
       <h3><span>{{ props.existing ? 'Edit Person' : 'Add Person' }}</span></h3>
 
-      <div class="modal-body">
+      <div class="modal-body" v-simplebar>
         <div class="field">
           <label>Name</label>
           <input v-model="name" type="text" placeholder="Name" @keydown.enter.prevent="handleSubmit" />
