@@ -1395,7 +1395,7 @@ function onEventListDrop(event: DragEvent) {
   contain: layout style;
 }
 
-.sidebar-footer--mobile {
+.sidebar-footer.sidebar-footer--mobile {
   display: none;
 }
 
@@ -2218,7 +2218,7 @@ section.drawer-closing .section-header > span:first-child::after {
     display: none;
   }
 
-  .sidebar-footer--mobile {
+  .sidebar-footer.sidebar-footer--mobile {
     display: flex;
   }
 
