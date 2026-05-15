@@ -810,7 +810,8 @@ function onEventListDrop(event: DragEvent) {
           <div class="slide-inner">
             <div class="section-body">
               <p v-if="people.people.length === 0" class="people-blurb">Add people to the team first.</p>
-              <div v-else class="vacation-person-list">
+              <p v-else class="event-blurb">Drag a person onto the calendar to add a vacation.</p>
+              <div v-if="people.people.length > 0" class="vacation-person-list">
                 <span
                   v-for="person in people.people"
                   :key="person.id"
