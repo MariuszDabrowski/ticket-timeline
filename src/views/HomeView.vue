@@ -312,13 +312,16 @@ const hintDismissed = ref(false)
 const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
 let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
-const hintPos = ref<{ x: number; y: number } | null>(null)
+const layoutRef = ref<HTMLElement | null>(null)
+const hintTop = ref<number | null>(null)
+const hintTopCss = computed(() => hintTop.value !== null ? hintTop.value + 'px' : '0px')
 
 function computeHintPosition() {
-  if (!ticketsSectionRef.value) return
-  const r = ticketsSectionRef.value.querySelector('.section-header')?.getBoundingClientRect()
-              ?? ticketsSectionRef.value.getBoundingClientRect()
-  hintPos.value = { x: r.right + 18, y: r.top + r.height / 2 }
+  if (!ticketsSectionRef.value || !layoutRef.value) return
+  const hdr = ticketsSectionRef.value.querySelector('.section-header')
+  const r = hdr?.getBoundingClientRect() ?? ticketsSectionRef.value.getBoundingClientRect()
+  const lr = layoutRef.value.getBoundingClientRect()
+  hintTop.value = r.top + r.height / 2 - lr.top
 }
 
 function dismissHint() {
@@ -583,7 +586,7 @@ function onEventListDrop(event: DragEvent) {
 </script>
 
 <template>
-  <div class="layout">
+  <div class="layout" ref="layoutRef">
     <header class="app-header">
       <span class="app-logo">
         <AppLogo class="app-logo-icon" />
@@ -1027,18 +1030,15 @@ function onEventListDrop(event: DragEvent) {
     </div>
   </Transition>
 
-  <Teleport to="body">
-    <Transition name="hints-fade">
-      <div
-        v-if="anyHintVisible && !anyModalOpen && hintPos"
-        class="hint-bubble hint-arrow-left"
-        :style="{ position: 'fixed', left: hintPos.x + 'px', top: hintPos.y + 'px', transform: 'translateY(-50%)', zIndex: 80, pointerEvents: 'none' }"
-      >
-        <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
-        <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
-      </div>
-    </Transition>
-  </Teleport>
+  <Transition name="hints-fade">
+    <div
+      v-if="anyHintVisible && !anyModalOpen && hintTop !== null"
+      class="hint-bubble hint-arrow-left"
+    >
+      <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
+      <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -1046,6 +1046,7 @@ function onEventListDrop(event: DragEvent) {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  position: relative;
 }
 
 .app-header {
@@ -1134,7 +1135,11 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .hint-bubble {
-  position: relative;
+  position: absolute;
+  left: calc(230px + 18px);
+  top: v-bind(hintTopCss);
+  z-index: 80;
+  pointer-events: none;
   background:
     linear-gradient(to top left, rgba(0, 0, 0, 0.3) 0%, transparent 55%),
     #665c22;
@@ -1191,8 +1196,8 @@ function onEventListDrop(event: DragEvent) {
 }
 
 @keyframes hintFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(calc(-50% - 4px)); }
+  to   { opacity: 1; transform: translateY(-50%); }
 }
 
 .hint-arrow-up::after {
