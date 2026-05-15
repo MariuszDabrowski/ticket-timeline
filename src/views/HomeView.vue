@@ -1223,7 +1223,6 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-bubble {
   position: relative;
-  pointer-events: all;
   background:
     linear-gradient(to top left, rgba(0, 0, 0, 0.3) 0%, transparent 55%),
     #665c22;
@@ -1253,6 +1252,7 @@ function onEventListDrop(event: DragEvent) {
 .hint-gotit {
   all: unset;
   display: block;
+  pointer-events: all;
   align-self: flex-end;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding: 0.3rem 0 0;
