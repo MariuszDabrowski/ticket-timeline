@@ -1236,7 +1236,7 @@ h2 {
   min-height: 1.1rem;
   line-height: 1;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   transition: opacity 0.2s ease, filter 0.2s ease;
 }
 

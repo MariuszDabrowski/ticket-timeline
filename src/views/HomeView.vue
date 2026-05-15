@@ -1130,10 +1130,6 @@ function onEventListDrop(event: DragEvent) {
   color: rgba(231, 76, 60, 0.7);
 }
 
-@media (max-width: 920px), (pointer: coarse) {
-  .hint-bubble { display: none; }
-}
-
 .hint-bubble {
   position: absolute;
   left: calc(230px + 18px);
@@ -1189,6 +1185,11 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-gotit:hover {
   color: rgba(255, 223, 7, 1);
+  background: none;
+}
+
+@media (max-width: 920px), (pointer: coarse) {
+  .hint-bubble { display: none; }
 }
 
 
