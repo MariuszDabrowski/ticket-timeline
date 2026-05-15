@@ -324,9 +324,9 @@ function computeHintPositions() {
 
   const positions: (HintPos | null)[] = [null, null]
 
-  if (monthsRowRef.value) {
-    const r = monthsRowRef.value.getBoundingClientRect()
-    positions[0] = { x: r.right - Math.min(r.width * 0.25, 220), y: r.top + 80, arrow: 'up' }
+  if (monthsStackRef.value) {
+    const r = monthsStackRef.value.getBoundingClientRect()
+    positions[0] = { x: r.right - 130, y: r.top + 80, arrow: 'up' }
   }
   if (ticketsSectionRef.value) {
     const r = ticketsSectionRef.value.getBoundingClientRect()
@@ -526,6 +526,7 @@ onUnmounted(() => {
 })
 
 const monthsRowRef = ref<HTMLElement | null>(null)
+const monthsStackRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
 
 async function handleExportImage(includeSummary: boolean) {
@@ -866,7 +867,7 @@ function onEventListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <div class="months-stack">
+        <div class="months-stack" ref="monthsStackRef">
           <div
             v-for="m in sortedMonths"
             :key="`${m.year}-${m.month}`"
@@ -1251,7 +1252,10 @@ function onEventListDrop(event: DragEvent) {
 .hint-gotit {
   align-self: flex-end;
   background: none;
+  -webkit-appearance: none;
+  appearance: none;
   border: none;
+  outline: none;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding: 0.3rem 0 0;
   margin-top: 0.1rem;
@@ -1267,6 +1271,12 @@ function onEventListDrop(event: DragEvent) {
   text-underline-offset: 2px;
 }
 
+.hint-gotit:hover,
+.hint-gotit:focus,
+.hint-gotit:active {
+  background: none;
+  outline: none;
+}
 
 .hint-icon {
   width: 16px;
