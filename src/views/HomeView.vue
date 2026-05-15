@@ -322,42 +322,46 @@ function seedDefaultData() {
     const r = new Date(d); r.setDate(r.getDate() + n); return r
   }
 
-  // Find the Monday of the week containing the 14th of the current month
+  // Find the Monday of the week containing the 14th of the current month,
+  // then shift forward 1 week so: week2=vacation, week3=tickets, week4=event
   const anchor = new Date(now.getFullYear(), now.getMonth(), 14)
   const dow = anchor.getDay()
-  const monday1 = calAddDays(anchor, dow === 0 ? -6 : 1 - dow)
+  const monday1 = calAddDays(anchor, (dow === 0 ? -6 : 1 - dow) + 7)
   const monday2 = calAddDays(monday1, 7)
+  const monday3 = calAddDays(monday2, 7)
 
-  // Vacation week: Tue–Thu (3 working days centered in the week)
+  // Vacation: Tue–Thu (3 days centered in week 2)
   const vacStart = toCalDate(calAddDays(monday1, 1))
   const vacEnd   = toCalDate(calAddDays(monday1, 3))
 
-  // Ticket week: Mon–Wed (3 days) and Thu–Fri (2 days)
-  const t1Start  = toCalDate(calAddDays(monday2, 1))  // Tue
-  const t1End    = toCalDate(calAddDays(monday2, 3))  // Thu
-  const t2Start  = toCalDate(calAddDays(monday2, 3))  // Thu (overlaps last day of T1, different row)
-  const t2End    = toCalDate(calAddDays(monday2, 4))  // Fri
+  // Tickets: Tue–Thu (3 days) and Thu–Fri (2 days), centered in week 3
+  const t1Start  = toCalDate(calAddDays(monday2, 1))
+  const t1End    = toCalDate(calAddDays(monday2, 3))
+  const t2Start  = toCalDate(calAddDays(monday2, 3))
+  const t2End    = toCalDate(calAddDays(monday2, 4))
 
-  // Sample Event 2: next working day after Ticket 2 (following Monday)
-  const e2Day = toCalDate(calAddDays(monday2, 7))
+  // Sample Event 2: Tue–Wed (2 days centered in week 4)
+  const e2Start  = toCalDate(calAddDays(monday3, 1))
+  const e2End    = toCalDate(calAddDays(monday3, 2))
 
-  const mariuszId = people.addPerson('Mariusz', '#3498db')
-  const myraId = people.addPerson('Myra', '#e91e63')
+  const user1Id = people.addPerson('Sample User 1', '#3498db')
+  const user2Id = people.addPerson('Sample User 2', '#e91e63')
 
-  const t1Id = tickets.addTicket({ number: 'Sample Ticket 1', title: 'Sample Ticket 1', assignedTo: mariuszId, link: '' })
+  const t1Id = tickets.addTicket({ number: 'Sample Ticket 1', title: 'Sample Ticket 1', assignedTo: user1Id, link: '' })
   tickets.placeTicket(t1Id, t1Start)
   tickets.moveTicket(t1Id, t1Start, t1End)
 
-  const t2Id = tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: myraId, link: '' })
+  const t2Id = tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: user2Id, link: '' })
   tickets.placeTicket(t2Id, t2Start)
   tickets.moveTicket(t2Id, t2Start, t2End)
 
   tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
 
   const e2Id = tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
-  tickets.placeTicket(e2Id, e2Day)
+  tickets.placeTicket(e2Id, e2Start)
+  tickets.moveTicket(e2Id, e2Start, e2End)
 
-  const vacId = vacations.addVacation(myraId)
+  const vacId = vacations.addVacation(user2Id)
   vacations.placeVacation(vacId, vacStart, vacEnd)
 }
 
@@ -694,12 +698,13 @@ function onEventListDrop(event: DragEvent) {
       </section>
 
     </aside>
-    <a class="sidebar-footer" href="https://github.com/wayrse/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">
-      <svg class="sidebar-footer-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-      </svg>
-      Report a bug
-    </a>
+    <div class="sidebar-footer">
+      <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      <span class="sidebar-footer-sep">·</span>
+      <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">Report a bug</a>
+      <span class="sidebar-footer-sep">·</span>
+      <span class="sidebar-footer-by">by <a class="sidebar-footer-link" href="https://www.linkedin.com/in/mariuszpdabrowski/" target="_blank" rel="noopener noreferrer">Mariusz Dabrowski</a></span>
+    </div>
     </div>
 
     <main class="panel">
@@ -1107,22 +1112,28 @@ function onEventListDrop(event: DragEvent) {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  color: rgba(255, 255, 255, 0.25);
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.sidebar-footer-link {
+  color: rgba(255, 255, 255, 0.3);
   text-decoration: none;
   transition: color 0.15s;
-  line-height: 1;
 }
 
-.sidebar-footer:hover {
-  color: rgba(255, 255, 255, 0.55);
+.sidebar-footer-link:hover {
+  color: rgba(255, 255, 255, 0.65);
 }
 
-.sidebar-footer-icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
+.sidebar-footer-sep {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-footer-by {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 section {
