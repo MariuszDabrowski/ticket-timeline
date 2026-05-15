@@ -1183,9 +1183,12 @@ function onEventListDrop(event: DragEvent) {
   transition: color 0.15s ease;
 }
 
+.hint-gotit::after {
+  display: none;
+}
+
 .hint-gotit:hover {
   color: rgba(255, 223, 7, 1);
-  background: none;
 }
 
 @media (max-width: 920px), (pointer: coarse) {
