@@ -12,7 +12,7 @@ const { trapRef, onKeydown } = useFocusTrap()
       <h3><span>Share Link</span></h3>
 
       <div class="body">
-        <p>Copies a link that contains your full calendar. Anyone with the link can open it directly in their browser — no account, login, or file upload needed.</p>
+        <p>Copies a link that contains your full ticket timeline. Anyone with the link can open it directly in their browser — no account, login, or file upload needed.</p>
         <p>The entire project — tickets, people, timeline, and vacations — is compressed and encoded directly into the URL. Nothing is sent to a server.</p>
         <p class="note">For very large calendars, ticket titles may be shortened or omitted automatically to keep the link within browser limits.</p>
       </div>
