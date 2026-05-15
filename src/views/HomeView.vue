@@ -1267,6 +1267,7 @@ function onEventListDrop(event: DragEvent) {
   padding: 0.3rem 0 0;
   margin-top: 0.1rem;
   width: 100%;
+  text-align: right;
   font-family: 'Nunito', sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
