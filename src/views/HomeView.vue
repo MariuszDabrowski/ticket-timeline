@@ -574,7 +574,7 @@ function onEventListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }">
           <div class="slide-inner">
             <div class="section-body">
-              <p v-if="people.people.length === 0" class="people-blurb" style="padding-top:0.3rem">Add people to the team first.</p>
+              <p v-if="people.people.length === 0" class="people-blurb">Add people to the team first.</p>
               <div v-else class="vacation-person-list">
                 <span
                   v-for="person in people.people"
@@ -962,7 +962,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0.15rem 0 0.85rem;
+  padding: 0.4rem 0 0.4rem;
 }
 
 .section-body > * {
@@ -1033,7 +1033,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   font-size: 13px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.75);
-  padding: 0.3rem 1rem 0.5rem;
+  padding: 0 1rem 0.35rem;
   margin: 0;
 }
 
@@ -1041,7 +1041,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   font-size: 13px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.75);
-  padding: 0 1rem 0.5rem;
+  padding: 0 1rem 0.35rem;
   margin: 0;
 }
 
@@ -1051,8 +1051,8 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 3px;
-  padding: 10px 0.75rem 8px;
-  margin: 0.15rem 1rem;
+  padding: 6px 0.75rem 5px;
+  margin: 0.1rem 1rem;
   width: calc(100% - 2rem);
   text-align: left;
   color: rgba(255, 255, 255, 0.7);
@@ -1072,7 +1072,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   list-style: none;
   display: flex;
   flex-direction: column;
-  margin-top: 0.4rem;
+  margin-top: 0.25rem;
 }
 
 .person {
@@ -1112,8 +1112,8 @@ section.drop-target {
 
 .ticket-list {
   list-style: none;
-  padding: 0.1rem 1rem 0.25rem 1rem;
-  margin-top: 0.5rem;
+  padding: 0.1rem 1rem 0.15rem 1rem;
+  margin-top: 0.3rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1355,10 +1355,9 @@ section.drop-target {
 }
 
 .import-section {
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.2rem;
-  padding-bottom: 0.25rem;
+  padding-top: 0.15rem;
 }
 
 .import-label {
@@ -1368,7 +1367,7 @@ section.drop-target {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.2);
-  padding: 0.35rem 1rem 0.1rem;
+  padding: 0.2rem 1rem 0.1rem;
 }
 
 .import-btn {
@@ -1376,7 +1375,7 @@ section.drop-target {
   appearance: none;
   background: none;
   border: none;
-  padding: 0.2rem 1rem;
+  padding: 0.12rem 1rem;
   font-size: 13px;
   font-family: 'Nunito', sans-serif;
   cursor: pointer;
@@ -1402,7 +1401,7 @@ section.drop-target {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  padding: 0.4rem 1rem 0.25rem;
+  padding: 0.1rem 1rem 0.15rem;
 }
 
 .vacation-person-pill {
