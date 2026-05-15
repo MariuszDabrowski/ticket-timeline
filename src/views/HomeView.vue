@@ -1357,7 +1357,7 @@ section.drop-target {
 .import-section {
   margin-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.15rem;
+  padding-top: 1rem;
 }
 
 .import-label {
@@ -1367,7 +1367,7 @@ section.drop-target {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.2);
-  padding: 0.2rem 1rem 0.1rem;
+  padding: 0 1rem 0.1rem;
 }
 
 .import-btn {
