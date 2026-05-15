@@ -326,7 +326,7 @@ function computeHintPositions() {
 
   if (monthsRowRef.value) {
     const r = monthsRowRef.value.getBoundingClientRect()
-    positions[0] = { x: r.left + Math.min(r.width * 0.3, 260), y: r.top + 80, arrow: 'up' }
+    positions[0] = { x: r.right - Math.min(r.width * 0.25, 220), y: r.top + 80, arrow: 'up' }
   }
   if (ticketsSectionRef.value) {
     const r = ticketsSectionRef.value.getBoundingClientRect()

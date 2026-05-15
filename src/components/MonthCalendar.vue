@@ -122,6 +122,22 @@ function hasTicketEndpointInRange(personId: number, start: CalendarDate, end: Ca
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
+
+  if (data.assignedTo !== null && data.startDate) {
+    const end = data.endDate ?? data.startDate
+    const hasConflict = vacationsStore.entries.some((v) =>
+      v.personId === data.assignedTo &&
+      v.startDate !== null && v.endDate !== null &&
+      compareCalendarDates(v.startDate, end) <= 0 &&
+      compareCalendarDates(data.startDate!, v.endDate) <= 0
+    )
+    if (hasConflict) {
+      const person = peopleStore.people.find((p) => p.id === data.assignedTo)
+      showRejection(`Can't assign to ${person?.name ?? 'this person'} — they're on vacation during those dates.`)
+      return
+    }
+  }
+
   ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link })
   if (data.startDate && data.endDate) {
     ticketsStore.moveTicket(id, data.startDate, data.endDate)
