@@ -145,6 +145,12 @@ h3 span {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
 }
+.modal-body :deep(.simplebar-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+}
 
 .field {
   display: flex;

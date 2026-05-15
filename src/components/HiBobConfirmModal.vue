@@ -169,6 +169,12 @@ h3 span {
   gap: 1rem;
   padding: 1.25rem 1.5rem;
 }
+.modal-body :deep(.simplebar-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+}
 
 .subtitle {
   font-size: 0.85rem;
