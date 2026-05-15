@@ -216,7 +216,7 @@ function handleDeleteTicket() {
 const draggingTicketId = ref<number | null>(null)
 const dragState = useDragStateStore()
 const ticketListIsOver = ref(false)
-
+const eventListIsOver = ref(false)
 
 const vacations = useVacationsStore()
 const showAddVacation = ref(false)
@@ -357,6 +357,8 @@ function handleHiBobConfirm(
 
 function onTicketListDragOver(event: DragEvent) {
   if (!event.dataTransfer?.types.includes('movecalendarticket')) return
+  const id = dragState.moveDrag?.ticketId
+  if (id != null && tickets.tickets.find((t) => t.id === id)?.isLabel) return
   event.preventDefault()
   ticketListIsOver.value = true
 }
@@ -367,6 +369,26 @@ function onTicketListDragLeave() {
 
 function onTicketListDrop(event: DragEvent) {
   ticketListIsOver.value = false
+  const id = event.dataTransfer?.getData('moveCalendarTicket')
+  if (!id) return
+  event.preventDefault()
+  tickets.removePlacement(Number(id))
+}
+
+function onEventListDragOver(event: DragEvent) {
+  if (!event.dataTransfer?.types.includes('movecalendarticket')) return
+  const id = dragState.moveDrag?.ticketId
+  if (id != null && !tickets.tickets.find((t) => t.id === id)?.isLabel) return
+  event.preventDefault()
+  eventListIsOver.value = true
+}
+
+function onEventListDragLeave() {
+  eventListIsOver.value = false
+}
+
+function onEventListDrop(event: DragEvent) {
+  eventListIsOver.value = false
   const id = event.dataTransfer?.getData('moveCalendarTicket')
   if (!id) return
   event.preventDefault()
@@ -472,7 +494,6 @@ function onTicketListDrop(event: DragEvent) {
           <div class="slide-inner">
             <div class="section-body">
               <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
-              <button class="add-btn" @click="showUploadEpic = true">Upload Epic CSV</button>
               <ol v-if="unplacedTickets.length > 0" class="ticket-list">
                 <li v-for="ticket in unplacedTickets" :key="ticket.id">
                   <span
@@ -486,12 +507,21 @@ function onTicketListDrop(event: DragEvent) {
                   >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
                 </li>
               </ol>
+              <div class="import-section">
+                <span class="import-label">Import</span>
+                <button class="import-btn" @click="showUploadEpic = true">Shortcut Epic CSV</button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section :class="{ 'drawer-open': !collapsed.labels, 'drawer-closing': closingSection.has('labels') }">
+      <section
+        :class="{ 'drawer-open': !collapsed.labels, 'drawer-closing': closingSection.has('labels'), 'drop-target': eventListIsOver }"
+        @dragover="onEventListDragOver"
+        @dragleave="onEventListDragLeave"
+        @drop="onEventListDrop"
+      >
         <button class="section-header" @click="toggleSection('labels')">
           <span>Events</span>
           <span class="chevron">
@@ -544,7 +574,6 @@ function onTicketListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }">
           <div class="slide-inner">
             <div class="section-body">
-              <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
               <p v-if="people.people.length === 0" class="people-blurb" style="padding-top:0.3rem">Add people to the team first.</p>
               <div v-else class="vacation-person-list">
                 <span
@@ -560,6 +589,10 @@ function onTicketListDrop(event: DragEvent) {
                   <span class="vac-pill-dot" :style="{ background: person.color }" />
                   {{ person.name }}
                 </span>
+              </div>
+              <div class="import-section">
+                <span class="import-label">Import</span>
+                <button class="import-btn" @click="showHiBob = true">HiBob Vacation Days</button>
               </div>
             </div>
           </div>
@@ -1072,7 +1105,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   transition: background 0.1s;
 }
 
-.ticket-section.drop-target {
+section.drop-target {
   background: rgba(255, 255, 255, 0.04);
   outline: 1px dashed rgba(255, 255, 255, 0.2);
 }
@@ -1319,6 +1352,50 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   padding: 1rem;
   color: #888;
   font-size: 0.9rem;
+}
+
+.import-section {
+  margin-top: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.2rem;
+  padding-bottom: 0.25rem;
+}
+
+.import-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.2);
+  padding: 0.35rem 1rem 0.1rem;
+}
+
+.import-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.2rem 1rem;
+  font-size: 13px;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.4);
+  width: 100%;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+.import-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+}
+
+.import-btn::after {
+  display: none;
 }
 
 .vacation-person-list {
