@@ -460,8 +460,15 @@ const headline = computed(() => {
 }
 
 .team-visibility input[type='checkbox']:checked {
-  background: rgba(167, 139, 250, 0.25);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
+  background-size: 200% auto;
+  animation: checkboxGradient 2.5s ease-in-out infinite alternate;
   border-color: rgba(167, 139, 250, 0.6);
+}
+
+@keyframes checkboxGradient {
+  0%   { background-position: 0% center; }
+  100% { background-position: 100% center; }
 }
 
 @keyframes checkDraw {

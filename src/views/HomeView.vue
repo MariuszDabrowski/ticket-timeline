@@ -274,7 +274,22 @@ const ticketsSectionRef = ref<HTMLElement | null>(null)
 interface HintPos { x: number; y: number; arrow: 'up' | 'left' }
 const hintPositions = ref<(HintPos | null)[]>([null, null, null])
 
+let _hintRetries = 0
+let _hintRetryTimer: ReturnType<typeof setTimeout> | null = null
+
 function computeHintPositions() {
+  if (_hintRetryTimer) { clearTimeout(_hintRetryTimer); _hintRetryTimer = null }
+
+  // Fallback: resolve IDs by ticket name in case of a page reload
+  if (!hintSampleTicketId.value) {
+    const t = tickets.tickets.find((t) => t.number === 'Sample Ticket 1')
+    if (t) hintSampleTicketId.value = t.id
+  }
+  if (!hintSampleEventId.value) {
+    const e = tickets.tickets.find((t) => t.title === 'Sample Event 2')
+    if (e) hintSampleEventId.value = e.id
+  }
+
   const positions: (HintPos | null)[] = [null, null, null]
   if (hintSampleTicketId.value !== null) {
     const el = document.querySelector<HTMLElement>(`[data-ticket-id="${hintSampleTicketId.value}"].is-start`)
@@ -295,6 +310,16 @@ function computeHintPositions() {
     positions[2] = { x: r.right + 18, y: r.top + r.height / 2, arrow: 'left' }
   }
   hintPositions.value = positions
+
+  // Retry until calendar pills appear in the DOM (up to ~2 seconds)
+  const pillsMissing = (hintSampleTicketId.value !== null && !positions[0]) ||
+                       (hintSampleEventId.value !== null && !positions[1])
+  if (hintsActive.value && pillsMissing && _hintRetries < 10) {
+    _hintRetries++
+    _hintRetryTimer = setTimeout(() => computeHintPositions(), 200)
+  } else {
+    _hintRetries = 0
+  }
 }
 
 let hintDismissListener: (() => void) | null = null
@@ -326,6 +351,7 @@ function resetAll() {
   people.loadData([])
   tickets.loadData({ tickets: [], placements: [] })
   vacations.loadData([])
+  localStorage.removeItem(HINTS_KEY)
   showReset.value = false
 }
 
@@ -1137,29 +1163,30 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-bubble {
   position: relative;
-  background: rgb(30, 30, 35);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: #fef9c3;
+  border: 1px solid rgba(202, 138, 4, 0.35);
   border-radius: 6px;
-  padding: 0.6rem 0.75rem 0.55rem;
-  max-width: 165px;
+  padding: 0.5rem 0.7rem;
+  max-width: 175px;
   font-size: 0.72rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.06);
+  color: #713f12;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.12);
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.3rem;
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.4rem;
 }
 
 .hint-icon {
-  font-size: 20px;
-  color: #f59e0b;
+  font-size: 16px;
+  color: #b45309;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  line-height: 1;
+  line-height: 1.5;
+  flex-shrink: 0;
 }
 
 @keyframes hintFadeIn {
@@ -1186,7 +1213,7 @@ function onEventListDrop(event: DragEvent) {
   bottom: 100%;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid rgb(30, 30, 35);
+  border-bottom: 7px solid #fef9c3;
 }
 
 .hint-arrow-left::before,
@@ -1208,7 +1235,7 @@ function onEventListDrop(event: DragEvent) {
   right: 100%;
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-right: 7px solid rgb(30, 30, 35);
+  border-right: 7px solid #fef9c3;
 }
 
 .reset-backdrop {
