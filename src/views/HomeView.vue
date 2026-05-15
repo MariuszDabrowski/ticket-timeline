@@ -587,9 +587,9 @@ function onEventListDrop(event: DragEvent) {
         Ticket Timeline
       </span>
       <div class="header-actions">
-        <button class="header-btn" @click="showSave = true">Save</button>
-        <button class="header-btn" @click="showLoad = true">Load</button>
-        <button class="header-btn" @click="showReset = true">Reset</button>
+        <button class="btn header-btn" @click="showSave = true">Save</button>
+        <button class="btn header-btn" @click="showLoad = true">Load</button>
+        <button class="btn header-btn" @click="showReset = true">Reset</button>
       </div>
     </header>
     <div class="below-header">
@@ -1095,19 +1095,6 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .header-btn {
-  padding: 5px 1rem;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-  cursor: pointer;
-  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   color: rgba(255, 255, 255, 0.55);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
