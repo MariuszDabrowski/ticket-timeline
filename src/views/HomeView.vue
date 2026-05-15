@@ -15,6 +15,7 @@ import HiBobModal from '../components/HiBobModal.vue'
 import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
 import AddLabelModal from '../components/AddLabelModal.vue'
+import AddVacationModal from '../components/AddVacationModal.vue'
 import SaveModal from '../components/SaveModal.vue'
 import LoadModal from '../components/LoadModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
@@ -85,7 +86,7 @@ const collapsed = computed<Record<string, boolean>>(() => ({
   people: openSection.value !== 'people',
   tickets: openSection.value !== 'tickets',
   labels: openSection.value !== 'labels',
-  sync: openSection.value !== 'sync',
+  vacations: openSection.value !== 'vacations',
   filters: openSection.value !== 'filters',
 }))
 
@@ -214,6 +215,22 @@ const ticketListIsOver = ref(false)
 
 
 const vacations = useVacationsStore()
+const showAddVacation = ref(false)
+const draggingVacationId = ref<number | null>(null)
+
+function handleAddVacation(personId: number) {
+  vacations.addVacation(personId)
+  showAddVacation.value = false
+}
+
+function vacationPersonColor(personId: number): string {
+  return people.people.find((p) => p.id === personId)?.color ?? '#555'
+}
+
+function vacationPersonName(personId: number): string {
+  return people.people.find((p) => p.id === personId)?.name ?? 'Unknown'
+}
+
 const showSave = ref(false)
 const showLoad = ref(false)
 const currentProjectName = ref('your-project-name')
@@ -482,26 +499,39 @@ function onTicketListDrop(event: DragEvent) {
         </div>
       </section>
 
-      <section :class="{ 'drawer-open': !collapsed.sync, 'drawer-closing': closingSection.has('sync') }">
-        <button class="section-header" @click="toggleSection('sync')">
-          <span>Sync</span>
+      <section :class="{ 'drawer-open': !collapsed.vacations, 'drawer-closing': closingSection.has('vacations') }">
+        <button class="section-header" @click="toggleSection('vacations')">
+          <span>Vacations</span>
           <span class="chevron">
             <Transition name="arrow">
-              <svg v-if="collapsed.sync" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+              <svg v-if="collapsed.vacations" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                 <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.sync }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }">
           <div class="slide-inner">
             <div class="section-body">
+              <button class="add-btn" @click="showAddVacation = true">Add Vacation</button>
               <button class="add-btn" @click="showHiBob = true">HiBob Vacation Days</button>
               <button
                 v-if="vacations.entries.length > 0"
                 class="add-btn clear-sync-btn"
                 @click="vacations.clearVacations()"
-              >Clear Synced Data</button>
+              >Clear All Vacations</button>
+              <ol v-if="vacations.unplacedVacations.length > 0" class="ticket-list vacation-list">
+                <li v-for="vacation in vacations.unplacedVacations" :key="vacation.id">
+                  <span
+                    class="ticket-pill"
+                    :class="{ dragging: draggingVacationId === vacation.id }"
+                    :style="{ background: vacationPersonColor(vacation.personId) }"
+                    draggable="true"
+                    @dragstart="(e) => { e.dataTransfer?.setData('vacationId', String(vacation.id)); draggingVacationId = vacation.id; dragState.startVacationMoveDrag(vacation.id, 0) }"
+                    @dragend="draggingVacationId = null; dragState.clearVacationMoveDrag()"
+                  >{{ vacationPersonName(vacation.personId) }}</span>
+                </li>
+              </ol>
             </div>
           </div>
         </div>
@@ -625,6 +655,15 @@ function onTicketListDrop(event: DragEvent) {
       v-if="showLoad"
       @load="handleLoad"
       @close="showLoad = false"
+    />
+  </Transition>
+
+  <Transition name="modal">
+    <AddVacationModal
+      v-if="showAddVacation"
+      :people="people.people"
+      @save="handleAddVacation"
+      @cancel="showAddVacation = false"
     />
   </Transition>
 
@@ -1250,6 +1289,10 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   padding: 1rem;
   color: #888;
   font-size: 0.9rem;
+}
+
+.vacation-list li::before {
+  display: none;
 }
 
 .clear-sync-btn {

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { compareCalendarDates } from './tickets'
 import type { CalendarDate } from './tickets'
@@ -6,13 +6,41 @@ import type { CalendarDate } from './tickets'
 export interface VacationEntry {
   id: number
   personId: number
-  startDate: CalendarDate
-  endDate: CalendarDate
+  startDate: CalendarDate | null  // null = unplaced (sidebar only)
+  endDate: CalendarDate | null
 }
 
 export const useVacationsStore = defineStore('vacations', () => {
   const entries = ref<VacationEntry[]>([])
   let nextId = 0
+
+  const unplacedVacations = computed(() => entries.value.filter((e) => e.startDate === null))
+
+  function addVacation(personId: number): number {
+    const id = nextId++
+    entries.value.push({ id, personId, startDate: null, endDate: null })
+    return id
+  }
+
+  function placeVacation(id: number, startDate: CalendarDate, endDate: CalendarDate) {
+    const entry = entries.value.find((e) => e.id === id)
+    if (entry) {
+      entry.startDate = startDate
+      entry.endDate = endDate
+    }
+  }
+
+  function moveVacation(id: number, startDate: CalendarDate, endDate: CalendarDate) {
+    const entry = entries.value.find((e) => e.id === id)
+    if (entry) {
+      entry.startDate = startDate
+      entry.endDate = endDate
+    }
+  }
+
+  function removeVacation(id: number) {
+    entries.value = entries.value.filter((e) => e.id !== id)
+  }
 
   function setVacations(incoming: Omit<VacationEntry, 'id'>[]) {
     entries.value = incoming.map((e) => ({ ...e, id: nextId++ }))
@@ -27,6 +55,8 @@ export const useVacationsStore = defineStore('vacations', () => {
     const monthEnd: CalendarDate = { year, month, day: new Date(year, month + 1, 0).getDate() }
     return entries.value.filter(
       (e) =>
+        e.startDate !== null &&
+        e.endDate !== null &&
         compareCalendarDates(e.startDate, monthEnd) <= 0 &&
         compareCalendarDates(e.endDate, monthStart) >= 0,
     )
@@ -49,5 +79,10 @@ export const useVacationsStore = defineStore('vacations', () => {
     nextId = loaded.length > 0 ? Math.max(...loaded.map((e) => e.id)) + 1 : 0
   }
 
-  return { entries, setVacations, clearVacations, getVacationsForMonth, removeVacationsForPerson, addVacations, loadData }
+  return {
+    entries, unplacedVacations,
+    addVacation, placeVacation, moveVacation, removeVacation,
+    setVacations, clearVacations, getVacationsForMonth,
+    removeVacationsForPerson, addVacations, loadData,
+  }
 })

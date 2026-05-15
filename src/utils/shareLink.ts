@@ -93,9 +93,9 @@ export function encodeShareLink(data: ProjectData): string {
     placements: data.placements.map((p) => [
       p.ticketId, dateToOffset(p.startDate), dateToOffset(p.endDate),
     ]),
-    vacations: data.vacations.map((v) => [
-      v.personId, dateToOffset(v.startDate), dateToOffset(v.endDate),
-    ]),
+    vacations: data.vacations
+      .filter((v) => v.startDate !== null && v.endDate !== null)
+      .map((v) => [v.personId, dateToOffset(v.startDate!), dateToOffset(v.endDate!)]),
     people: data.people.map(({ id, name, color }) => [id, name, color]),
     selectedMonths: data.selectedMonths,
   }
@@ -245,9 +245,9 @@ export function analyzeSharePayload(data: ProjectData): ShareFieldStat[] {
     p.ticketId, dateToOffset(p.startDate), dateToOffset(p.endDate),
   ]) as unknown[][]
 
-  const compactVacations = data.vacations.map((v) => [
-    v.personId, dateToOffset(v.startDate), dateToOffset(v.endDate),
-  ]) as unknown[][]
+  const compactVacations = data.vacations
+    .filter((v) => v.startDate !== null && v.endDate !== null)
+    .map((v) => [v.personId, dateToOffset(v.startDate!), dateToOffset(v.endDate!)]) as unknown[][]
 
   const compactPeople = data.people.map(({ id, name, color }) => [id, name, color]) as unknown[][]
 

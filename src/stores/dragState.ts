@@ -43,12 +43,33 @@ export const useDragStateStore = defineStore('dragState', () => {
     resizePreviewDate.value = null
   }
 
+  const vacationMoveDrag = ref<{ vacationId: number; span: number } | null>(null)
+  const vacationMovePreviewDate = ref<CalendarDate | null>(null)
+
+  function startVacationMoveDrag(vacationId: number, span: number) {
+    vacationMoveDrag.value = { vacationId, span }
+    vacationMovePreviewDate.value = null
+  }
+
+  function updateVacationMovePreview(date: CalendarDate) {
+    if (!vacationMoveDrag.value) return
+    const cur = vacationMovePreviewDate.value
+    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
+    vacationMovePreviewDate.value = date
+  }
+
+  function clearVacationMoveDrag() {
+    vacationMoveDrag.value = null
+    vacationMovePreviewDate.value = null
+  }
+
   const hoveredTicketId = ref<number | null>(null)
   const hoveredVacationId = ref<number | null>(null)
 
   return {
     moveDrag, movePreviewDate, startMoveDrag, updateMovePreview, clearMoveDrag,
     resizeDrag, resizePreviewDate, startResizeDrag, updateResizePreview, clearResizeDrag,
+    vacationMoveDrag, vacationMovePreviewDate, startVacationMoveDrag, updateVacationMovePreview, clearVacationMoveDrag,
     hoveredTicketId, hoveredVacationId,
   }
 })

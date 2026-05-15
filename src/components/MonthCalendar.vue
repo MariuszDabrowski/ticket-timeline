@@ -163,6 +163,7 @@ function durationDays(start: CalendarDate, end: CalendarDate, personId?: number 
         const cd: CalendarDate = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
         const onVacation = vacationsStore.entries.some(
           (v) => v.personId === personId &&
+            v.startDate !== null && v.endDate !== null &&
             compareCalendarDates(v.startDate, cd) <= 0 &&
             compareCalendarDates(cd, v.endDate) <= 0
         )
@@ -383,8 +384,8 @@ function daySlots(day: number): (DayTicketInfo | null)[] {
     const isOnVacation = !ticket.isLabel && ticket.assignedTo !== null &&
       vacationsStore.getVacationsForMonth(props.year, props.month).some(
         (v) => v.personId === ticket.assignedTo &&
-          compareCalendarDates(v.startDate, thisDate) <= 0 &&
-          compareCalendarDates(thisDate, v.endDate) <= 0
+          compareCalendarDates(v.startDate!, thisDate) <= 0 &&
+          compareCalendarDates(thisDate, v.endDate!) <= 0
       )
 
     const spanTotal = Math.max(1, workingDaysBetween(eff.startDate, eff.endDate) + 1)
@@ -468,55 +469,124 @@ interface DayVacationInfo {
   isEnd: boolean
   isRowStart: boolean
   isRowEnd: boolean
+  isPreview: boolean
+}
+
+function effectiveVacation(entry: { id: number; personId: number; startDate: CalendarDate | null; endDate: CalendarDate | null }): { startDate: CalendarDate; endDate: CalendarDate } {
+  if (dragState.vacationMoveDrag?.vacationId === entry.id && dragState.vacationMovePreviewDate) {
+    const newStart = dragState.vacationMovePreviewDate
+    const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
+    return { startDate: newStart, endDate: newEnd }
+  }
+  return { startDate: entry.startDate!, endDate: entry.endDate! }
 }
 
 const vacationSlotMap = computed(() => {
   const monthVacations = vacationsStore.getVacationsForMonth(props.year, props.month)
     .filter((v) => !options.hiddenPersonIds.has(v.personId))
-    .slice()
-    .sort((a, b) => compareCalendarDates(a.startDate, b.startDate))
+    .map((v) => ({ vacationId: v.id, eff: effectiveVacation(v) }))
+    .sort((a, b) => compareCalendarDates(a.eff.startDate, b.eff.startDate))
 
   const map = new Map<number, number>()
   const slotEndDates: CalendarDate[] = []
 
-  for (const entry of monthVacations) {
-    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, entry.startDate) < 0)
+  for (const { vacationId, eff } of monthVacations) {
+    const slot = slotEndDates.findIndex((end) => compareCalendarDates(end, eff.startDate) < 0)
     const assigned = slot === -1 ? slotEndDates.length : slot
-    slotEndDates[assigned] = entry.endDate
-    map.set(entry.id, assigned)
+    slotEndDates[assigned] = eff.endDate
+    map.set(vacationId, assigned)
   }
   return map
 })
 
-const totalVacationSlots = computed(() =>
-  vacationSlotMap.value.size === 0 ? 0 : Math.max(...vacationSlotMap.value.values()) + 1
+const extraVacationPreview = computed(() => {
+  const { vacationMoveDrag, vacationMovePreviewDate } = dragState
+  if (vacationMoveDrag && vacationMovePreviewDate && !vacationSlotMap.value.has(vacationMoveDrag.vacationId)) {
+    const previewStart = vacationMovePreviewDate
+    const previewEnd = addDays(previewStart, vacationMoveDrag.span)
+    if (overlapsMonth(previewStart, previewEnd))
+      return { vacationId: vacationMoveDrag.vacationId, startDate: previewStart, endDate: previewEnd }
+  }
+  return null
+})
+
+const totalVacationSlots = computed(() => {
+  const base = vacationSlotMap.value.size === 0 ? 0 : Math.max(...vacationSlotMap.value.values()) + 1
+  return extraVacationPreview.value ? base + 1 : base
+})
+
+const frozenVacationSlots = ref(0)
+watchEffect(() => {
+  if (dragState.vacationMoveDrag) {
+    if (totalVacationSlots.value > frozenVacationSlots.value) frozenVacationSlots.value = totalVacationSlots.value
+  } else {
+    frozenVacationSlots.value = 0
+  }
+})
+const stableVacationSlots = computed(() =>
+  dragState.vacationMoveDrag
+    ? Math.max(totalVacationSlots.value, frozenVacationSlots.value)
+    : totalVacationSlots.value
 )
 
 function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
   const thisDate = calDate(day)
-  const slots: (DayVacationInfo | null)[] = Array(totalVacationSlots.value).fill(null)
+  const slots: (DayVacationInfo | null)[] = Array(stableVacationSlots.value).fill(null)
   const col = colPos(day)
 
   for (const entry of vacationsStore.getVacationsForMonth(props.year, props.month)) {
     if (options.hiddenPersonIds.has(entry.personId)) continue
-    if (compareCalendarDates(entry.startDate, thisDate) > 0) continue
-    if (compareCalendarDates(thisDate, entry.endDate) > 0) continue
+    const eff = effectiveVacation(entry)
+    if (compareCalendarDates(eff.startDate, thisDate) > 0) continue
+    if (compareCalendarDates(thisDate, eff.endDate) > 0) continue
     const slot = vacationSlotMap.value.get(entry.id)
     if (slot === undefined) continue
     const person = peopleStore.people.find((p) => p.id === entry.personId)
-    const isStart = compareCalendarDates(entry.startDate, thisDate) === 0
-    const isEnd = compareCalendarDates(entry.endDate, thisDate) === 0
+    const isStart = compareCalendarDates(eff.startDate, thisDate) === 0
+    const isEnd = compareCalendarDates(eff.endDate, thisDate) === 0
     slots[slot] = {
       vacationId: entry.id,
       personId: entry.personId,
       color: person?.color ?? '#aaa',
       personName: person?.name ?? '',
-      startDate: entry.startDate,
-      endDate: entry.endDate,
+      startDate: eff.startDate,
+      endDate: eff.endDate,
       isStart,
       isEnd,
       isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
       isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
+      isPreview: dragState.vacationMoveDrag?.vacationId === entry.id,
+    }
+  }
+
+  // Vacation from another month being dragged into this one
+  const evp = extraVacationPreview.value
+  if (evp) {
+    const firstEmpty = slots.indexOf(null)
+    const previewSlot = firstEmpty !== -1 ? firstEmpty : stableVacationSlots.value - 1
+    if (
+      compareCalendarDates(evp.startDate, thisDate) <= 0 &&
+      compareCalendarDates(thisDate, evp.endDate) <= 0
+    ) {
+      const entry = vacationsStore.entries.find((v) => v.id === evp.vacationId)
+      if (entry) {
+        const person = peopleStore.people.find((p) => p.id === entry.personId)
+        const isStart = compareCalendarDates(evp.startDate, thisDate) === 0
+        const isEnd = compareCalendarDates(evp.endDate, thisDate) === 0
+        slots[previewSlot] = {
+          vacationId: evp.vacationId,
+          personId: entry.personId,
+          color: person?.color ?? '#aaa',
+          personName: person?.name ?? '',
+          startDate: evp.startDate,
+          endDate: evp.endDate,
+          isStart,
+          isEnd,
+          isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
+          isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
+          isPreview: true,
+        }
+      }
     }
   }
 
@@ -565,11 +635,6 @@ function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): 
   return `linear-gradient(to right, ${shade(p0)}, ${shade(p1)})`
 }
 
-function vacationStyle(): Record<string, string> {
-  return {
-    background: 'repeating-linear-gradient(45deg, #272727 0px, #272727 3px, #2e2e2e 3px, #2e2e2e 9px)',
-  }
-}
 
 function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
@@ -577,6 +642,7 @@ function onDragOver(event: DragEvent, day: number) {
   dragOverDay.value = day
   if (dragState.resizeDrag) dragState.updateResizePreview(calDate(day))
   if (dragState.moveDrag) dragState.updateMovePreview(calDate(day))
+  if (dragState.vacationMoveDrag) dragState.updateVacationMovePreview(calDate(day))
 }
 
 function onDragLeave(event: DragEvent) {
@@ -590,6 +656,11 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
   dragState.startResizeDrag(ticketId, side)
   ticketTooltip.value = null
   dragState.hoveredTicketId = null
+}
+
+function onVacationDragStart(event: DragEvent, info: DayVacationInfo) {
+  event.dataTransfer?.setData('moveCalendarVacation', String(info.vacationId))
+  dragState.startVacationMoveDrag(info.vacationId, spanInDays(info.startDate, info.endDate))
 }
 
 function onTicketDragStart(event: DragEvent, info: DayTicketInfo) {
@@ -607,6 +678,8 @@ function isVacationDay(personId: number | null, date: CalendarDate): boolean {
   return vacationsStore.entries.some(
     (v) =>
       v.personId === personId &&
+      v.startDate !== null &&
+      v.endDate !== null &&
       compareCalendarDates(date, v.startDate) >= 0 &&
       compareCalendarDates(date, v.endDate) <= 0,
   )
@@ -657,6 +730,22 @@ function onDrop(event: DragEvent, day: number) {
     }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
     dragState.clearMoveDrag()
+    return
+  }
+
+  const vacationId = event.dataTransfer?.getData('vacationId')
+  if (vacationId) {
+    vacationsStore.placeVacation(Number(vacationId), calDate(day), calDate(day))
+    dragState.clearVacationMoveDrag()
+    return
+  }
+
+  const moveVacationData = event.dataTransfer?.getData('moveCalendarVacation')
+  if (moveVacationData && dragState.vacationMoveDrag) {
+    const newStart = calDate(day)
+    const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
+    vacationsStore.moveVacation(Number(moveVacationData), newStart, newEnd)
+    dragState.clearVacationMoveDrag()
   }
 }
 </script>
@@ -757,10 +846,15 @@ function onDrop(event: DragEvent, day: number) {
                 'is-end': info.isEnd,
                 'row-end': info.isRowEnd,
                 'row-start': info.isRowStart,
+                'is-preview': info.isPreview,
               }"
-              :style="{ ...vacationStyle(), '--vac-color': '#5a5a5a' }"
+              :style="{ '--vac-color': info.color }"
+              draggable="true"
+              @click.stop="vacationsStore.removeVacation(info.vacationId)"
+              @dragstart="onVacationDragStart($event, info)"
+              @dragend="dragState.clearVacationMoveDrag()"
             >
-              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
+              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }}</span>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -992,14 +1086,19 @@ h2 {
   align-items: center;
   height: 100%;
   border-radius: 0;
-  cursor: default;
+  cursor: grab;
   opacity: 0.9;
+  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--vac-color) 25%, #272727) 0px, color-mix(in srgb, var(--vac-color) 25%, #272727) 3px, color-mix(in srgb, var(--vac-color) 12%, #2e2e2e) 3px, color-mix(in srgb, var(--vac-color) 12%, #2e2e2e) 9px);
   min-height: 1.1rem;
   line-height: 1;
   position: relative;
   overflow: visible;
 }
 
+
+.vacation-pill.is-preview {
+  opacity: 0.45;
+}
 
 .vacation-pill.row-end {
   z-index: 1;
