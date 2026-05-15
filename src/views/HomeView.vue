@@ -264,7 +264,8 @@ const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
 
 // Hints system
-const hintsActive = ref(true)
+const isDesktop = ref(window.matchMedia('(pointer: fine)').matches)
+const hintsActive = ref(isDesktop.value)
 const hintSampleTicketId = ref<number | null>(null)
 const hintSampleEventId = ref<number | null>(null)
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -468,6 +469,7 @@ onMounted(() => {
       handleLoad(data)
       history.replaceState(null, '', window.location.pathname)
     }
+    hintsActive.value = false
     return
   }
   if (people.people.length === 0 && tickets.tickets.length === 0) {
@@ -609,7 +611,7 @@ function onEventListDrop(event: DragEvent) {
       <div class="header-actions">
         <button class="header-btn" @click="showSave = true">Save</button>
         <button class="header-btn" @click="showLoad = true">Load</button>
-        <button class="header-btn help-btn" @click="showHelp">Help</button>
+        <button v-if="isDesktop" class="header-btn help-btn" @click="showHelp">Help</button>
         <button class="header-btn" @click="showReset = true">Reset</button>
       </div>
     </header>
@@ -663,12 +665,7 @@ function onEventListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }" :inert="collapsed.people || undefined">
           <div class="slide-inner">
             <div class="section-body">
-              <button class="add-btn" @click="showAddPerson = true">
-                <span class="add-btn-icon-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="add-btn-icon"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </span>
-                <span class="add-btn-text">Add Person</span>
-              </button>
+              <button class="add-btn" @click="showAddPerson = true">Add Person</button>
               <ul v-if="people.people.length > 0" class="people-list">
                 <li v-for="person in people.people" :key="person.id" class="person">
                   <span class="color-dot" :style="{ background: person.color }" />
@@ -703,12 +700,7 @@ function onEventListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }" :inert="collapsed.tickets || undefined">
           <div class="slide-inner">
             <div class="section-body">
-              <button class="add-btn" @click="showAddTicket = true">
-                <span class="add-btn-icon-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="add-btn-icon"><path d="M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zM21 6h-2v3h-3v2h3v3h2v-3h3v-2h-3V6z"/></svg>
-                </span>
-                <span class="add-btn-text">Add Ticket</span>
-              </button>
+              <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
               <ol v-if="unplacedTickets.length > 0" class="ticket-list">
                 <li v-for="ticket in unplacedTickets" :key="ticket.id">
                   <span
@@ -754,12 +746,7 @@ function onEventListDrop(event: DragEvent) {
           <div class="slide-inner">
             <div class="section-body">
               <p class="event-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
-              <button class="add-btn" @click="showAddLabel = true">
-                <span class="add-btn-icon-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="add-btn-icon"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-                </span>
-                <span class="add-btn-text">Add Event</span>
-              </button>
+              <button class="add-btn" @click="showAddLabel = true">Add Event</button>
               <ol v-if="unplacedLabels.length > 0" class="ticket-list">
                 <li v-for="label in unplacedLabels" :key="label.id">
                   <span
@@ -1029,7 +1016,7 @@ function onEventListDrop(event: DragEvent) {
     </div>
   </Transition>
 
-  <Teleport to="body">
+  <Teleport v-if="isDesktop" to="body">
     <Transition name="hints-fade">
     <div v-if="hintsActive" class="hints-layer">
       <div
@@ -1593,15 +1580,12 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 }
 
 .add-btn {
-  display: flex;
-  align-items: stretch;
-  padding: 0;
-  overflow: hidden;
   font-size: 14px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 3px;
+  padding: 6px 0.75rem 5px;
   margin: 0.1rem 1rem;
   width: calc(100% - 2rem);
   text-align: left;
@@ -1609,34 +1593,13 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: color 0.2s ease;
+  transition: box-shadow 0.2s ease, color 0.2s ease;
+  letter-spacing: 0px;
   line-height: 1;
-  font-family: 'Nunito', sans-serif;
 }
 
 .add-btn:hover {
   color: rgba(255, 255, 255, 0.95);
-}
-
-.add-btn-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.add-btn-icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-  opacity: 0.75;
-}
-
-.add-btn-text {
-  padding: 6px 0.6rem 5px;
 }
 
 .people-list {
