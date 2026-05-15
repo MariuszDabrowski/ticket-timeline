@@ -1219,6 +1219,15 @@ h2 {
   opacity: 0.25;
 }
 
+.vacation-pill:not(.is-start):not(.row-start) {
+  margin-left: -1px;
+  width: calc(100% + 1px);
+}
+
+.vacation-pill.is-end:not(.is-start):not(.row-start) {
+  width: calc(100% - 0.25rem + 1px);
+}
+
 .vacation-pill.row-end {
   z-index: 1;
 }

@@ -512,7 +512,7 @@ function onEventListDrop(event: DragEvent) {
               </ol>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showUploadEpic = true"><span class="icon">upload_file</span>Shortcut Epic CSV</button>
+                <button class="import-btn" @click="showUploadEpic = true"><span class="import-arrow">➜</span>Shortcut Epic CSV</button>
               </div>
             </div>
           </div>
@@ -601,7 +601,7 @@ function onEventListDrop(event: DragEvent) {
               </div>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showHiBob = true"><span class="icon">upload_file</span>HiBob Vacation Days</button>
+                <button class="import-btn" @click="showHiBob = true"><span class="import-arrow">➜</span>HiBob Vacation Days</button>
               </div>
             </div>
           </div>
@@ -1413,6 +1413,12 @@ section.drop-target {
 
 .import-btn::after {
   display: none;
+}
+
+.import-arrow {
+  color: rgba(255, 255, 255, 0.2);
+  font-style: normal;
+  flex-shrink: 0;
 }
 
 .vacation-person-list {

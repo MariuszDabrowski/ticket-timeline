@@ -233,7 +233,7 @@ const headline = computed(() => {
 
     <div class="divider" />
     <div class="section">
-      <div class="section-label">Share</div>
+      <div class="section-label">Share Calendar</div>
       <div class="share-row">
         <button
           class="share-btn"
