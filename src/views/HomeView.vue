@@ -1239,7 +1239,7 @@ function onEventListDrop(event: DragEvent) {
   border: none;
   border-radius: 6px;
   padding: 0.5rem 0.7rem;
-  max-width: 175px;
+  max-width: 230px;
   font-size: 0.72rem;
   line-height: 1.5;
   color: #fff;
