@@ -2,9 +2,7 @@ import LZString from 'lz-string'
 import type { ProjectData } from './projectStorage'
 import type { CalendarDate } from '../stores/tickets'
 
-// Compact share payload — independent of ProjectData so it can evolve separately
-
-// v1 (legacy) — long ticket field names
+// v1 (legacy) — long ticket field names, YYYYMMDD dates
 interface SharePayloadV1 {
   v: 1
   name: string
@@ -23,29 +21,49 @@ interface SharePayloadV1 {
   selectedMonths: number[]
 }
 
-// v2 — compact ticket field names; isLabel inferred from lc presence
-interface SharePayload {
+// v2 — compact ticket field names, YYYYMMDD dates
+interface SharePayloadV2 {
   v: 2
   name: string
   linkBase?: string
-  tickets: Array<{
-    id: number
-    n: string         // number
-    ti: string        // title
-    a: number | null  // assignedTo
-    lc?: string       // labelColor — presence implies isLabel: true
-  }>
-  // dates stored as YYYYMMDD integers instead of {year,month,day} objects
+  tickets: Array<{ id: number; n: string; ti: string; a: number | null; lc?: string }>
   placements: Array<{ t: number; s: number; e: number }>
   vacations: Array<{ p: number; s: number; e: number }>
   people: ProjectData['people']
   selectedMonths: number[]
 }
 
-function dateToInt(d: CalendarDate): number {
-  return d.year * 10000 + (d.month + 1) * 100 + d.day
+// v3 — positional tuples + day-offset dates (days since EPOCH)
+// tickets:    [id, number, title, assignedTo, labelColor?]
+// placements: [ticketId, startOffset, endOffset]
+// vacations:  [personId, startOffset, endOffset]
+// people:     [id, name, color]
+interface SharePayloadV3 {
+  v: 3
+  name: string
+  linkBase?: string
+  tickets: Array<[number, string, string, number | null] | [number, string, string, number | null, string]>
+  placements: Array<[number, number, number]>
+  vacations: Array<[number, number, number]>
+  people: Array<[number, string, string]>
+  selectedMonths: number[]
 }
 
+type AnyPayload = SharePayloadV1 | SharePayloadV2 | SharePayloadV3
+
+// Day-offset epoch: 2020-01-01
+const EPOCH = new Date(2020, 0, 1).getTime()
+
+function dateToOffset(d: CalendarDate): number {
+  return Math.round((new Date(d.year, d.month, d.day).getTime() - EPOCH) / 86_400_000)
+}
+
+function offsetToDate(n: number): CalendarDate {
+  const date = new Date(EPOCH + n * 86_400_000)
+  return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() }
+}
+
+// v1/v2 legacy date helpers
 function intToDate(n: number): CalendarDate {
   const day = n % 100
   const month = Math.floor(n / 100) % 100 - 1
@@ -53,9 +71,7 @@ function intToDate(n: number): CalendarDate {
   return { year, month, day }
 }
 
-function extractLinkBase(
-  tickets: ProjectData['tickets'],
-): string | undefined {
+function extractLinkBase(tickets: ProjectData['tickets']): string | undefined {
   const linked = tickets.filter((t) => t.link && t.number && t.link.endsWith(t.number))
   if (linked.length === 0 || linked.length !== tickets.filter((t) => t.link).length) return undefined
   const base = linked[0]!.link.slice(0, -linked[0]!.number.length)
@@ -65,25 +81,22 @@ function extractLinkBase(
 export function encodeShareLink(data: ProjectData): string {
   const linkBase = extractLinkBase(data.tickets)
 
-  const payload: SharePayload = {
-    v: 2,
+  const payload: SharePayloadV3 = {
+    v: 3,
     name: data.name,
     linkBase,
-    tickets: data.tickets.map(({ id, number, title, assignedTo, labelColor }) => ({
-      id, n: number, ti: title, a: assignedTo,
-      ...(labelColor !== undefined && { lc: labelColor }),
-    })),
-    placements: data.placements.map((p) => ({
-      t: p.ticketId,
-      s: dateToInt(p.startDate),
-      e: dateToInt(p.endDate),
-    })),
-    vacations: data.vacations.map((v) => ({
-      p: v.personId,
-      s: dateToInt(v.startDate),
-      e: dateToInt(v.endDate),
-    })),
-    people: data.people,
+    tickets: data.tickets.map(({ id, number, title, assignedTo, labelColor }) =>
+      labelColor !== undefined
+        ? [id, number, title, assignedTo, labelColor]
+        : [id, number, title, assignedTo]
+    ),
+    placements: data.placements.map((p) => [
+      p.ticketId, dateToOffset(p.startDate), dateToOffset(p.endDate),
+    ]),
+    vacations: data.vacations.map((v) => [
+      v.personId, dateToOffset(v.startDate), dateToOffset(v.endDate),
+    ]),
+    people: data.people.map(({ id, name, color }) => [id, name, color]),
     selectedMonths: data.selectedMonths,
   }
 
@@ -94,22 +107,33 @@ export function decodeShareLink(encoded: string): ProjectData | null {
   try {
     const json = LZString.decompressFromEncodedURIComponent(encoded)
     if (!json) return null
-    const raw = JSON.parse(json) as SharePayload | SharePayloadV1
+    const raw = JSON.parse(json) as AnyPayload
 
-    const sharedFields = (payload: SharePayload | SharePayloadV1) => ({
-      placements: payload.placements.map((p) => ({
-        ticketId: p.t,
-        startDate: intToDate(p.s),
-        endDate: intToDate(p.e),
-      })),
-      vacations: payload.vacations.map((v) => ({
-        personId: v.p,
-        startDate: intToDate(v.s),
-        endDate: intToDate(v.e),
-      })),
-      people: payload.people,
-      selectedMonths: payload.selectedMonths,
-    })
+    if (raw.v === 3) {
+      return {
+        name: raw.name,
+        tickets: raw.tickets.map((t) => ({
+          id: t[0],
+          number: t[1],
+          title: t[2],
+          assignedTo: t[3],
+          link: raw.linkBase ? raw.linkBase + t[1] : '',
+          ...(t[4] !== undefined && { isLabel: true, labelColor: t[4] }),
+        })),
+        placements: raw.placements.map((p) => ({
+          ticketId: p[0],
+          startDate: offsetToDate(p[1]),
+          endDate: offsetToDate(p[2]),
+        })),
+        vacations: raw.vacations.map((v) => ({
+          personId: v[0],
+          startDate: offsetToDate(v[1]),
+          endDate: offsetToDate(v[2]),
+        })),
+        people: raw.people.map((p) => ({ id: p[0], name: p[1], color: p[2] })),
+        selectedMonths: raw.selectedMonths,
+      }
+    }
 
     if (raw.v === 2) {
       return {
@@ -122,7 +146,18 @@ export function decodeShareLink(encoded: string): ProjectData | null {
           link: raw.linkBase ? raw.linkBase + t.n : '',
           ...(t.lc !== undefined && { isLabel: true, labelColor: t.lc }),
         })),
-        ...sharedFields(raw),
+        placements: raw.placements.map((p) => ({
+          ticketId: p.t,
+          startDate: intToDate(p.s),
+          endDate: intToDate(p.e),
+        })),
+        vacations: raw.vacations.map((v) => ({
+          personId: v.p,
+          startDate: intToDate(v.s),
+          endDate: intToDate(v.e),
+        })),
+        people: raw.people,
+        selectedMonths: raw.selectedMonths,
       }
     }
 
@@ -133,7 +168,18 @@ export function decodeShareLink(encoded: string): ProjectData | null {
           ...t,
           link: raw.linkBase ? raw.linkBase + t.number : '',
         })),
-        ...sharedFields(raw),
+        placements: raw.placements.map((p) => ({
+          ticketId: p.t,
+          startDate: intToDate(p.s),
+          endDate: intToDate(p.e),
+        })),
+        vacations: raw.vacations.map((v) => ({
+          personId: v.p,
+          startDate: intToDate(v.s),
+          endDate: intToDate(v.e),
+        })),
+        people: raw.people,
+        selectedMonths: raw.selectedMonths,
       }
     }
 
@@ -160,35 +206,48 @@ export interface ShareFieldStat {
 export function analyzeSharePayload(data: ProjectData): ShareFieldStat[] {
   const linkBase = extractLinkBase(data.tickets)
 
-  const compactTickets = data.tickets.map(({ id, number, title, assignedTo, labelColor }) => ({
-    id, n: number, ti: title, a: assignedTo,
-    ...(labelColor !== undefined && { lc: labelColor }),
-  }))
-  const compactPlacements = data.placements.map((p) => ({
-    t: p.ticketId, s: dateToInt(p.startDate), e: dateToInt(p.endDate),
-  }))
-  const compactVacations = data.vacations.map((v) => ({
-    p: v.personId, s: dateToInt(v.startDate), e: dateToInt(v.endDate),
-  }))
+  const compactTickets = data.tickets.map(({ id, number, title, assignedTo, labelColor }) =>
+    labelColor !== undefined
+      ? [id, number, title, assignedTo, labelColor]
+      : [id, number, title, assignedTo]
+  ) as unknown[][]
 
-  function avgFieldSizes(items: Record<string, unknown>[]): { label: string; chars: number }[] {
+  const compactPlacements = data.placements.map((p) => [
+    p.ticketId, dateToOffset(p.startDate), dateToOffset(p.endDate),
+  ]) as unknown[][]
+
+  const compactVacations = data.vacations.map((v) => [
+    v.personId, dateToOffset(v.startDate), dateToOffset(v.endDate),
+  ]) as unknown[][]
+
+  const compactPeople = data.people.map(({ id, name, color }) => [id, name, color]) as unknown[][]
+
+  function avgTupleSizes(items: unknown[][], labels: string[]): { label: string; chars: number }[] {
     if (items.length === 0) return []
-    const totals: Record<string, number> = {}
+    const totals: number[] = new Array(labels.length).fill(0)
+    const counts: number[] = new Array(labels.length).fill(0)
     for (const item of items) {
-      for (const [k, v] of Object.entries(item)) {
-        totals[k] = (totals[k] ?? 0) + JSON.stringify(v).length + k.length + 3
+      for (let i = 0; i < item.length; i++) {
+        totals[i] = (totals[i] ?? 0) + JSON.stringify(item[i]).length + 1
+        counts[i]!++
       }
     }
-    return Object.entries(totals)
-      .map(([label, chars]) => ({ label, chars: Math.round(chars / items.length) }))
+    return labels
+      .map((label, i) => ({ label, chars: counts[i]! > 0 ? Math.round(totals[i]! / counts[i]!) : 0 }))
+      .filter((x) => x.chars > 0)
       .sort((a, b) => b.chars - a.chars)
   }
 
-  const sections: { field: string; value: unknown; items?: Record<string, unknown>[] }[] = [
-    { field: 'tickets', value: compactTickets, items: compactTickets as Record<string, unknown>[] },
-    { field: 'placements', value: compactPlacements, items: compactPlacements as Record<string, unknown>[] },
-    { field: 'vacations', value: compactVacations, items: compactVacations as Record<string, unknown>[] },
-    { field: 'people', value: data.people, items: data.people as unknown as Record<string, unknown>[] },
+  const sections: {
+    field: string
+    value: unknown
+    tuples?: unknown[][]
+    tupleLabels?: string[]
+  }[] = [
+    { field: 'tickets', value: compactTickets, tuples: compactTickets, tupleLabels: ['id', 'n', 'ti', 'a', 'lc'] },
+    { field: 'placements', value: compactPlacements, tuples: compactPlacements, tupleLabels: ['t', 's', 'e'] },
+    { field: 'vacations', value: compactVacations, tuples: compactVacations, tupleLabels: ['p', 's', 'e'] },
+    { field: 'people', value: compactPeople, tuples: compactPeople, tupleLabels: ['id', 'name', 'color'] },
     { field: 'linkBase', value: linkBase ?? '' },
     { field: 'selectedMonths', value: data.selectedMonths },
   ]
@@ -197,7 +256,7 @@ export function analyzeSharePayload(data: ProjectData): ShareFieldStat[] {
     field: s.field,
     rawChars: JSON.stringify(s.value).length,
     count: Array.isArray(s.value) ? (s.value as unknown[]).length : null,
-    detail: s.items ? avgFieldSizes(s.items) : [],
+    detail: s.tuples && s.tupleLabels ? avgTupleSizes(s.tuples, s.tupleLabels) : [],
   }))
 
   const total = sized.reduce((sum, s) => sum + s.rawChars, 0)
