@@ -1143,7 +1143,9 @@ function onEventListDrop(event: DragEvent) {
   color: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
   font-family: 'Nunito', sans-serif;
-  animation: hintFadeIn 0.3s ease-out both;
+  opacity: 1;
+  transform: translateY(-50%);
+  animation: hintFadeIn 0.3s ease-out;
   transition: opacity 0.4s ease;
   display: flex;
   flex-direction: column;
@@ -1205,8 +1207,8 @@ function onEventListDrop(event: DragEvent) {
 }
 
 @keyframes hintFadeIn {
-  from { opacity: 0; transform: translateY(calc(-50% - 4px)); }
-  to   { opacity: 1; transform: translateY(-50%); }
+  from { transform: translateY(calc(-50% - 4px)); }
+  to   { transform: translateY(-50%); }
 }
 
 .hint-arrow-up::after {
