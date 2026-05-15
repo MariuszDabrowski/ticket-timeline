@@ -192,7 +192,7 @@ const headline = computed(() => {
                 <input
                   v-if="stat.id !== null"
                   type="checkbox"
-                  :checked="!optionsStore.hiddenPersonIds.has(stat.id)"
+                  :checked="!!calendarCountByPerson.get(stat.id) && !optionsStore.hiddenPersonIds.has(stat.id)"
                   :disabled="!calendarCountByPerson.get(stat.id)"
                   @change="optionsStore.togglePersonVisibility(stat.id!)"
                 />

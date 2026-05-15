@@ -1154,6 +1154,7 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .hint-footer {
+  width: 100%;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding-top: 0.3rem;
   margin-top: 0.1rem;
