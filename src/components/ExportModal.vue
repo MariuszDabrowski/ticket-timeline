@@ -68,6 +68,13 @@ type ShareStatus = 'idle' | 'copied' | 'toolong'
 const shareStatus = ref<ShareStatus>('idle')
 const shareByteCount = ref(0)
 
+interface ShareBreakdown {
+  field: string
+  rawChars: number
+  pct: number
+}
+const shareBreakdown = ref<ShareBreakdown[]>([])
+
 function buildShareUrl(): { url: string; length: number } {
   const name = projectName.value.trim() || 'project'
   const payload: ProjectData = { name, ...snapshot() }
@@ -76,12 +83,26 @@ function buildShareUrl(): { url: string; length: number } {
   return { url, length: url.length }
 }
 
+function computeBreakdown(): ShareBreakdown[] {
+  const data = snapshot()
+  const fields: [string, unknown][] = [
+    ['tickets', data.tickets],
+    ['placements', data.placements],
+    ['vacations', data.vacations],
+    ['people', data.people],
+    ['selectedMonths', data.selectedMonths],
+  ]
+  const sizes = fields.map(([field, val]) => ({ field, rawChars: JSON.stringify(val).length }))
+  const total = sizes.reduce((s, f) => s + f.rawChars, 0)
+  return sizes.map((f) => ({ ...f, pct: Math.round((f.rawChars / total) * 100) }))
+}
+
 function copyShareLink() {
   const { url, length } = buildShareUrl()
   shareByteCount.value = length
   if (length > URL_WARN_THRESHOLD) {
+    shareBreakdown.value = computeBreakdown()
     shareStatus.value = 'toolong'
-    setTimeout(() => (shareStatus.value = 'idle'), 4000)
     return
   }
   navigator.clipboard.writeText(url)
@@ -172,8 +193,16 @@ function fmtDate(iso: string) {
                 no account or upload needed.
               </div>
               <div v-if="shareStatus === 'toolong'" class="share-warn">
-                Link is {{ shareByteCount.toLocaleString() }} characters — too long to share
-                reliably. Try Download JSON instead.
+                <div class="share-warn-msg">Link is {{ shareByteCount.toLocaleString() }} characters — too long to share reliably.</div>
+                <div class="share-breakdown">
+                  <div v-for="row in shareBreakdown" :key="row.field" class="share-breakdown-row">
+                    <span class="breakdown-field">{{ row.field }}</span>
+                    <div class="breakdown-bar-wrap">
+                      <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
+                    </div>
+                    <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} chars ({{ row.pct }}%)</span>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="option-action">
@@ -339,10 +368,56 @@ h3 span {
 }
 
 .share-warn {
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   font-size: 0.75rem;
   color: #e8a735;
+}
+
+.share-warn-msg {
+  margin-bottom: 0.5rem;
   opacity: 0.9;
+}
+
+.share-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.share-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breakdown-field {
+  width: 5.5rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdown-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.breakdown-bar {
+  height: 100%;
+  background: #e8a735;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.breakdown-chars {
+  width: 10rem;
+  flex-shrink: 0;
+  text-align: right;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
 }
 
 .option-action {
