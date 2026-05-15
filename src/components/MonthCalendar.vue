@@ -98,13 +98,23 @@ const holidayMap = computed(() => {
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
-const vacationDropRejected = ref(false)
-let vacationToastTimer: ReturnType<typeof setTimeout> | null = null
+const rejectedMessage = ref<string | null>(null)
+let rejectedTimer: ReturnType<typeof setTimeout> | null = null
 
-function showVacationRejection() {
-  vacationDropRejected.value = true
-  if (vacationToastTimer) clearTimeout(vacationToastTimer)
-  vacationToastTimer = setTimeout(() => { vacationDropRejected.value = false }, 2500)
+function showRejection(message: string) {
+  rejectedMessage.value = message
+  if (rejectedTimer) clearTimeout(rejectedTimer)
+  rejectedTimer = setTimeout(() => { rejectedMessage.value = null }, 2500)
+}
+
+function hasTicketEndpointInRange(personId: number, start: CalendarDate, end: CalendarDate): boolean {
+  return ticketsStore.placements.some((p) => {
+    const ticket = ticketsStore.tickets.find((t) => t.id === p.ticketId)
+    if (!ticket || ticket.isLabel || ticket.assignedTo !== personId) return false
+    const startHit = compareCalendarDates(p.startDate, start) >= 0 && compareCalendarDates(p.startDate, end) <= 0
+    const endHit = compareCalendarDates(p.endDate, start) >= 0 && compareCalendarDates(p.endDate, end) <= 0
+    return startHit || endHit
+  })
 }
 
 function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
@@ -720,7 +730,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(id))
     if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
       dragState.clearResizeDrag()
-      showVacationRejection()
+      showRejection("Tickets can't start or end on a vacation day")
       return
     }
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
@@ -737,7 +747,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(moveData))
     if (ticket && (isVacationDay(ticket.assignedTo, newStart) || isVacationDay(ticket.assignedTo, newEnd))) {
       dragState.clearMoveDrag()
-      showVacationRejection()
+      showRejection("Tickets can't start or end on a vacation day")
       return
     }
     ticketsStore.moveTicket(Number(moveData), newStart, newEnd)
@@ -750,7 +760,7 @@ function onDrop(event: DragEvent, day: number) {
     const ticket = ticketsStore.tickets.find((t) => t.id === Number(ticketId))
     if (ticket && isVacationDay(ticket.assignedTo, calDate(day))) {
       dragState.clearMoveDrag()
-      showVacationRejection()
+      showRejection("Tickets can't start or end on a vacation day")
       return
     }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
@@ -764,10 +774,16 @@ function onDrop(event: DragEvent, day: number) {
     const id = Number(idStr)
     const entry = vacationsStore.entries.find((v) => v.id === id)
     if (entry && entry.startDate && entry.endDate) {
-      if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0)
-        vacationsStore.moveVacation(id, calDate(day), entry.endDate)
-      else if (side === 'end' && compareCalendarDates(calDate(day), entry.startDate) >= 0)
-        vacationsStore.moveVacation(id, entry.startDate, calDate(day))
+      let newStart = entry.startDate
+      let newEnd = entry.endDate
+      if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0) newStart = calDate(day)
+      else if (side === 'end' && compareCalendarDates(calDate(day), entry.startDate) >= 0) newEnd = calDate(day)
+      if (hasTicketEndpointInRange(entry.personId, newStart, newEnd)) {
+        dragState.clearVacationResizeDrag()
+        showRejection("Vacations can't cover a ticket's start or end day")
+        return
+      }
+      vacationsStore.moveVacation(id, newStart, newEnd)
     }
     dragState.clearVacationResizeDrag()
     return
@@ -775,6 +791,12 @@ function onDrop(event: DragEvent, day: number) {
 
   const vacationId = event.dataTransfer?.getData('vacationId')
   if (vacationId) {
+    const entry = vacationsStore.entries.find((v) => v.id === Number(vacationId))
+    if (entry && hasTicketEndpointInRange(entry.personId, calDate(day), calDate(day))) {
+      dragState.clearVacationMoveDrag()
+      showRejection("Vacations can't cover a ticket's start or end day")
+      return
+    }
     vacationsStore.placeVacation(Number(vacationId), calDate(day), calDate(day))
     dragState.clearVacationMoveDrag()
     return
@@ -782,15 +804,26 @@ function onDrop(event: DragEvent, day: number) {
 
   const newVacationPersonId = event.dataTransfer?.getData('newVacationPersonId')
   if (newVacationPersonId) {
-    const id = vacationsStore.addVacation(Number(newVacationPersonId))
+    const personId = Number(newVacationPersonId)
+    if (hasTicketEndpointInRange(personId, calDate(day), calDate(day))) {
+      showRejection("Vacations can't cover a ticket's start or end day")
+      return
+    }
+    const id = vacationsStore.addVacation(personId)
     vacationsStore.placeVacation(id, calDate(day), calDate(day))
     return
   }
 
   const moveVacationData = event.dataTransfer?.getData('moveCalendarVacation')
   if (moveVacationData && dragState.vacationMoveDrag) {
+    const entry = vacationsStore.entries.find((v) => v.id === Number(moveVacationData))
     const newStart = calDate(day)
     const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
+    if (entry && hasTicketEndpointInRange(entry.personId, newStart, newEnd)) {
+      dragState.clearVacationMoveDrag()
+      showRejection("Vacations can't cover a ticket's start or end day")
+      return
+    }
     vacationsStore.moveVacation(Number(moveVacationData), newStart, newEnd)
     dragState.clearVacationMoveDrag()
   }
@@ -799,8 +832,8 @@ function onDrop(event: DragEvent, day: number) {
 
 <template>
   <Transition name="toast">
-    <div v-if="vacationDropRejected" class="vacation-toast">
-      Tickets can't start or end on a vacation day
+    <div v-if="rejectedMessage" class="vacation-toast">
+      {{ rejectedMessage }}
     </div>
   </Transition>
   <div class="month-calendar">
