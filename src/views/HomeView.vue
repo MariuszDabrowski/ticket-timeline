@@ -103,7 +103,7 @@ function handleAddPerson(name: string, color: string) {
   people.addPerson(name, color)
   showAddPerson.value = false
   openSection.value = 'people'
-  dismissHint(1)
+  dismissHint()
 }
 
 function handleEditPersonSave(name: string, color: string) {
@@ -136,7 +136,7 @@ function handleAddLabel(text: string, color: string, startDate: CalendarDate | n
     tickets.moveTicket(id, startDate, endDate ?? startDate)
   }
   showAddLabel.value = false
-  dismissHint(1)
+  dismissHint()
 }
 
 function handleSaveLabel(text: string, color: string) {
@@ -158,7 +158,7 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
     tickets.moveTicket(id, startDate, end)
   }
   showAddTicket.value = false
-  dismissHint(1)
+  dismissHint()
 }
 
 function ticketColor(assignedTo: number | null): string {
@@ -308,54 +308,21 @@ const currentProjectName = ref('your-project-name')
 
 // Hints system
 const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
-const hintDismissed = ref([false, false])
-const anyHintVisible = computed(() => hintsActive.value && hintDismissed.value.some((d) => !d))
+const hintDismissed = ref(false)
+const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
 let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
+const hintPos = ref<{ x: number; y: number } | null>(null)
 
-interface HintPos { x: number; y: number; arrow: 'up' | 'down' | 'left' }
-const hintPositions = ref<(HintPos | null)[]>([null, null])
-
-let _hintRetries = 0
-let _hintRetryTimer: ReturnType<typeof setTimeout> | null = null
-
-function computeHintPositions() {
-  if (_hintRetryTimer) { clearTimeout(_hintRetryTimer); _hintRetryTimer = null }
-
-  const positions: (HintPos | null)[] = [null, null]
-
-  if (monthsStackRef.value) {
-    const r = monthsStackRef.value.getBoundingClientRect()
-    const x = Math.max(r.left + 220, r.right - 130)
-    positions[0] = { x, y: r.top + 220, arrow: 'down' }
-  }
-  if (ticketsSectionRef.value) {
-    const r = ticketsSectionRef.value.getBoundingClientRect()
-    positions[1] = { x: r.right + 18, y: r.top + r.height / 2, arrow: 'left' }
-  }
-  hintPositions.value = positions
-
-  const missing = !positions[0] || !positions[1]
-  if (anyHintVisible.value && missing && _hintRetries < 10) {
-    _hintRetries++
-    _hintRetryTimer = setTimeout(() => computeHintPositions(), 200)
-  } else {
-    _hintRetries = 0
-  }
+function computeHintPosition() {
+  if (!ticketsSectionRef.value) return
+  const r = ticketsSectionRef.value.querySelector('.section-header')?.getBoundingClientRect()
+              ?? ticketsSectionRef.value.getBoundingClientRect()
+  hintPos.value = { x: r.right + 18, y: r.top + r.height / 2 }
 }
 
-let _hintScrollRaf: number | null = null
-function onScrollForHints() {
-  if (!anyHintVisible.value) return
-  if (_hintScrollRaf !== null) return
-  _hintScrollRaf = requestAnimationFrame(() => {
-    _hintScrollRaf = null
-    computeHintPositions()
-  })
-}
-
-function dismissHint(index: number) {
-  hintDismissed.value = hintDismissed.value.map((d, i) => (i === index ? true : d))
+function dismissHint() {
+  hintDismissed.value = true
 }
 
 function resetAll() {
@@ -497,37 +464,13 @@ onMounted(() => {
     seedDefaultData()
   }
   if (hintsActive.value) {
-    setTimeout(() => computeHintPositions(), 350)
+    nextTick(() => computeHintPosition())
   }
-  document.addEventListener('scroll', onScrollForHints, true)
   nextTick(() => { hintBootstrapDone = true })
 })
 
-watch(
-  () => tickets.placements.length,
-  (len) => {
-    if (len > 0 && anyHintVisible.value && !hintPositions.value[0]) {
-      nextTick(() => computeHintPositions())
-    }
-  }
-)
-
-// Auto-dismiss hints when the user performs the described action
-watch(editingTicket, (val) => {
-  if (val !== null && hintBootstrapDone) dismissHint(0)
-})
-watch(
-  () => tickets.placements.map((p) => `${p.ticketId}:${p.startDate.year}-${p.startDate.month}-${p.startDate.day}:${p.endDate.year}-${p.endDate.month}-${p.endDate.day}`).join('|'),
-  () => { if (hintBootstrapDone) dismissHint(0) }
-)
-
-onUnmounted(() => {
-  document.removeEventListener('scroll', onScrollForHints, true)
-  if (_hintScrollRaf !== null) cancelAnimationFrame(_hintScrollRaf)
-})
 
 const monthsRowRef = ref<HTMLElement | null>(null)
-const monthsStackRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
 
 async function handleExportImage(includeSummary: boolean) {
@@ -868,7 +811,7 @@ function onEventListDrop(event: DragEvent) {
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
-        <div class="months-stack" ref="monthsStackRef">
+        <div class="months-stack">
           <div
             v-for="m in sortedMonths"
             :key="`${m.year}-${m.month}`"
@@ -1086,25 +1029,14 @@ function onEventListDrop(event: DragEvent) {
 
   <Teleport to="body">
     <Transition name="hints-fade">
-    <div v-if="anyHintVisible && !anyModalOpen" class="hints-layer">
+    <div v-if="anyHintVisible && !anyModalOpen && hintPos" class="hints-layer">
       <div
-        v-if="hintPositions[0] && !hintDismissed[0]"
-        class="hint-anchor hint-anchor-down"
-        :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
-      >
-        <div class="hint-bubble hint-arrow-down">
-          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Interact with items by moving, scaling, and clicking into them</span>
-          <button class="hint-gotit" @click.stop="dismissHint(0)">Got it</button>
-        </div>
-      </div>
-      <div
-        v-if="hintPositions[1] && !hintDismissed[1]"
         class="hint-anchor hint-anchor-left"
-        :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
+        :style="{ left: hintPos.x + 'px', top: hintPos.y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-left">
-          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items here, drag them onto the calendar when ready</span>
-          <button class="hint-gotit" @click.stop="dismissHint(1)">Got it</button>
+          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
+          <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
         </div>
       </div>
     </div>
@@ -1296,23 +1228,6 @@ function onEventListDrop(event: DragEvent) {
   border-bottom: 7px solid #665c22;
 }
 
-.hint-arrow-down::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  top: 100%;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 7px solid #665c22;
-}
-
-.hint-anchor-down .hint-bubble {
-  transform: translateY(calc(-100% - 8px));
-  width: 200px;
-}
 
 .hint-arrow-left::after {
   content: '';
