@@ -6,7 +6,7 @@ import {
   setSavedProjects,
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
-import LZString from 'lz-string'
+import { buildShareUrl } from '../utils/shareLink'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
@@ -75,11 +75,10 @@ interface ShareBreakdown {
 }
 const shareBreakdown = ref<ShareBreakdown[]>([])
 
-function buildShareUrl(): { url: string; length: number } {
+function getShareUrl(): { url: string; length: number } {
   const name = projectName.value.trim() || 'project'
   const payload: ProjectData = { name, ...snapshot() }
-  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(payload))
-  const url = `${window.location.origin}${window.location.pathname}#share=${compressed}`
+  const url = buildShareUrl(payload)
   return { url, length: url.length }
 }
 
@@ -98,7 +97,7 @@ function computeBreakdown(): ShareBreakdown[] {
 }
 
 function copyShareLink() {
-  const { url, length } = buildShareUrl()
+  const { url, length } = getShareUrl()
   shareByteCount.value = length
   if (length > URL_WARN_THRESHOLD) {
     shareBreakdown.value = computeBreakdown()
