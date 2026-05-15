@@ -1020,7 +1020,7 @@ function onEventListDrop(event: DragEvent) {
         :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-up">
-          <span class="icon hint-icon">tips_and_updates</span>
+          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
           <span>Click on tickets and events to edit them</span>
         </div>
       </div>
@@ -1030,7 +1030,7 @@ function onEventListDrop(event: DragEvent) {
         :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-up">
-          <span class="icon hint-icon">tips_and_updates</span>
+          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
           <span>Drag the tickets around, or use the handles to expand</span>
         </div>
       </div>
@@ -1040,7 +1040,7 @@ function onEventListDrop(event: DragEvent) {
         :style="{ left: hintPositions[2].x + 'px', top: hintPositions[2].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-left">
-          <span class="icon hint-icon">tips_and_updates</span>
+          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
           <span>Create new items here, drag them onto the calendar when ready</span>
         </div>
       </div>
@@ -1160,15 +1160,15 @@ function onEventListDrop(event: DragEvent) {
 
 .hint-bubble {
   position: relative;
-  background: #fef9c3;
-  border: 1px solid rgba(202, 138, 4, 0.35);
+  background: #665c22;
+  border: none;
   border-radius: 6px;
   padding: 0.5rem 0.7rem;
   max-width: 175px;
   font-size: 0.72rem;
   line-height: 1.5;
-  color: #713f12;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
   display: flex;
@@ -1179,11 +1179,11 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .hint-icon {
-  font-size: 16px;
-  color: #b45309;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  line-height: 1.5;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  margin-top: 2px;
+  color: #ffdf07;
 }
 
 @keyframes hintFadeIn {
@@ -1191,7 +1191,6 @@ function onEventListDrop(event: DragEvent) {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.hint-arrow-up::before,
 .hint-arrow-up::after {
   content: '';
   position: absolute;
@@ -1199,21 +1198,12 @@ function onEventListDrop(event: DragEvent) {
   transform: translateX(-50%);
   width: 0;
   height: 0;
-}
-.hint-arrow-up::before {
-  bottom: calc(100% + 1px);
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid rgba(245, 158, 11, 0.3);
-}
-.hint-arrow-up::after {
   bottom: 100%;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid #fef9c3;
+  border-bottom: 7px solid #665c22;
 }
 
-.hint-arrow-left::before,
 .hint-arrow-left::after {
   content: '';
   position: absolute;
@@ -1221,18 +1211,10 @@ function onEventListDrop(event: DragEvent) {
   transform: translateY(-50%);
   width: 0;
   height: 0;
-}
-.hint-arrow-left::before {
-  right: calc(100% + 1px);
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 8px solid rgba(245, 158, 11, 0.3);
-}
-.hint-arrow-left::after {
   right: 100%;
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
-  border-right: 7px solid #fef9c3;
+  border-right: 7px solid #665c22;
 }
 
 .reset-backdrop {
