@@ -473,6 +473,13 @@ interface DayVacationInfo {
 }
 
 function effectiveVacation(entry: { id: number; personId: number; startDate: CalendarDate | null; endDate: CalendarDate | null }): { startDate: CalendarDate; endDate: CalendarDate } {
+  if (dragState.vacationResizeDrag?.vacationId === entry.id && dragState.vacationResizePreviewDate) {
+    const previewDate = dragState.vacationResizePreviewDate
+    if (dragState.vacationResizeDrag.side === 'start' && compareCalendarDates(previewDate, entry.endDate!) <= 0)
+      return { startDate: previewDate, endDate: entry.endDate! }
+    if (dragState.vacationResizeDrag.side === 'end' && compareCalendarDates(previewDate, entry.startDate!) >= 0)
+      return { startDate: entry.startDate!, endDate: previewDate }
+  }
   if (dragState.vacationMoveDrag?.vacationId === entry.id && dragState.vacationMovePreviewDate) {
     const newStart = dragState.vacationMovePreviewDate
     const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
@@ -500,13 +507,24 @@ const vacationSlotMap = computed(() => {
 })
 
 const extraVacationPreview = computed(() => {
-  const { vacationMoveDrag, vacationMovePreviewDate } = dragState
+  const { vacationMoveDrag, vacationMovePreviewDate, vacationResizeDrag, vacationResizePreviewDate } = dragState
+
   if (vacationMoveDrag && vacationMovePreviewDate && !vacationSlotMap.value.has(vacationMoveDrag.vacationId)) {
     const previewStart = vacationMovePreviewDate
     const previewEnd = addDays(previewStart, vacationMoveDrag.span)
     if (overlapsMonth(previewStart, previewEnd))
       return { vacationId: vacationMoveDrag.vacationId, startDate: previewStart, endDate: previewEnd }
   }
+
+  if (vacationResizeDrag && vacationResizePreviewDate && !vacationSlotMap.value.has(vacationResizeDrag.vacationId)) {
+    const original = vacationsStore.entries.find((v) => v.id === vacationResizeDrag.vacationId)
+    if (original && original.startDate && original.endDate) {
+      const eff = effectiveVacation(original)
+      if (overlapsMonth(eff.startDate, eff.endDate))
+        return { vacationId: vacationResizeDrag.vacationId, startDate: eff.startDate, endDate: eff.endDate }
+    }
+  }
+
   return null
 })
 
@@ -517,14 +535,14 @@ const totalVacationSlots = computed(() => {
 
 const frozenVacationSlots = ref(0)
 watchEffect(() => {
-  if (dragState.vacationMoveDrag) {
+  if (dragState.vacationMoveDrag || dragState.vacationResizeDrag) {
     if (totalVacationSlots.value > frozenVacationSlots.value) frozenVacationSlots.value = totalVacationSlots.value
   } else {
     frozenVacationSlots.value = 0
   }
 })
 const stableVacationSlots = computed(() =>
-  dragState.vacationMoveDrag
+  (dragState.vacationMoveDrag || dragState.vacationResizeDrag)
     ? Math.max(totalVacationSlots.value, frozenVacationSlots.value)
     : totalVacationSlots.value
 )
@@ -555,7 +573,7 @@ function vacationDaySlots(day: number): (DayVacationInfo | null)[] {
       isEnd,
       isRowStart: !isStart && (col === 0 || day === firstVisibleDay.value),
       isRowEnd: !isEnd && (col === columnCount.value - 1 || day === lastVisibleDay.value),
-      isPreview: dragState.vacationMoveDrag?.vacationId === entry.id,
+      isPreview: dragState.vacationMoveDrag?.vacationId === entry.id || dragState.vacationResizeDrag?.vacationId === entry.id,
     }
   }
 
@@ -642,6 +660,7 @@ function onDragOver(event: DragEvent, day: number) {
   dragOverDay.value = day
   if (dragState.resizeDrag) dragState.updateResizePreview(calDate(day))
   if (dragState.moveDrag) dragState.updateMovePreview(calDate(day))
+  if (dragState.vacationResizeDrag) dragState.updateVacationResizePreview(calDate(day))
   if (dragState.vacationMoveDrag) dragState.updateVacationMovePreview(calDate(day))
 }
 
@@ -656,6 +675,12 @@ function onHandleDragStart(event: DragEvent, ticketId: number, side: 'start' | '
   dragState.startResizeDrag(ticketId, side)
   ticketTooltip.value = null
   dragState.hoveredTicketId = null
+}
+
+function onVacationHandleDragStart(event: DragEvent, vacationId: number, side: 'start' | 'end') {
+  event.stopPropagation()
+  event.dataTransfer?.setData('vacationResizeHandle', `${side}:${vacationId}`)
+  dragState.startVacationResizeDrag(vacationId, side)
 }
 
 function onVacationDragStart(event: DragEvent, info: DayVacationInfo) {
@@ -730,6 +755,21 @@ function onDrop(event: DragEvent, day: number) {
     }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
     dragState.clearMoveDrag()
+    return
+  }
+
+  const vacationResizeHandle = event.dataTransfer?.getData('vacationResizeHandle')
+  if (vacationResizeHandle) {
+    const [side, idStr] = vacationResizeHandle.split(':')
+    const id = Number(idStr)
+    const entry = vacationsStore.entries.find((v) => v.id === id)
+    if (entry && entry.startDate && entry.endDate) {
+      if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0)
+        vacationsStore.moveVacation(id, calDate(day), entry.endDate)
+      else if (side === 'end' && compareCalendarDates(calDate(day), entry.startDate) >= 0)
+        vacationsStore.moveVacation(id, entry.startDate, calDate(day))
+    }
+    dragState.clearVacationResizeDrag()
     return
   }
 
@@ -848,13 +888,28 @@ function onDrop(event: DragEvent, day: number) {
                 'row-start': info.isRowStart,
                 'is-preview': info.isPreview,
               }"
-              :style="{ '--vac-color': info.color }"
               draggable="true"
               @click.stop="vacationsStore.removeVacation(info.vacationId)"
               @dragstart="onVacationDragStart($event, info)"
               @dragend="dragState.clearVacationMoveDrag()"
             >
-              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }}</span>
+              <button
+                v-if="info.isStart"
+                class="resize-handle"
+                draggable="true"
+                @click.stop
+                @dragstart="onVacationHandleDragStart($event, info.vacationId, 'start')"
+                @dragend="dragState.clearVacationResizeDrag()"
+              >‹</button>
+              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
+              <button
+                v-if="info.isEnd"
+                class="resize-handle right-handle"
+                draggable="true"
+                @click.stop
+                @dragstart="onVacationHandleDragStart($event, info.vacationId, 'end')"
+                @dragend="dragState.clearVacationResizeDrag()"
+              >›</button>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -1088,7 +1143,7 @@ h2 {
   border-radius: 0;
   cursor: grab;
   opacity: 0.9;
-  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--vac-color) 25%, #272727) 0px, color-mix(in srgb, var(--vac-color) 25%, #272727) 3px, color-mix(in srgb, var(--vac-color) 12%, #2e2e2e) 3px, color-mix(in srgb, var(--vac-color) 12%, #2e2e2e) 9px);
+  background: repeating-linear-gradient(45deg, #2a2a2a 0px, #2a2a2a 3px, #323232 3px, #323232 9px);
   min-height: 1.1rem;
   line-height: 1;
   position: relative;

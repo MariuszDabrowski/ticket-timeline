@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Ticket } from '../stores/tickets'
+import { ref, computed } from 'vue'
+import type { Ticket, CalendarDate } from '../stores/tickets'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
 const props = defineProps<{ existing?: Ticket }>()
 
 const emit = defineEmits<{
-  save: [text: string, color: string]
+  save: [text: string, color: string, startDate: CalendarDate | null, endDate: CalendarDate | null]
   delete: []
   cancel: []
 }>()
@@ -19,7 +19,21 @@ const COLORS = [
 
 const text = ref(props.existing?.title ?? '')
 const selectedColor = ref(props.existing?.labelColor ?? COLORS[0]!)
+const startDateStr = ref('')
+const endDateStr = ref('')
 const { trapRef, onKeydown } = useFocusTrap()
+
+function parseDate(str: string): CalendarDate | null {
+  if (!str) return null
+  const [year, month, day] = str.split('-').map(Number) as [number, number, number]
+  return { year, month: month - 1, day }
+}
+
+const datesValid = computed(() => {
+  if (!startDateStr.value && !endDateStr.value) return true
+  if (startDateStr.value && endDateStr.value) return endDateStr.value >= startDateStr.value
+  return false
+})
 </script>
 
 <template>
@@ -34,9 +48,19 @@ const { trapRef, onKeydown } = useFocusTrap()
             v-model="text"
             type="text"
             placeholder="e.g. Design freeze"
-            @keydown.enter.prevent="emit('save', text.trim(), selectedColor)"
+            @keydown.enter.prevent="emit('save', text.trim(), selectedColor, parseDate(startDateStr), parseDate(endDateStr))"
             @keydown.escape.prevent="emit('cancel')"
           />
+        </div>
+
+        <div class="field schedule-field">
+          <label>Schedule <span class="label-hint">— optional</span></label>
+          <div class="date-row">
+            <input v-model="startDateStr" type="date" />
+            <span class="date-sep">to</span>
+            <input v-model="endDateStr" type="date" :min="startDateStr" />
+          </div>
+          <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
         </div>
 
         <div class="field">
@@ -58,7 +82,7 @@ const { trapRef, onKeydown } = useFocusTrap()
         <button v-if="props.existing" class="delete-btn" @click="emit('delete')">Delete</button>
         <div class="actions-right">
           <button @click="emit('cancel')">Cancel</button>
-          <button @click="emit('save', text.trim(), selectedColor)" :disabled="!text.trim()">
+          <button @click="emit('save', text.trim(), selectedColor, parseDate(startDateStr), parseDate(endDateStr))" :disabled="!text.trim() || !datesValid">
             {{ props.existing ? 'Save' : 'Add' }}
           </button>
         </div>
@@ -190,6 +214,49 @@ input {
 }
 
 input:focus { border-color: rgba(255, 255, 255, 0.3); }
+
+.label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-row input {
+  flex: 1;
+}
+
+.date-sep {
+  font-size: 13px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.date-error {
+  font-size: 12px;
+  color: #e74c3c;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.4);
+  cursor: pointer;
+}
+
+.schedule-field {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .schedule-field {
+    display: flex;
+  }
+}
 
 .actions {
   display: flex;

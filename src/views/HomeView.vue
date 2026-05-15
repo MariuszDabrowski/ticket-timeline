@@ -123,8 +123,12 @@ const showAddTicket = ref(false)
 const showAddLabel = ref(false)
 const editingLabel = ref<Ticket | null>(null)
 
-function handleAddLabel(text: string, color: string) {
-  tickets.addTicket({ number: '', title: text, assignedTo: null, link: '', isLabel: true, labelColor: color })
+function handleAddLabel(text: string, color: string, startDate: CalendarDate | null, endDate: CalendarDate | null) {
+  const id = tickets.addTicket({ number: '', title: text, assignedTo: null, link: '', isLabel: true, labelColor: color })
+  if (startDate) {
+    tickets.placeTicket(id, startDate)
+    tickets.moveTicket(id, startDate, endDate ?? startDate)
+  }
   showAddLabel.value = false
 }
 
@@ -218,8 +222,9 @@ const vacations = useVacationsStore()
 const showAddVacation = ref(false)
 const draggingVacationId = ref<number | null>(null)
 
-function handleAddVacation(personId: number) {
-  vacations.addVacation(personId)
+function handleAddVacation(personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null) {
+  const id = vacations.addVacation(personId)
+  if (startDate) vacations.placeVacation(id, startDate, endDate ?? startDate)
   showAddVacation.value = false
 }
 

@@ -1,13 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useFocusTrap } from '../composables/useFocusTrap'
 import type { Person } from '../stores/people'
+import type { CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{ people: Person[] }>()
-const emit = defineEmits<{ save: [personId: number]; cancel: [] }>()
+const emit = defineEmits<{ save: [personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null]; cancel: [] }>()
 
 const selectedPersonId = ref<number | null>(props.people[0]?.id ?? null)
+const startDateStr = ref('')
+const endDateStr = ref('')
 const { trapRef, onKeydown } = useFocusTrap()
+
+function parseDate(str: string): CalendarDate | null {
+  if (!str) return null
+  const [year, month, day] = str.split('-').map(Number) as [number, number, number]
+  return { year, month: month - 1, day }
+}
+
+const datesValid = computed(() => {
+  if (!startDateStr.value && !endDateStr.value) return true
+  if (startDateStr.value && endDateStr.value) return endDateStr.value >= startDateStr.value
+  return false
+})
 </script>
 
 <template>
@@ -32,6 +47,16 @@ const { trapRef, onKeydown } = useFocusTrap()
             </button>
           </div>
         </div>
+        <div class="field schedule-field">
+          <label>Schedule <span class="label-hint">— optional</span></label>
+          <div class="date-row">
+            <input v-model="startDateStr" type="date" />
+            <span class="date-sep">to</span>
+            <input v-model="endDateStr" type="date" :min="startDateStr" />
+          </div>
+          <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
+        </div>
+
         <p class="hint">After adding, drag the vacation from the sidebar onto the calendar to place it.</p>
       </div>
 
@@ -39,8 +64,8 @@ const { trapRef, onKeydown } = useFocusTrap()
         <div class="actions-right">
           <button @click="emit('cancel')">Cancel</button>
           <button
-            @click="selectedPersonId !== null && emit('save', selectedPersonId)"
-            :disabled="selectedPersonId === null || people.length === 0"
+            @click="selectedPersonId !== null && emit('save', selectedPersonId, parseDate(startDateStr), parseDate(endDateStr))"
+            :disabled="selectedPersonId === null || people.length === 0 || !datesValid"
           >Add</button>
         </div>
       </div>
@@ -186,6 +211,62 @@ label {
   color: rgba(255, 255, 255, 0.35);
   line-height: 1.5;
   font-style: italic;
+}
+
+.label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-row input {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.date-row input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.4);
+  cursor: pointer;
+}
+
+.date-sep {
+  font-size: 13px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.date-error {
+  font-size: 12px;
+  color: #e74c3c;
+}
+
+.schedule-field {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .schedule-field {
+    display: flex;
+  }
 }
 
 .actions {
