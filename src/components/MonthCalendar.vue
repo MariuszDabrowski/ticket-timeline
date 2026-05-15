@@ -881,7 +881,7 @@ function onDrop(event: DragEvent, day: number) {
                   'row-start': info.isRowStart,
                   'is-on-vacation': info.isOnVacation,
                   'is-hovered': dragState.hoveredTicketId === info.ticket.id,
-                  'is-dimmed': dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id,
+                  'is-dimmed': (dragState.hoveredTicketId !== null && dragState.hoveredTicketId !== info.ticket.id) || dragState.hoveredVacationId !== null,
                   'is-event': info.ticket.isLabel,
                 }"
                 :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
@@ -918,37 +918,52 @@ function onDrop(event: DragEvent, day: number) {
             <div v-else class="slot-spacer" />
           </div>
           <div v-for="(info, slotIdx) in effectiveVacationSlots(day, dayRowIndex(dayIdx))" :key="`vac-${slotIdx}`" class="slot-row">
-            <div
-              v-if="info"
-              class="vacation-pill"
-              :class="{
-                'is-start': info.isStart,
-                'is-end': info.isEnd,
-                'row-end': info.isRowEnd,
-                'row-start': info.isRowStart,
-                'is-preview': info.isPreview,
-              }"
-              draggable="true"
-              @dragstart="onVacationDragStart($event, info)"
-              @dragend="dragState.clearVacationMoveDrag()"
-            >
-              <button
+            <div v-if="info" class="pill-slot">
+              <div
                 v-if="info.isStart"
-                class="resize-handle"
+                class="pill-marker s-marker"
+                :class="{ 'is-visible': dragState.hoveredVacationId === info.vacationId }"
+              >S</div>
+              <div
+                class="vacation-pill"
+                :class="{
+                  'is-start': info.isStart,
+                  'is-end': info.isEnd,
+                  'row-end': info.isRowEnd,
+                  'row-start': info.isRowStart,
+                  'is-preview': info.isPreview,
+                  'is-hovered': dragState.hoveredVacationId === info.vacationId,
+                  'is-dimmed': (dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId) || (dragState.hoveredTicketId !== null),
+                }"
                 draggable="true"
-                @click.stop
-                @dragstart="onVacationHandleDragStart($event, info.vacationId, 'start')"
-                @dragend="dragState.clearVacationResizeDrag()"
-              >‹</button>
-              <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
-              <button
+                @mouseenter="dragState.hoveredVacationId = info.vacationId"
+                @mouseleave="dragState.hoveredVacationId = null"
+                @dragstart="onVacationDragStart($event, info)"
+                @dragend="dragState.clearVacationMoveDrag()"
+              >
+                <button
+                  v-if="info.isStart"
+                  class="resize-handle"
+                  draggable="true"
+                  @click.stop
+                  @dragstart="onVacationHandleDragStart($event, info.vacationId, 'start')"
+                  @dragend="dragState.clearVacationResizeDrag()"
+                >‹</button>
+                <span v-if="info.isStart || info.isRowStart" class="vacation-label">{{ info.personName }} Vacation</span>
+                <button
+                  v-if="info.isEnd"
+                  class="resize-handle right-handle"
+                  draggable="true"
+                  @click.stop
+                  @dragstart="onVacationHandleDragStart($event, info.vacationId, 'end')"
+                  @dragend="dragState.clearVacationResizeDrag()"
+                >›</button>
+              </div>
+              <div
                 v-if="info.isEnd"
-                class="resize-handle right-handle"
-                draggable="true"
-                @click.stop
-                @dragstart="onVacationHandleDragStart($event, info.vacationId, 'end')"
-                @dragend="dragState.clearVacationResizeDrag()"
-              >›</button>
+                class="pill-marker f-marker"
+                :class="{ 'is-visible': dragState.hoveredVacationId === info.vacationId }"
+              >F</div>
             </div>
             <div v-else class="slot-spacer" />
           </div>
@@ -1187,11 +1202,21 @@ h2 {
   line-height: 1;
   position: relative;
   overflow: visible;
+  transition: opacity 0.2s ease, filter 0.2s ease;
 }
 
 
 .vacation-pill.is-preview {
   opacity: 0.75;
+}
+
+.vacation-pill.is-hovered {
+  opacity: 1;
+  filter: brightness(1.35);
+}
+
+.vacation-pill.is-dimmed {
+  opacity: 0.25;
 }
 
 .vacation-pill.row-end {
