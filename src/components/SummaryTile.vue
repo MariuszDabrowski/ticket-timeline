@@ -241,6 +241,9 @@ const headline = computed(() => {
           :disabled="shareResult.tier === 'too-long'"
           @click="copyShareLink"
         >
+          <svg class="share-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+          </svg>
           <template v-if="copyStatus === 'copied'">✓ Link copied</template>
           <template v-else-if="shareResult.tier === 'too-long'">Project too large to share</template>
           <template v-else>Copy share link</template>
@@ -545,6 +548,9 @@ const headline = computed(() => {
 
 .share-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 14px;
   cursor: pointer;
   background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
@@ -557,6 +563,13 @@ const headline = computed(() => {
   transition: color 0.2s ease;
   line-height: 1;
   font-family: 'Nunito', sans-serif;
+}
+
+.share-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.75;
 }
 
 .share-btn:hover:not(:disabled) {
