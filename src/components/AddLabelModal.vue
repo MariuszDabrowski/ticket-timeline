@@ -12,9 +12,9 @@ const emit = defineEmits<{
 }>()
 
 const COLORS = [
-  '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71',
-  '#1abc9c', '#3498db', '#9b59b6', '#e91e63',
-  '#607d8b', '#795548',
+  '#c0392b', '#c0672d', '#b8860b', '#1a8a4a',
+  '#148a72', '#2472a4', '#7d3c98', '#b5154a',
+  '#455a64', '#5d4037',
 ]
 
 const text = ref(props.existing?.title ?? '')
