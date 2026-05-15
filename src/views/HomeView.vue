@@ -1029,17 +1029,14 @@ function onEventListDrop(event: DragEvent) {
 
   <Teleport to="body">
     <Transition name="hints-fade">
-    <div v-if="anyHintVisible && !anyModalOpen && hintPos" class="hints-layer">
       <div
-        class="hint-anchor hint-anchor-left"
-        :style="{ left: hintPos.x + 'px', top: hintPos.y + 'px' }"
+        v-if="anyHintVisible && !anyModalOpen && hintPos"
+        class="hint-bubble hint-arrow-left"
+        :style="{ position: 'fixed', left: hintPos.x + 'px', top: hintPos.y + 'px', transform: 'translateY(-50%)', zIndex: 80, pointerEvents: 'none' }"
       >
-        <div class="hint-bubble hint-arrow-left">
-          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
-          <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
-        </div>
+        <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
+        <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
       </div>
-    </div>
     </Transition>
   </Teleport>
 </template>
@@ -1133,24 +1130,7 @@ function onEventListDrop(event: DragEvent) {
 }
 
 @media (max-width: 920px), (pointer: coarse) {
-  .hints-layer { display: none; }
-}
-
-.hints-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 80;
-  clip-path: inset(52px 0 0 0);
-}
-
-.hint-anchor {
-  position: absolute;
-  transform: translateX(-50%);
-}
-
-.hint-anchor-left {
-  transform: translateY(-50%);
+  .hint-bubble { display: none; }
 }
 
 .hint-bubble {
