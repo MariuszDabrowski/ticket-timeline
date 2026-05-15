@@ -6,6 +6,7 @@ import {
   setSavedProjects,
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
+import LZString from 'lz-string'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
@@ -59,6 +60,33 @@ function downloadJSON() {
   a.click()
   URL.revokeObjectURL(url)
   emit('save', name)
+}
+
+const URL_WARN_THRESHOLD = 2000
+
+type ShareStatus = 'idle' | 'copied' | 'toolong'
+const shareStatus = ref<ShareStatus>('idle')
+const shareByteCount = ref(0)
+
+function buildShareUrl(): { url: string; length: number } {
+  const name = projectName.value.trim() || 'project'
+  const payload: ProjectData = { name, ...snapshot() }
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(payload))
+  const url = `${window.location.origin}${window.location.pathname}#share=${compressed}`
+  return { url, length: url.length }
+}
+
+function copyShareLink() {
+  const { url, length } = buildShareUrl()
+  shareByteCount.value = length
+  if (length > URL_WARN_THRESHOLD) {
+    shareStatus.value = 'toolong'
+    setTimeout(() => (shareStatus.value = 'idle'), 4000)
+    return
+  }
+  navigator.clipboard.writeText(url)
+  shareStatus.value = 'copied'
+  setTimeout(() => (shareStatus.value = 'idle'), 2500)
 }
 
 function fmtDate(iso: string) {
@@ -132,6 +160,26 @@ function fmtDate(iso: string) {
             <div class="option-action">
               <button class="btn" @click="downloadJSON" :disabled="!projectName.trim()">
                 Download
+              </button>
+            </div>
+          </div>
+
+          <div class="option-card">
+            <div class="option-body">
+              <div class="option-title">Copy Share Link</div>
+              <div class="option-desc">
+                Encodes the entire project into a URL. Anyone with the link can open it directly —
+                no account or upload needed.
+              </div>
+              <div v-if="shareStatus === 'toolong'" class="share-warn">
+                Link is {{ shareByteCount.toLocaleString() }} characters — too long to share
+                reliably. Try Download JSON instead.
+              </div>
+            </div>
+            <div class="option-action">
+              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim()">
+                <template v-if="shareStatus === 'copied'">✓ Copied</template>
+                <template v-else>Copy Link</template>
               </button>
             </div>
           </div>
@@ -288,6 +336,13 @@ h3 span {
   margin-top: 0.35rem;
   opacity: 0.85;
   color: #e8a735;
+}
+
+.share-warn {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #e8a735;
+  opacity: 0.9;
 }
 
 .option-action {

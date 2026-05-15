@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, toRaw } from 'vue'
+import { ref, computed, toRaw, onMounted } from 'vue'
+import LZString from 'lz-string'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -237,6 +238,23 @@ function handleImport(data: ProjectData) {
   }
   showImport.value = false
 }
+
+onMounted(() => {
+  const hash = window.location.hash
+  const match = hash.match(/[#&]share=([^&]+)/)
+  if (!match) return
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(match[1]!)
+    if (!json) return
+    const data = JSON.parse(json) as ProjectData
+    if (Array.isArray(data.tickets) && Array.isArray(data.people)) {
+      handleImport(data)
+      history.replaceState(null, '', window.location.pathname)
+    }
+  } catch {
+    // malformed hash — ignore
+  }
+})
 
 const monthsRowRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
