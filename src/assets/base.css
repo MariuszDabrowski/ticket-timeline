@@ -57,11 +57,17 @@
   margin: 0;
 }
 
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-background);
-  filter: brightness(1.5);
+  filter: brightness(1.2);
   transition:
     color 0.5s,
     background-color 0.5s;

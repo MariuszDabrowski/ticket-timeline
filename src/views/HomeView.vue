@@ -422,7 +422,7 @@ function onEventListDrop(event: DragEvent) {
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }" :inert="collapsed.months || undefined">
           <div class="slide-inner">
             <div class="section-body">
               <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
@@ -455,7 +455,7 @@ function onEventListDrop(event: DragEvent) {
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }" :inert="collapsed.people || undefined">
           <div class="slide-inner">
             <div class="section-body">
               <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
@@ -490,7 +490,7 @@ function onEventListDrop(event: DragEvent) {
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }" :inert="collapsed.tickets || undefined">
           <div class="slide-inner">
             <div class="section-body">
               <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
@@ -501,7 +501,10 @@ function onEventListDrop(event: DragEvent) {
                     :class="{ dragging: draggingTicketId === ticket.id }"
                     :style="{ background: ticketColor(ticket.assignedTo) }"
                     draggable="true"
+                    tabindex="0"
                     @click.stop="editingTicket = ticket"
+                    @keydown.enter.stop="editingTicket = ticket"
+                    @keydown.space.prevent.stop="editingTicket = ticket"
                     @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
@@ -509,7 +512,7 @@ function onEventListDrop(event: DragEvent) {
               </ol>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showUploadEpic = true">Shortcut Epic CSV</button>
+                <button class="import-btn" @click="showUploadEpic = true"><span class="icon">upload_file</span>Shortcut Epic CSV</button>
               </div>
             </div>
           </div>
@@ -532,7 +535,7 @@ function onEventListDrop(event: DragEvent) {
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }" :inert="collapsed.labels || undefined">
           <div class="slide-inner">
             <div class="section-body">
               <p class="event-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
@@ -544,7 +547,10 @@ function onEventListDrop(event: DragEvent) {
                     :class="{ dragging: draggingTicketId === label.id }"
                     :style="{ background: label.labelColor }"
                     draggable="true"
+                    tabindex="0"
                     @click.stop="editingLabel = label"
+                    @keydown.enter.stop="editingLabel = label"
+                    @keydown.space.prevent.stop="editingLabel = label"
                     @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ label.title }}</span>
@@ -571,7 +577,7 @@ function onEventListDrop(event: DragEvent) {
             </Transition>
           </span>
         </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }">
+        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }" :inert="collapsed.vacations || undefined">
           <div class="slide-inner">
             <div class="section-body">
               <p v-if="people.people.length === 0" class="people-blurb">Add people to the team first.</p>
@@ -582,7 +588,10 @@ function onEventListDrop(event: DragEvent) {
                   class="vacation-person-pill"
                   :class="{ dragging: draggingPersonId === person.id }"
                   draggable="true"
+                  tabindex="0"
                   @click="onVacationPersonClick(person.id)"
+                  @keydown.enter.stop="onVacationPersonClick(person.id)"
+                  @keydown.space.prevent.stop="onVacationPersonClick(person.id)"
                   @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
                   @dragend="draggingPersonId = null"
                 >
@@ -592,7 +601,7 @@ function onEventListDrop(event: DragEvent) {
               </div>
               <div class="import-section">
                 <span class="import-label">Import</span>
-                <button class="import-btn" @click="showHiBob = true">HiBob Vacation Days</button>
+                <button class="import-btn" @click="showHiBob = true"><span class="icon">upload_file</span>HiBob Vacation Days</button>
               </div>
             </div>
           </div>
@@ -847,6 +856,7 @@ function onEventListDrop(event: DragEvent) {
   background: #141414;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   contain: layout style;
@@ -1113,7 +1123,7 @@ section.drop-target {
 .ticket-list {
   list-style: none;
   padding: 0.1rem 1rem 0.15rem 1rem;
-  margin-top: 0.3rem;
+  margin-top: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1187,6 +1197,11 @@ section.drop-target {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ticket-pill:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.7);
+  outline-offset: 2px;
 }
 
 .ticket-pill:active {
@@ -1386,6 +1401,9 @@ section.drop-target {
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   transition: color 0.15s, text-decoration-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .import-btn:hover {
@@ -1423,6 +1441,11 @@ section.drop-target {
     0 -1px 0 rgba(0, 0, 0, 0.3),
     0 1px 0 rgba(255, 255, 255, 0.07);
   transition: opacity 0.15s;
+}
+
+.vacation-person-pill:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.7);
+  outline-offset: 2px;
 }
 
 .vacation-person-pill:active {

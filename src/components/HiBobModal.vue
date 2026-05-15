@@ -70,7 +70,7 @@ function onFileInput(e: Event) {
         >
           <p>Drag & drop your .ics file here</p>
           <p class="or">or</p>
-          <label class="file-btn">
+          <label class="file-btn" tabindex="0" @keydown.enter.prevent="($event.currentTarget as HTMLElement).click()" @keydown.space.prevent="($event.currentTarget as HTMLElement).click()">
             Choose File
             <input type="file" accept=".ics,text/calendar" @change="onFileInput" />
           </label>
