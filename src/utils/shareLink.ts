@@ -107,3 +107,65 @@ export function buildShareUrl(data: ProjectData): string {
   const compressed = encodeShareLink(data)
   return `${window.location.origin}${window.location.pathname}#share=${compressed}`
 }
+
+export interface ShareFieldStat {
+  field: string
+  count: number | null
+  rawChars: number
+  avgChars: number | null
+  pct: number
+  detail: { label: string; chars: number }[]
+}
+
+export function analyzeSharePayload(data: ProjectData): ShareFieldStat[] {
+  const linkBase = extractLinkBase(data.tickets)
+
+  const compactTickets = data.tickets.map(({ id, number, title, assignedTo, isLabel, labelColor }) => ({
+    id, number, title, assignedTo,
+    ...(isLabel !== undefined && { isLabel }),
+    ...(labelColor !== undefined && { labelColor }),
+  }))
+  const compactPlacements = data.placements.map((p) => ({
+    t: p.ticketId, s: dateToInt(p.startDate), e: dateToInt(p.endDate),
+  }))
+  const compactVacations = data.vacations.map((v) => ({
+    p: v.personId, s: dateToInt(v.startDate), e: dateToInt(v.endDate),
+  }))
+
+  function avgFieldSizes(items: Record<string, unknown>[]): { label: string; chars: number }[] {
+    if (items.length === 0) return []
+    const totals: Record<string, number> = {}
+    for (const item of items) {
+      for (const [k, v] of Object.entries(item)) {
+        totals[k] = (totals[k] ?? 0) + JSON.stringify(v).length + k.length + 3
+      }
+    }
+    return Object.entries(totals)
+      .map(([label, chars]) => ({ label, chars: Math.round(chars / items.length) }))
+      .sort((a, b) => b.chars - a.chars)
+  }
+
+  const sections: { field: string; value: unknown; items?: Record<string, unknown>[] }[] = [
+    { field: 'tickets', value: compactTickets, items: compactTickets as Record<string, unknown>[] },
+    { field: 'placements', value: compactPlacements, items: compactPlacements as Record<string, unknown>[] },
+    { field: 'vacations', value: compactVacations, items: compactVacations as Record<string, unknown>[] },
+    { field: 'people', value: data.people, items: data.people as unknown as Record<string, unknown>[] },
+    { field: 'linkBase', value: linkBase ?? '' },
+    { field: 'selectedMonths', value: data.selectedMonths },
+  ]
+
+  const sized = sections.map((s) => ({
+    field: s.field,
+    rawChars: JSON.stringify(s.value).length,
+    count: Array.isArray(s.value) ? (s.value as unknown[]).length : null,
+    detail: s.items ? avgFieldSizes(s.items) : [],
+  }))
+
+  const total = sized.reduce((sum, s) => sum + s.rawChars, 0)
+
+  return sized.map((s) => ({
+    ...s,
+    avgChars: s.count ? Math.round(s.rawChars / s.count) : null,
+    pct: Math.round((s.rawChars / total) * 100),
+  }))
+}

@@ -6,7 +6,8 @@ import {
   setSavedProjects,
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
-import { buildShareUrl } from '../utils/shareLink'
+import { buildShareUrl, analyzeSharePayload } from '../utils/shareLink'
+import type { ShareFieldStat } from '../utils/shareLink'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
@@ -67,33 +68,14 @@ const URL_WARN_THRESHOLD = 2000
 type ShareStatus = 'idle' | 'copied' | 'toolong'
 const shareStatus = ref<ShareStatus>('idle')
 
-interface ShareBreakdown {
-  field: string
-  rawChars: number
-  pct: number
-}
+const expandedField = ref<string | null>(null)
 
 const shareInfo = computed(() => {
   const data = snapshot()
   const name = projectName.value.trim() || 'project'
   const url = buildShareUrl({ name, ...data })
-  const urlLength = url.length
-
-  const fields: [string, unknown][] = [
-    ['tickets', data.tickets],
-    ['placements', data.placements],
-    ['vacations', data.vacations],
-    ['people', data.people],
-    ['selectedMonths', data.selectedMonths],
-  ]
-  const sizes = fields.map(([field, val]) => ({ field, rawChars: JSON.stringify(val).length }))
-  const total = sizes.reduce((s, f) => s + f.rawChars, 0)
-  const breakdown: ShareBreakdown[] = sizes.map((f) => ({
-    ...f,
-    pct: Math.round((f.rawChars / total) * 100),
-  }))
-
-  return { url, urlLength, breakdown }
+  const breakdown: ShareFieldStat[] = analyzeSharePayload({ name, ...data })
+  return { url, urlLength: url.length, breakdown }
 })
 
 function copyShareLink() {
@@ -190,13 +172,28 @@ function fmtDate(iso: string) {
                 no account or upload needed.
               </div>
               <div class="share-breakdown">
-                <div class="breakdown-label">Raw size by field</div>
-                <div v-for="row in shareInfo.breakdown" :key="row.field" class="share-breakdown-row">
-                  <span class="breakdown-field">{{ row.field }}</span>
-                  <div class="breakdown-bar-wrap">
-                    <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
+                <div class="breakdown-label">Compact payload by field</div>
+                <div v-for="row in shareInfo.breakdown" :key="row.field">
+                  <div
+                    class="share-breakdown-row"
+                    :class="{ 'is-expandable': row.detail.length > 0, 'is-expanded': expandedField === row.field }"
+                    @click="row.detail.length ? (expandedField = expandedField === row.field ? null : row.field) : null"
+                  >
+                    <span class="breakdown-field">{{ row.field }}</span>
+                    <div class="breakdown-bar-wrap">
+                      <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
+                    </div>
+                    <span class="breakdown-chars">
+                      {{ row.rawChars.toLocaleString() }}
+                      <span v-if="row.count !== null" class="breakdown-meta"> · {{ row.count }} items · ~{{ row.avgChars }}ch ea</span>
+                    </span>
                   </div>
-                  <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} ({{ row.pct }}%)</span>
+                  <div v-if="expandedField === row.field" class="breakdown-detail">
+                    <div v-for="d in row.detail" :key="d.label" class="breakdown-detail-row">
+                      <span class="detail-field">{{ d.label }}</span>
+                      <span class="detail-chars">~{{ d.chars }} chars/item</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="share-total" :class="{ 'share-total--warn': shareInfo.urlLength > URL_WARN_THRESHOLD }">
                   {{ shareInfo.urlLength.toLocaleString() }} chars after compression
@@ -410,11 +407,58 @@ h3 span {
 }
 
 .breakdown-chars {
-  width: 10rem;
   flex-shrink: 0;
   text-align: right;
   opacity: 0.6;
   font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+}
+
+.breakdown-meta {
+  opacity: 0.7;
+}
+
+.share-breakdown-row.is-expandable {
+  cursor: pointer;
+}
+
+.share-breakdown-row.is-expandable:hover .breakdown-field {
+  opacity: 1;
+}
+
+.share-breakdown-row.is-expanded .breakdown-field::before {
+  content: '▾ ';
+  font-size: 0.6rem;
+}
+
+.share-breakdown-row:not(.is-expanded) .breakdown-field.is-expandable::before {
+  content: '▸ ';
+  font-size: 0.6rem;
+}
+
+.breakdown-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.15rem 0 0.3rem 0.5rem;
+  padding-left: 0.6rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.breakdown-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.detail-field {
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-chars {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
 .share-total {
