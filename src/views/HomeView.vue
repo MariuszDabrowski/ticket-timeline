@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, toRaw, onMounted, nextTick } from 'vue'
 import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
 import { toPng } from 'html-to-image'
 
@@ -1114,15 +1114,6 @@ function onEventListDrop(event: DragEvent) {
     0 0 1px rgba(255, 255, 255, 0.07),
     0 2px 5px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s ease;
-}
-
-.header-btn .icon {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.header-btn-danger {
-  color: rgba(231, 76, 60, 0.7);
 }
 
 .hint-bubble {
