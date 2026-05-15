@@ -277,8 +277,7 @@ const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
 
 // Hints system
-const isDesktop = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
-const hintsActive = ref(isDesktop.value)
+const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
 const hintSampleTicketId = ref<number | null>(null)
 const hintSampleEventId = ref<number | null>(null)
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -634,7 +633,7 @@ function onEventListDrop(event: DragEvent) {
       <div class="header-actions">
         <button class="header-btn" @click="showSave = true">Save</button>
         <button class="header-btn" @click="showLoad = true">Load</button>
-        <button v-if="isDesktop" class="header-btn help-btn" @click="showHelp">Help</button>
+        <button class="header-btn help-btn" @click="showHelp">Help</button>
         <button class="header-btn" @click="showReset = true">Reset</button>
       </div>
     </header>
@@ -1052,7 +1051,7 @@ function onEventListDrop(event: DragEvent) {
     </div>
   </Transition>
 
-  <Teleport v-if="isDesktop" to="body">
+  <Teleport to="body">
     <Transition name="hints-fade">
     <div v-if="hintsActive" class="hints-layer">
       <div
@@ -1181,6 +1180,11 @@ function onEventListDrop(event: DragEvent) {
 .help-btn {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+}
+
+@media (max-width: 920px), (pointer: coarse) {
+  .help-btn { display: none; }
+  .hints-layer { display: none; }
 }
 
 .hints-layer {
@@ -2184,7 +2188,6 @@ section.drawer-closing .section-header > span:first-child::after {
   .below-header {
     flex-direction: column;
     overflow: auto;
-    padding-bottom: 56px;
   }
 
   .sidebar-wrap {
@@ -2198,15 +2201,6 @@ section.drawer-closing .section-header > span:first-child::after {
     overflow-y: visible;
   }
 
-  .sidebar-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #141414;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
-    z-index: 10;
-  }
 
   .panel {
     overflow: visible;

@@ -97,8 +97,6 @@ function fmtDate(iso: string) {
           </ul>
         </div>
 
-        <div class="divider" />
-
         <div class="section">
           <div class="section-label">Load from file</div>
           <div class="upload-area">
@@ -328,11 +326,6 @@ h3 span {
   border-color: rgba(231, 76, 60, 0.7);
   color: rgba(231, 76, 60, 1);
   box-shadow: none;
-}
-
-.divider {
-  height: 1px;
-  background: rgba(128, 128, 128, 0.2);
 }
 
 .upload-area {
