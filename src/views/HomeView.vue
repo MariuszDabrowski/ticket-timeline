@@ -22,6 +22,7 @@ import LoadModal from '../components/LoadModal.vue'
 import ShareInfoModal from '../components/ShareInfoModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
+import { compareCalendarDates } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
 import { useDragStateStore } from '../stores/dragState'
 import { useVacationsStore } from '../stores/vacations'
@@ -91,6 +92,8 @@ const collapsed = computed<Record<string, boolean>>(() => ({
   vacations: openSection.value !== 'vacations',
   filters: openSection.value !== 'filters',
 }))
+
+const isSampleData = ref(false)
 
 const people = usePeopleStore()
 const showAddPerson = ref(false)
@@ -194,11 +197,35 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 }
 
 const editingTicket = ref<Ticket | null>(null)
+const conflictToast = ref('')
+let conflictToastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showConflictToast(msg: string) {
+  conflictToast.value = msg
+  if (conflictToastTimer) clearTimeout(conflictToastTimer)
+  conflictToastTimer = setTimeout(() => { conflictToast.value = '' }, 5000)
+}
 
 function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
   const { startDate, endDate, ...ticketData } = data
+
+  if (ticketData.assignedTo !== null && startDate) {
+    const end = endDate ?? startDate
+    const hasConflict = vacations.entries.some((v) =>
+      v.personId === ticketData.assignedTo &&
+      v.startDate !== null && v.endDate !== null &&
+      compareCalendarDates(v.startDate, end) <= 0 &&
+      compareCalendarDates(startDate, v.endDate) <= 0
+    )
+    if (hasConflict) {
+      const personName = people.people.find((p) => p.id === ticketData.assignedTo)?.name ?? 'This person'
+      showConflictToast(`Can't assign to ${personName} — they're on vacation during those dates and the ticket would be hidden.`)
+      return
+    }
+  }
+
   tickets.updateTicket(id, ticketData)
   if (startDate) {
     const end = endDate ?? startDate
@@ -297,7 +324,7 @@ function computeHintPositions() {
     if (t) hintSampleTicketId.value = t.id
   }
   if (!hintSampleEventId.value) {
-    const e = tickets.tickets.find((t) => t.title === 'Sample Event 2')
+    const e = tickets.tickets.find((t) => t.title === 'Sample Event 1')
     if (e) hintSampleEventId.value = e.id
   }
 
@@ -418,6 +445,7 @@ function handleLoad(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
+  isSampleData.value = false
   if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
     selectedMonths.value = data.selectedMonths
@@ -455,9 +483,9 @@ function seedDefaultData() {
   const t2Start  = toCalDate(calAddDays(monday2, 3))
   const t2End    = toCalDate(calAddDays(monday2, 4))
 
-  // Sample Event 2: Tue–Wed (2 days centered in week 3)
-  const e2Start  = toCalDate(calAddDays(monday3, 1))
-  const e2End    = toCalDate(calAddDays(monday3, 2))
+  // Sample Event 1: Tue–Wed (2 days centered in week 3)
+  const e1Start  = toCalDate(calAddDays(monday3, 1))
+  const e1End    = toCalDate(calAddDays(monday3, 2))
 
   const user1Id = people.addPerson('Sample User 1', '#3498db')
   const user2Id = people.addPerson('Sample User 2', '#e91e63')
@@ -470,17 +498,18 @@ function seedDefaultData() {
   tickets.placeTicket(t2Id, t2Start)
   tickets.moveTicket(t2Id, t2Start, t2End)
 
-  tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
+  const e1Id = tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
+  tickets.placeTicket(e1Id, e1Start)
+  tickets.moveTicket(e1Id, e1Start, e1End)
 
-  const e2Id = tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
-  tickets.placeTicket(e2Id, e2Start)
-  tickets.moveTicket(e2Id, e2Start, e2End)
+  tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
 
-  const vacId = vacations.addVacation(user2Id)
+  const vacId = vacations.addVacation(user1Id)
   vacations.placeVacation(vacId, vacStart, vacEnd)
 
   hintSampleTicketId.value = t1Id
-  hintSampleEventId.value = e2Id
+  hintSampleEventId.value = e1Id
+  isSampleData.value = true
 }
 
 onMounted(() => {
@@ -563,6 +592,13 @@ function handleHiBobConfirm(
   matches: { personId: number; group: ICSPersonGroup }[],
   newPeople: { name: string; group: ICSPersonGroup }[],
 ) {
+  if (isSampleData.value) {
+    people.loadData([])
+    tickets.loadData({ tickets: [], placements: [] })
+    vacations.loadData([])
+    currentProjectName.value = ''
+    isSampleData.value = false
+  }
   for (const { name, group } of newPeople) {
     const personId = people.addPerson(name)
     matches.push({ personId, group })
@@ -892,7 +928,7 @@ function onEventListDrop(event: DragEvent) {
                 <div class="share-btn-labels">
                   <span class="label-idle">
                     <template v-if="shareResult.tier === 'too-long'">Project too large to share</template>
-                    <template v-else>Copy share link</template>
+                    <template v-else>Copy shareable link</template>
                   </span>
                   <span class="label-copied">Link copied</span>
                 </div>
@@ -1044,6 +1080,14 @@ function onEventListDrop(event: DragEvent) {
   </Transition>
 
   <ShareInfoModal v-if="showShareInfo" @close="showShareInfo = false" />
+
+  <Teleport to="body">
+    <Transition name="toast">
+      <div v-if="conflictToast" class="conflict-toast" @click="conflictToast = ''">
+        {{ conflictToast }}
+      </div>
+    </Transition>
+  </Teleport>
 
   <Transition name="modal">
     <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
@@ -2247,4 +2291,30 @@ section.drawer-closing .section-header > span:first-child::after {
 
 :global(.hints-fade-leave-active) { transition: opacity 0.4s ease; }
 :global(.hints-fade-leave-to) { opacity: 0; }
+
+:global(.conflict-toast) {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #1a1a1a;
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  color: rgba(255, 200, 195, 0.95);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-width: calc(100vw - 2rem);
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+:global(.toast-enter-active) { transition: opacity 0.2s ease, transform 0.2s ease; }
+:global(.toast-leave-active) { transition: opacity 0.3s ease, transform 0.3s ease; }
+:global(.toast-enter-from) { opacity: 0; transform: translateX(-50%) translateY(8px); }
+:global(.toast-leave-to) { opacity: 0; transform: translateX(-50%) translateY(8px); }
 </style>
