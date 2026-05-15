@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, onMounted, nextTick } from 'vue'
+import { ref, computed, toRaw, onMounted, nextTick, watch } from 'vue'
 import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
 import { toPng } from 'html-to-image'
 
@@ -445,6 +445,15 @@ onMounted(() => {
     setupHintDismissal()
   }
 })
+
+watch(
+  () => tickets.placements.length,
+  (len) => {
+    if (len > 0 && hintsActive.value && !hintPositions.value[0]) {
+      nextTick(() => computeHintPositions())
+    }
+  }
+)
 
 const monthsRowRef = ref<HTMLElement | null>(null)
 const exportingImage = ref(false)
@@ -978,21 +987,30 @@ function onEventListDrop(event: DragEvent) {
         class="hint-anchor"
         :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
       >
-        <div class="hint-bubble hint-arrow-up">Click on tickets and events to edit them</div>
+        <div class="hint-bubble hint-arrow-up">
+          <span class="icon hint-icon">tips_and_updates</span>
+          <span>Click on tickets and events to edit them</span>
+        </div>
       </div>
       <div
         v-if="hintPositions[1]"
         class="hint-anchor"
         :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
       >
-        <div class="hint-bubble hint-arrow-up">Drag the tickets around, or use the handles to expand</div>
+        <div class="hint-bubble hint-arrow-up">
+          <span class="icon hint-icon">tips_and_updates</span>
+          <span>Drag the tickets around, or use the handles to expand</span>
+        </div>
       </div>
       <div
         v-if="hintPositions[2]"
         class="hint-anchor hint-anchor-left"
         :style="{ left: hintPositions[2].x + 'px', top: hintPositions[2].y + 'px' }"
       >
-        <div class="hint-bubble hint-arrow-left">Create new items here, drag them onto the calendar when ready</div>
+        <div class="hint-bubble hint-arrow-left">
+          <span class="icon hint-icon">tips_and_updates</span>
+          <span>Create new items here, drag them onto the calendar when ready</span>
+        </div>
       </div>
     </div>
     </Transition>
@@ -1120,16 +1138,28 @@ function onEventListDrop(event: DragEvent) {
 .hint-bubble {
   position: relative;
   background: rgb(30, 30, 35);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 6px;
-  padding: 0.45rem 0.65rem;
-  max-width: 175px;
+  padding: 0.6rem 0.75rem 0.55rem;
+  max-width: 165px;
   font-size: 0.72rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.06);
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.3rem;
+}
+
+.hint-icon {
+  font-size: 20px;
+  color: #f59e0b;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
 }
 
 @keyframes hintFadeIn {
@@ -1150,7 +1180,7 @@ function onEventListDrop(event: DragEvent) {
   bottom: calc(100% + 1px);
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 8px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 8px solid rgba(245, 158, 11, 0.3);
 }
 .hint-arrow-up::after {
   bottom: 100%;
@@ -1172,7 +1202,7 @@ function onEventListDrop(event: DragEvent) {
   right: calc(100% + 1px);
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  border-right: 8px solid rgba(255, 255, 255, 0.12);
+  border-right: 8px solid rgba(245, 158, 11, 0.3);
 }
 .hint-arrow-left::after {
   right: 100%;
