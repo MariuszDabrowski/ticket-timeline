@@ -1239,7 +1239,7 @@ function onEventListDrop(event: DragEvent) {
   border: none;
   border-radius: 6px;
   padding: 0.5rem 0.7rem;
-  max-width: 230px;
+  max-width: 200px;
   font-size: 0.72rem;
   line-height: 1.5;
   color: #fff;
@@ -1263,8 +1263,10 @@ function onEventListDrop(event: DragEvent) {
   align-self: flex-end;
   background: none;
   border: none;
-  padding: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.3rem 0 0;
   margin-top: 0.1rem;
+  width: 100%;
   font-family: 'Nunito', sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
