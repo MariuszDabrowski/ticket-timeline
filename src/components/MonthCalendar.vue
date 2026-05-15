@@ -889,6 +889,7 @@ function onDrop(event: DragEvent, day: number) {
               >S</div>
               <div
                 class="ticket-pill"
+                :data-ticket-id="info.ticket.id"
                 :class="{
                   'is-start': info.isStart,
                   'is-end': info.isEnd,

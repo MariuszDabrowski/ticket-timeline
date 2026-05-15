@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, onMounted } from 'vue'
+import { ref, computed, toRaw, onMounted, nextTick } from 'vue'
 import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
 import { toPng } from 'html-to-image'
 
@@ -263,6 +263,52 @@ const showLoad = ref(false)
 const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
 
+// Hints system
+const HINTS_KEY = 'ticketTimeline.hintsShown'
+const hintsActive = ref(!localStorage.getItem(HINTS_KEY))
+const helpFlashing = ref(false)
+const hintSampleTicketId = ref<number | null>(null)
+const hintSampleEventId = ref<number | null>(null)
+const ticketsSectionRef = ref<HTMLElement | null>(null)
+
+interface HintPos { x: number; y: number; arrow: 'up' | 'left' }
+const hintPositions = ref<(HintPos | null)[]>([null, null, null])
+
+function computeHintPositions() {
+  const positions: (HintPos | null)[] = [null, null, null]
+  if (hintSampleTicketId.value !== null) {
+    const el = document.querySelector<HTMLElement>(`[data-ticket-id="${hintSampleTicketId.value}"].is-start`)
+    if (el) {
+      const r = el.getBoundingClientRect()
+      positions[0] = { x: r.left + r.width / 2, y: r.bottom + 8, arrow: 'up' }
+    }
+  }
+  if (hintSampleEventId.value !== null) {
+    const el = document.querySelector<HTMLElement>(`[data-ticket-id="${hintSampleEventId.value}"].is-start`)
+    if (el) {
+      const r = el.getBoundingClientRect()
+      positions[1] = { x: r.left + r.width / 2, y: r.bottom + 8, arrow: 'up' }
+    }
+  }
+  if (ticketsSectionRef.value) {
+    const r = ticketsSectionRef.value.getBoundingClientRect()
+    positions[2] = { x: r.right + 18, y: r.top + r.height / 2, arrow: 'left' }
+  }
+  hintPositions.value = positions
+}
+
+function dismissHints() {
+  hintsActive.value = false
+  localStorage.setItem(HINTS_KEY, '1')
+  helpFlashing.value = true
+  setTimeout(() => { helpFlashing.value = false }, 2500)
+}
+
+function showHelp() {
+  hintsActive.value = true
+  nextTick(() => computeHintPositions())
+}
+
 function resetAll() {
   people.loadData([])
   tickets.loadData({ tickets: [], placements: [] })
@@ -363,6 +409,9 @@ function seedDefaultData() {
 
   const vacId = vacations.addVacation(user2Id)
   vacations.placeVacation(vacId, vacStart, vacEnd)
+
+  hintSampleTicketId.value = t1Id
+  hintSampleEventId.value = e2Id
 }
 
 onMounted(() => {
@@ -377,6 +426,9 @@ onMounted(() => {
   }
   if (people.people.length === 0 && tickets.tickets.length === 0) {
     seedDefaultData()
+  }
+  if (hintsActive.value) {
+    setTimeout(() => computeHintPositions(), 350)
   }
 })
 
@@ -496,6 +548,12 @@ function onEventListDrop(event: DragEvent) {
         <button class="header-btn" @click="showLoad = true">Load</button>
         <button class="header-btn" @click="showSave = true">Save</button>
         <button class="header-btn" @click="showReset = true">Reset</button>
+        <button
+          class="header-btn help-btn"
+          :class="{ 'is-flashing': helpFlashing }"
+          @click="showHelp"
+          title="Show hints"
+        ><span class="icon">lightbulb</span></button>
       </div>
     </header>
     <div class="below-header">
@@ -564,6 +622,7 @@ function onEventListDrop(event: DragEvent) {
       </section>
 
       <section
+        ref="ticketsSectionRef"
         :class="['ticket-section', { 'drawer-open': !collapsed.tickets, 'drawer-closing': closingSection.has('tickets'), 'drop-target': ticketListIsOver }]"
         @dragover="onTicketListDragOver"
         @dragleave="onTicketListDragLeave"
@@ -709,7 +768,7 @@ function onEventListDrop(event: DragEvent) {
     </div>
     </div>
 
-    <main class="panel">
+    <main class="panel" @click.capture="hintsActive && dismissHints()">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
       <div class="months-row" ref="monthsRowRef">
         <div class="months-stack">
@@ -897,6 +956,32 @@ function onEventListDrop(event: DragEvent) {
       </div>
     </div>
   </Transition>
+
+  <Teleport to="body">
+    <div v-if="hintsActive" class="hints-layer">
+      <div
+        v-if="hintPositions[0]"
+        class="hint-anchor"
+        :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
+      >
+        <div class="hint-bubble hint-arrow-up">Click on tickets and events to edit them</div>
+      </div>
+      <div
+        v-if="hintPositions[1]"
+        class="hint-anchor"
+        :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
+      >
+        <div class="hint-bubble hint-arrow-up">Drag the tickets around, or use the handles to expand</div>
+      </div>
+      <div
+        v-if="hintPositions[2]"
+        class="hint-anchor hint-anchor-left"
+        :style="{ left: hintPositions[2].x + 'px', top: hintPositions[2].y + 'px' }"
+      >
+        <div class="hint-bubble hint-arrow-left">Create new items here, drag them onto the calendar when ready</div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -985,6 +1070,100 @@ function onEventListDrop(event: DragEvent) {
 
 .header-btn-danger {
   color: rgba(231, 76, 60, 0.7);
+}
+
+.help-btn {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+@keyframes helpFlash {
+  0%, 100% { color: rgba(255, 255, 255, 0.55); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.1); }
+  50% { color: rgba(167, 139, 250, 1); box-shadow: inset 0 1px 0 rgba(167, 139, 250, 0.2), 0 0 8px rgba(167, 139, 250, 0.35); }
+}
+
+.help-btn.is-flashing {
+  animation: helpFlash 0.55s ease-in-out 4;
+}
+
+.hints-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+}
+
+.hint-anchor {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.hint-anchor-left {
+  transform: translateY(-50%);
+}
+
+.hint-bubble {
+  position: relative;
+  background: rgba(20, 17, 34, 0.97);
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  max-width: 175px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(167, 139, 250, 0.06);
+  font-family: 'Nunito', sans-serif;
+  animation: hintFadeIn 0.3s ease-out both;
+}
+
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hint-arrow-up::before,
+.hint-arrow-up::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+}
+.hint-arrow-up::before {
+  bottom: calc(100% + 1px);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(167, 139, 250, 0.28);
+}
+.hint-arrow-up::after {
+  bottom: 100%;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid rgba(20, 17, 34, 0.97);
+}
+
+.hint-arrow-left::before,
+.hint-arrow-left::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+}
+.hint-arrow-left::before {
+  right: calc(100% + 1px);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid rgba(167, 139, 250, 0.28);
+}
+.hint-arrow-left::after {
+  right: 100%;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid rgba(20, 17, 34, 0.97);
 }
 
 .reset-backdrop {
