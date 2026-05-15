@@ -883,7 +883,7 @@ function onDrop(event: DragEvent, day: number) {
           <div v-for="(info, slotIdx) in effectiveDaySlots(day, dayRowIndex(dayIdx))" :key="slotIdx" class="slot-row">
             <div v-if="info" class="pill-slot">
               <div
-                v-if="info.isStart && !info.ticket.isLabel"
+                v-if="info.isStart"
                 class="pill-marker s-marker"
                 :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
               >S</div>
@@ -926,7 +926,7 @@ function onDrop(event: DragEvent, day: number) {
                 >›</button>
               </div>
               <div
-                v-if="info.isEnd && !info.ticket.isLabel"
+                v-if="info.isEnd"
                 class="pill-marker f-marker"
                 :class="{ 'is-visible': dragState.hoveredTicketId === info.ticket.id }"
               >F</div>

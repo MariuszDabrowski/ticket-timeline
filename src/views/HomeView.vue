@@ -322,25 +322,25 @@ function seedDefaultData() {
     const r = new Date(d); r.setDate(r.getDate() + n); return r
   }
 
-  // Find the Monday of the week containing the 14th of the current month,
-  // then shift forward 1 week so: week2=vacation, week3=tickets, week4=event
-  const anchor = new Date(now.getFullYear(), now.getMonth(), 14)
-  const dow = anchor.getDay()
-  const monday1 = calAddDays(anchor, (dow === 0 ? -6 : 1 - dow) + 7)
+  // Find the first Monday of the current month (first full week),
+  // then place: week1=vacation, week2=tickets, week3=event
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const firstDow = firstOfMonth.getDay()
+  const monday1 = calAddDays(firstOfMonth, (8 - firstDow) % 7)
   const monday2 = calAddDays(monday1, 7)
   const monday3 = calAddDays(monday2, 7)
 
-  // Vacation: Tue–Thu (3 days centered in week 2)
+  // Vacation: Tue–Thu (3 days centered in week 1)
   const vacStart = toCalDate(calAddDays(monday1, 1))
   const vacEnd   = toCalDate(calAddDays(monday1, 3))
 
-  // Tickets: Tue–Thu (3 days) and Thu–Fri (2 days), centered in week 3
+  // Tickets: Tue–Thu (3 days) and Thu–Fri (2 days), centered in week 2
   const t1Start  = toCalDate(calAddDays(monday2, 1))
   const t1End    = toCalDate(calAddDays(monday2, 3))
   const t2Start  = toCalDate(calAddDays(monday2, 3))
   const t2End    = toCalDate(calAddDays(monday2, 4))
 
-  // Sample Event 2: Tue–Wed (2 days centered in week 4)
+  // Sample Event 2: Tue–Wed (2 days centered in week 3)
   const e2Start  = toCalDate(calAddDays(monday3, 1))
   const e2End    = toCalDate(calAddDays(monday3, 2))
 
@@ -503,7 +503,7 @@ function onEventListDrop(event: DragEvent) {
     <aside class="sidebar" v-simplebar>
       <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
         <button class="section-header" @click="toggleSection('months')">
-          <span>Months</span>
+          <span data-label="Months">Months</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.months" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -536,7 +536,7 @@ function onEventListDrop(event: DragEvent) {
 
       <section :class="{ 'drawer-open': !collapsed.people, 'drawer-closing': closingSection.has('people') }">
         <button class="section-header" @click="toggleSection('people')">
-          <span>People</span>
+          <span data-label="People">People</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.people" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -570,7 +570,7 @@ function onEventListDrop(event: DragEvent) {
         @drop="onTicketListDrop"
       >
         <button class="section-header" @click="toggleSection('tickets')">
-          <span>Tickets</span>
+          <span data-label="Tickets">Tickets</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.tickets" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -615,7 +615,7 @@ function onEventListDrop(event: DragEvent) {
         @drop="onEventListDrop"
       >
         <button class="section-header" @click="toggleSection('labels')">
-          <span>Events</span>
+          <span data-label="Events">Events</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.labels" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -657,7 +657,7 @@ function onEventListDrop(event: DragEvent) {
         @drop="onVacationListDrop"
       >
         <button class="section-header" @click="toggleSection('vacations')">
-          <span>Vacations</span>
+          <span data-label="Vacations">Vacations</span>
           <span class="chevron">
             <Transition name="arrow">
               <svg v-if="collapsed.vacations" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -1108,32 +1108,32 @@ function onEventListDrop(event: DragEvent) {
 
 .sidebar-footer {
   flex-shrink: 0;
-  padding: 0.55rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.65rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  line-height: 1.4;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .sidebar-footer-link {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
   transition: color 0.15s;
 }
 
 .sidebar-footer-link:hover {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .sidebar-footer-sep {
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-footer-by {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 section {
@@ -1579,6 +1579,7 @@ section.drop-target {
   display: flex;
   align-items: stretch;
   gap: 0.35rem;
+  margin-top: 0.75rem;
 }
 
 .share-btn {
@@ -1829,13 +1830,30 @@ section.drop-target {
   flex-shrink: 0;
 }
 
-section.drawer-open .section-header > span:first-child {
+section .section-header > span:first-child {
+  position: relative;
+}
+
+section .section-header > span:first-child::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 0;
   background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 500% auto;
   animation: textShine 5s ease-in-out infinite alternate;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+section.drawer-open .section-header > span:first-child::after,
+section.drawer-closing .section-header > span:first-child::after {
+  opacity: 1;
 }
 
 
