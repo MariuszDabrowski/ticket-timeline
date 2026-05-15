@@ -381,6 +381,16 @@ const shareResult = computed(() =>
     selectedMonths: toRaw(selectedMonths.value),
   })
 )
+const bugReportUrl = computed(() => {
+  const base = 'https://github.com/MariuszDabrowski/ticket-timeline/issues/new'
+  const { url, tier } = shareResult.value
+  const shareSection = tier !== 'too-long' && url
+    ? `## Share link\n\n${url}\n\n`
+    : `## Share link\n\n<!-- Project is too large to encode as a share link -->\n\n`
+  const body = `## What happened?\n\n<!-- A clear description of the bug -->\n\n## Steps to reproduce\n\n1. \n2. \n3. \n\n## Screenshot\n\n<!-- Drag and drop a screenshot here -->\n\n${shareSection}## Environment\n\n- **Device:** \n- **OS:** \n- **Browser:** `
+  return `${base}?template=bug_report.md&body=${encodeURIComponent(body)}`
+})
+
 type CopyStatus = 'idle' | 'copied'
 const copyStatus = ref<CopyStatus>('idle')
 const showShareInfo = ref(false)
@@ -822,7 +832,7 @@ function onEventListDrop(event: DragEvent) {
       <div class="sidebar-footer-links">
         <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
         <span class="sidebar-footer-sep">·</span>
-        <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline/issues/new" target="_blank" rel="noopener noreferrer">Report a bug</a>
+        <a class="sidebar-footer-link" :href="bugReportUrl" target="_blank" rel="noopener noreferrer">Report a bug</a>
       </div>
     </div>
     </div>
