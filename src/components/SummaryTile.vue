@@ -188,11 +188,12 @@ const headline = computed(() => {
               <span class="team-dot" :style="{ background: stat.color }" />
               <span class="team-name">{{ stat.name }}</span>
               <span class="team-count">{{ stat.count }} ticket{{ stat.count !== 1 ? 's' : '' }}</span>
-              <label class="team-visibility">
+              <label class="team-visibility" :class="{ 'team-visibility--disabled': !calendarCountByPerson.get(stat.id ?? -1) }">
                 <input
-                  v-if="stat.id !== null && calendarCountByPerson.get(stat.id)"
+                  v-if="stat.id !== null"
                   type="checkbox"
                   :checked="!optionsStore.hiddenPersonIds.has(stat.id)"
+                  :disabled="!calendarCountByPerson.get(stat.id)"
                   @change="optionsStore.togglePersonVisibility(stat.id!)"
                 />
               </label>
@@ -443,6 +444,12 @@ const headline = computed(() => {
   align-items: center;
   cursor: pointer;
   margin-left: 0.25rem;
+}
+
+.team-visibility--disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
 }
 
 .team-visibility input[type='checkbox'] {
