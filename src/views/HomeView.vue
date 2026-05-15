@@ -310,6 +310,7 @@ const currentProjectName = ref('your-project-name')
 const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
 const HINT_DISMISSED_KEY = 'ticket-timeline:hint-dismissed'
 const hintDismissed = ref(localStorage.getItem(HINT_DISMISSED_KEY) === '1')
+const hintFadingOut = ref(false)
 const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
 let hintBootstrapDone = false
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -326,8 +327,12 @@ function computeHintPosition() {
 }
 
 function dismissHint() {
-  hintDismissed.value = true
-  localStorage.setItem(HINT_DISMISSED_KEY, '1')
+  hintFadingOut.value = true
+  setTimeout(() => {
+    hintDismissed.value = true
+    hintFadingOut.value = false
+    localStorage.setItem(HINT_DISMISSED_KEY, '1')
+  }, 400)
 }
 
 function resetAll() {
@@ -1019,17 +1024,16 @@ function onEventListDrop(event: DragEvent) {
     </div>
   </Transition>
 
-  <Transition name="hints-fade">
-    <div
-      v-if="anyHintVisible && !anyModalOpen && hintTop !== null"
-      class="hint-bubble hint-arrow-left"
-    >
-      <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
-      <div class="hint-footer">
-        <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
-      </div>
+  <div
+    v-if="anyHintVisible && !anyModalOpen && hintTop !== null"
+    class="hint-bubble hint-arrow-left"
+    :class="{ 'hint-bubble--fading': hintFadingOut }"
+  >
+    <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
+    <div class="hint-footer">
+      <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
     </div>
-  </Transition>
+  </div>
 </template>
 
 <style scoped>
@@ -1140,6 +1144,7 @@ function onEventListDrop(event: DragEvent) {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
+  transition: opacity 0.4s ease;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2201,9 +2206,7 @@ section.drawer-closing .section-header > span:first-child::after {
   }
 }
 
-:global(.hints-fade-leave-from) { opacity: 1; animation: none; }
-:global(.hints-fade-leave-active) { transition: opacity 0.4s ease; }
-:global(.hints-fade-leave-to) { opacity: 0; }
+.hint-bubble--fading { opacity: 0; }
 
 :global(.conflict-toast) {
   position: fixed;
