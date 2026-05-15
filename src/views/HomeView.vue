@@ -259,7 +259,15 @@ function onVacationPersonClick(personId: number) {
 
 const showSave = ref(false)
 const showLoad = ref(false)
+const showReset = ref(false)
 const currentProjectName = ref('your-project-name')
+
+function resetAll() {
+  people.loadData([])
+  tickets.loadData({ tickets: [], placements: [] })
+  vacations.loadData([])
+  showReset.value = false
+}
 
 const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
   tickets: toRaw(tickets.tickets),
@@ -282,13 +290,44 @@ function handleLoad(data: ProjectData) {
   showLoad.value = false
 }
 
+function seedDefaultData() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const mid = 14
+
+  const mariuszId = people.addPerson('Mariusz', '#3498db')
+  const myraId = people.addPerson('Myra', '#e91e63')
+
+  const t1Id = tickets.addTicket({ number: '', title: 'Sample Ticket 1', assignedTo: mariuszId, link: '' })
+  tickets.placeTicket(t1Id, { year, month, day: mid })
+
+  const t2Id = tickets.addTicket({ number: '', title: 'Sample Ticket 2', assignedTo: myraId, link: '' })
+  tickets.placeTicket(t2Id, { year, month, day: mid + 1 })
+  tickets.moveTicket(t2Id, { year, month, day: mid + 1 }, { year, month, day: mid + 2 })
+
+  tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
+
+  const e2Start: CalendarDate = { year, month, day: mid + 7 }
+  const e2Id = tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#1abc9c' })
+  tickets.placeTicket(e2Id, e2Start)
+
+  const vacId = vacations.addVacation(myraId)
+  vacations.placeVacation(vacId, { year, month, day: mid - 7 }, { year, month, day: mid - 6 })
+}
+
 onMounted(() => {
   const match = window.location.hash.match(/[#&]share=([^&]+)/)
-  if (!match) return
-  const data = decodeShareLink(match[1]!)
-  if (data) {
-    handleLoad(data)
-    history.replaceState(null, '', window.location.pathname)
+  if (match) {
+    const data = decodeShareLink(match[1]!)
+    if (data) {
+      handleLoad(data)
+      history.replaceState(null, '', window.location.pathname)
+    }
+    return
+  }
+  if (people.people.length === 0 && tickets.tickets.length === 0) {
+    seedDefaultData()
   }
 })
 
@@ -407,6 +446,7 @@ function onEventListDrop(event: DragEvent) {
       <div class="header-actions">
         <button class="header-btn" @click="showLoad = true">Load</button>
         <button class="header-btn" @click="showSave = true">Save</button>
+        <button class="header-btn header-btn-danger" @click="showReset = true">Reset</button>
       </div>
     </header>
     <div class="below-header">
@@ -458,7 +498,7 @@ function onEventListDrop(event: DragEvent) {
         <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }" :inert="collapsed.people || undefined">
           <div class="slide-inner">
             <div class="section-body">
-              <p class="people-blurb">Importing tickets from Shortcut will auto-populate this list.</p>
+              <p class="people-blurb">People appear here as you add them or import data.</p>
               <button class="add-btn" @click="showAddPerson = true">Add Person</button>
               <ul v-if="people.people.length > 0" class="people-list">
                 <li v-for="person in people.people" :key="person.id" class="person">
@@ -756,6 +796,22 @@ function onEventListDrop(event: DragEvent) {
       @cancel="hibobGroups = []"
     />
   </Transition>
+
+  <Transition name="modal">
+    <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
+      <div class="reset-modal">
+        <h3><span>Reset Calendar</span></h3>
+        <div class="reset-body">
+          <p>This will permanently clear all people, tickets, events, and vacations from the calendar.</p>
+          <p class="reset-warning">This action cannot be undone.</p>
+        </div>
+        <div class="reset-actions">
+          <button @click="showReset = false">Cancel</button>
+          <button class="reset-confirm-btn" @click="resetAll">Clear Everything</button>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -842,6 +898,99 @@ function onEventListDrop(event: DragEvent) {
   opacity: 0.8;
 }
 
+.header-btn-danger {
+  color: rgba(231, 76, 60, 0.7);
+}
+
+.reset-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.reset-modal {
+  background-color: #1a1a1a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+}
+
+.reset-modal h3 {
+  padding: 0.65rem 1rem;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  margin: 0;
+}
+
+.reset-modal h3 span {
+  background: linear-gradient(to right, #e74c3c 20%, #e67e22 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  padding-top: 2px;
+}
+
+.reset-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.55;
+}
+
+.reset-warning {
+  color: rgba(231, 76, 60, 0.8);
+  font-size: 0.82rem;
+}
+
+.reset-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.reset-actions button {
+  padding: 5px 1rem;
+  font-size: 0.76rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  color: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+  line-height: 1;
+}
+
+.reset-confirm-btn {
+  color: rgba(231, 76, 60, 0.85) !important;
+}
 
 .below-header {
   display: flex;
