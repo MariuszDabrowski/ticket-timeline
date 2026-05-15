@@ -305,6 +305,8 @@ const currentProjectName = ref('your-project-name')
 
 // Hints system
 const hintsActive = ref(window.matchMedia('(pointer: fine) and (min-width: 921px)').matches)
+const hintDismissed = ref([false, false, false])
+const anyHintVisible = computed(() => hintsActive.value && hintDismissed.value.some((d) => !d))
 const hintSampleTicketId = ref<number | null>(null)
 const hintSampleEventId = ref<number | null>(null)
 const ticketsSectionRef = ref<HTMLElement | null>(null)
@@ -362,7 +364,7 @@ function computeHintPositions() {
 
 let _hintScrollRaf: number | null = null
 function onScrollForHints() {
-  if (!hintsActive.value) return
+  if (!anyHintVisible.value) return
   if (_hintScrollRaf !== null) return
   _hintScrollRaf = requestAnimationFrame(() => {
     _hintScrollRaf = null
@@ -370,29 +372,8 @@ function onScrollForHints() {
   })
 }
 
-let hintDismissListener: (() => void) | null = null
-
-function setupHintDismissal() {
-  if (hintDismissListener) return
-  hintDismissListener = () => {
-    dismissHints()
-    document.removeEventListener('pointerdown', hintDismissListener!, true)
-    hintDismissListener = null
-  }
-  // Use setTimeout so the pointerdown that triggered showHelp() doesn't immediately dismiss
-  setTimeout(() => {
-    if (hintDismissListener) document.addEventListener('pointerdown', hintDismissListener, true)
-  }, 0)
-}
-
-function dismissHints() {
-  hintsActive.value = false
-}
-
-function showHelp() {
-  hintsActive.value = true
-  nextTick(() => computeHintPositions())
-  setupHintDismissal()
+function dismissHint(index: number) {
+  hintDismissed.value = hintDismissed.value.map((d, i) => (i === index ? true : d))
 }
 
 function resetAll() {
@@ -528,7 +509,6 @@ onMounted(() => {
   }
   if (hintsActive.value) {
     setTimeout(() => computeHintPositions(), 350)
-    setupHintDismissal()
   }
   document.addEventListener('scroll', onScrollForHints, true)
 })
@@ -536,7 +516,7 @@ onMounted(() => {
 watch(
   () => tickets.placements.length,
   (len) => {
-    if (len > 0 && hintsActive.value && !hintPositions.value[0]) {
+    if (len > 0 && anyHintVisible.value && !hintPositions.value[0]) {
       nextTick(() => computeHintPositions())
     }
   }
@@ -669,7 +649,6 @@ function onEventListDrop(event: DragEvent) {
       <div class="header-actions">
         <button class="header-btn" @click="showSave = true">Save</button>
         <button class="header-btn" @click="showLoad = true">Load</button>
-        <button class="header-btn help-btn" @click="showHelp">Help</button>
         <button class="header-btn" @click="showReset = true">Reset</button>
       </div>
     </header>
@@ -1107,35 +1086,35 @@ function onEventListDrop(event: DragEvent) {
 
   <Teleport to="body">
     <Transition name="hints-fade">
-    <div v-if="hintsActive" class="hints-layer">
+    <div v-if="anyHintVisible" class="hints-layer">
       <div
-        v-if="hintPositions[0]"
+        v-if="hintPositions[0] && !hintDismissed[0]"
         class="hint-anchor"
         :style="{ left: hintPositions[0].x + 'px', top: hintPositions[0].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-up">
-          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
-          <span>Click on tickets and events to edit them</span>
+          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Click on tickets and events to edit them</span>
+          <button class="hint-gotit" @click.stop="dismissHint(0)">Got it</button>
         </div>
       </div>
       <div
-        v-if="hintPositions[1]"
+        v-if="hintPositions[1] && !hintDismissed[1]"
         class="hint-anchor"
         :style="{ left: hintPositions[1].x + 'px', top: hintPositions[1].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-up">
-          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
-          <span>Drag the tickets around, or use the handles to expand</span>
+          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Drag the tickets around, or use the handles to expand</span>
+          <button class="hint-gotit" @click.stop="dismissHint(1)">Got it</button>
         </div>
       </div>
       <div
-        v-if="hintPositions[2]"
+        v-if="hintPositions[2] && !hintDismissed[2]"
         class="hint-anchor hint-anchor-left"
         :style="{ left: hintPositions[2].x + 'px', top: hintPositions[2].y + 'px' }"
       >
         <div class="hint-bubble hint-arrow-left">
-          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>
-          <span>Create new items here, drag them onto the calendar when ready</span>
+          <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items here, drag them onto the calendar when ready</span>
+          <button class="hint-gotit" @click.stop="dismissHint(2)">Got it</button>
         </div>
       </div>
     </div>
@@ -1231,13 +1210,7 @@ function onEventListDrop(event: DragEvent) {
   color: rgba(231, 76, 60, 0.7);
 }
 
-.help-btn {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
 @media (max-width: 920px), (pointer: coarse) {
-  .help-btn { display: none; }
   .hints-layer { display: none; }
 }
 
@@ -1274,10 +1247,36 @@ function onEventListDrop(event: DragEvent) {
   font-family: 'Nunito', sans-serif;
   animation: hintFadeIn 0.3s ease-out both;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-start;
   text-align: left;
+  gap: 0.35rem;
+}
+
+.hint-bubble > span {
+  display: flex;
+  align-items: flex-start;
   gap: 0.4rem;
+}
+
+.hint-gotit {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.1rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 223, 7, 0.85);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.hint-gotit:hover {
+  color: #ffdf07;
 }
 
 .hint-icon {
