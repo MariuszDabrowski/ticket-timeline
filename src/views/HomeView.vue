@@ -409,27 +409,19 @@ function seedDefaultData() {
     const r = new Date(d); r.setDate(r.getDate() + n); return r
   }
 
-  // Find the first Monday of the current month (first full week),
-  // then place: week1=vacation, week2=tickets, week3=event
+  // Find the second full week of the current month for ticket/event placement
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const firstDow = firstOfMonth.getDay()
   const monday1 = calAddDays(firstOfMonth, (8 - firstDow) % 7)
   const monday2 = calAddDays(monday1, 7)
-  const monday3 = calAddDays(monday2, 7)
-
-  // Vacation: Tue–Thu (3 days centered in week 1)
-  const vacStart = toCalDate(calAddDays(monday1, 1))
-  const vacEnd   = toCalDate(calAddDays(monday1, 3))
 
   // Tickets: Tue–Thu (3 days) and Thu–Fri (2 days), centered in week 2
   const t1Start  = toCalDate(calAddDays(monday2, 1))
   const t1End    = toCalDate(calAddDays(monday2, 3))
-  const t2Start  = toCalDate(calAddDays(monday2, 3))
-  const t2End    = toCalDate(calAddDays(monday2, 4))
 
-  // Sample Event 1: Tue–Wed (2 days centered in week 3)
-  const e1Start  = toCalDate(calAddDays(monday3, 1))
-  const e1End    = toCalDate(calAddDays(monday3, 2))
+  // Sample Event 1: last 2 days of ticket 1 (Wed–Thu of week 2)
+  const e1Start  = toCalDate(calAddDays(monday2, 2))
+  const e1End    = toCalDate(calAddDays(monday2, 3))
 
   const user1Id = people.addPerson('Sample User 1', '#3498db')
   const user2Id = people.addPerson('Sample User 2', '#e91e63')
@@ -438,18 +430,13 @@ function seedDefaultData() {
   tickets.placeTicket(t1Id, t1Start)
   tickets.moveTicket(t1Id, t1Start, t1End)
 
-  const t2Id = tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: user2Id, link: '' })
-  tickets.placeTicket(t2Id, t2Start)
-  tickets.moveTicket(t2Id, t2Start, t2End)
+  tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: user2Id, link: '' })
 
   const e1Id = tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
   tickets.placeTicket(e1Id, e1Start)
   tickets.moveTicket(e1Id, e1Start, e1End)
 
   tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
-
-  const vacId = vacations.addVacation(user1Id)
-  vacations.placeVacation(vacId, vacStart, vacEnd)
 
   isSampleData.value = true
 }
@@ -1190,8 +1177,7 @@ function onEventListDrop(event: DragEvent) {
 }
 
 .hint-gotit:hover {
-  color: rgba(255, 223, 7, 1);
-  background: rgba(255, 223, 7, 0.08);
+  color: rgba(180, 145, 0, 1);
 }
 
 @media (max-width: 920px), (pointer: coarse) {
