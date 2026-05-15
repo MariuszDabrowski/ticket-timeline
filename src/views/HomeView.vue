@@ -216,7 +216,7 @@ const ticketListIsOver = ref(false)
 const vacations = useVacationsStore()
 const showSave = ref(false)
 const showLoad = ref(false)
-const currentProjectName = ref('REPLACE-ME')
+const currentProjectName = ref('your-project-name')
 
 const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
   tickets: toRaw(tickets.tickets),

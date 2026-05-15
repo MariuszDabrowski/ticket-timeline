@@ -11,7 +11,7 @@ const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: strin
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
 
 const includeSummary = ref(true)
-const projectName = ref(props.initialName ?? 'REPLACE-ME')
+const projectName = ref(props.initialName ?? 'your-project-name')
 const { trapRef, onKeydown } = useFocusTrap()
 
 const existingProject = computed(() =>
