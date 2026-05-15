@@ -962,7 +962,7 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0.65rem 0 0.65rem;
+  padding: 1rem 0;
 }
 
 .section-body > * {
@@ -1355,7 +1355,7 @@ section.drop-target {
 }
 
 .import-section {
-  margin-top: 0.3rem;
+  margin-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 0.15rem;
 }
@@ -1401,7 +1401,7 @@ section.drop-target {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  padding: 0.1rem 1rem 0.15rem;
+  padding: 0 1rem;
 }
 
 .vacation-person-pill {
