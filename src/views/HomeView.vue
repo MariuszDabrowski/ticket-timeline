@@ -15,8 +15,8 @@ import HiBobModal from '../components/HiBobModal.vue'
 import HiBobConfirmModal from '../components/HiBobConfirmModal.vue'
 import SummaryTile from '../components/SummaryTile.vue'
 import AddLabelModal from '../components/AddLabelModal.vue'
-import ExportModal from '../components/ExportModal.vue'
-import ImportModal from '../components/ImportModal.vue'
+import SaveModal from '../components/SaveModal.vue'
+import LoadModal from '../components/LoadModal.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
@@ -214,11 +214,11 @@ const ticketListIsOver = ref(false)
 
 
 const vacations = useVacationsStore()
-const showExport = ref(false)
-const showImport = ref(false)
+const showSave = ref(false)
+const showLoad = ref(false)
 const currentProjectName = ref('REPLACE-ME')
 
-const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
+const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
   tickets: toRaw(tickets.tickets),
   placements: toRaw(tickets.placements),
   people: toRaw(people.people),
@@ -226,7 +226,7 @@ const exportData = computed<Omit<ProjectData, 'name'>>(() => ({
   selectedMonths: toRaw(selectedMonths.value),
 }))
 
-function handleImport(data: ProjectData) {
+function handleLoad(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
@@ -236,7 +236,7 @@ function handleImport(data: ProjectData) {
     visibleStart.value = Math.min(...data.selectedMonths)
     visibleEnd.value = Math.max(...data.selectedMonths)
   }
-  showImport.value = false
+  showLoad.value = false
 }
 
 onMounted(() => {
@@ -244,7 +244,7 @@ onMounted(() => {
   if (!match) return
   const data = decodeShareLink(match[1]!)
   if (data) {
-    handleImport(data)
+    handleLoad(data)
     history.replaceState(null, '', window.location.pathname)
   }
 })
@@ -340,8 +340,8 @@ function onTicketListDrop(event: DragEvent) {
         Ticket Timeline
       </span>
       <div class="header-actions">
-        <button class="header-btn" @click="showImport = true">Import</button>
-        <button class="header-btn" @click="showExport = true">Export</button>
+        <button class="header-btn" @click="showLoad = true">Load</button>
+        <button class="header-btn" @click="showSave = true">Save</button>
       </div>
     </header>
     <div class="below-header">
@@ -609,22 +609,22 @@ function onTicketListDrop(event: DragEvent) {
   </Transition>
 
   <Transition name="modal">
-    <ExportModal
-      v-if="showExport"
-      :data="exportData"
+    <SaveModal
+      v-if="showSave"
+      :data="saveData"
       :initial-name="currentProjectName"
       :exporting-image="exportingImage"
-      @close="showExport = false"
+      @close="showSave = false"
       @save="(name) => currentProjectName = name"
       @export-image="(v) => handleExportImage(v)"
     />
   </Transition>
 
   <Transition name="modal">
-    <ImportModal
-      v-if="showImport"
-      @load="handleImport"
-      @close="showImport = false"
+    <LoadModal
+      v-if="showLoad"
+      @load="handleLoad"
+      @close="showLoad = false"
     />
   </Transition>
 

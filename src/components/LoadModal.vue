@@ -60,7 +60,7 @@ function fmtDate(iso: string) {
 <template>
   <div class="backdrop" @click.self="emit('close')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3><span>Import Project</span></h3>
+      <h3><span>Load Project</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="section">
@@ -101,7 +101,7 @@ function fmtDate(iso: string) {
         <div class="section">
           <div class="section-label">Load from file</div>
           <div class="upload-area">
-            <p class="upload-desc">Upload a <code>.json</code> file exported from this app.</p>
+            <p class="upload-desc">Upload a <code>.json</code> file saved from this app.</p>
             <label class="file-btn">
               Choose File
               <input type="file" accept=".json,application/json" @change="onFileInput" />

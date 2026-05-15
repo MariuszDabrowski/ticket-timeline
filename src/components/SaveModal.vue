@@ -72,7 +72,7 @@ function fmtDate(iso: string) {
 <template>
   <div class="backdrop" @click.self="emit('close')">
     <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3><span>Export Project</span></h3>
+      <h3><span>Save Project</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">
@@ -86,7 +86,7 @@ function fmtDate(iso: string) {
               <div class="option-title">Save to browser</div>
               <div class="option-desc">
                 Stores the project in this browser's local storage. You can load it later from
-                the Import screen.
+                the Load screen.
                 <span v-if="existingProject" class="overwrite-note">
                   A project named <strong>{{ existingProject.name }}</strong> was last saved
                   {{ fmtDate(existingProject.savedAt) }} — saving will update it.
@@ -127,7 +127,7 @@ function fmtDate(iso: string) {
               <div class="option-title">Download JSON</div>
               <div class="option-desc">
                 Downloads a <code>.json</code> file containing all tickets, people, and vacation
-                data. You can import this file on any device.
+                data. You can load this file on any device.
               </div>
             </div>
             <div class="option-action">
