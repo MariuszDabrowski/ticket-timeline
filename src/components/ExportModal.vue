@@ -6,8 +6,6 @@ import {
   setSavedProjects,
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
-import { buildSmartShareUrl, analyzeSharePayload, TITLE_TRUNCATE_LENGTH } from '../utils/shareLink'
-import type { ShareFieldStat } from '../utils/shareLink'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
@@ -63,27 +61,6 @@ function downloadJSON() {
   emit('save', name)
 }
 
-type ShareStatus = 'idle' | 'copied'
-const shareStatus = ref<ShareStatus>('idle')
-
-const expandedField = ref<string | null>(null)
-
-const shareInfo = computed(() => {
-  const data = snapshot()
-  const name = projectName.value.trim() || 'project'
-  const projectData = { name, ...data }
-  const smart = buildSmartShareUrl(projectData)
-  const breakdown: ShareFieldStat[] = analyzeSharePayload(projectData)
-  return { ...smart, breakdown }
-})
-
-function copyShareLink() {
-  const { url, tier } = shareInfo.value
-  if (tier === 'too-long' || !url) return
-  navigator.clipboard.writeText(url)
-  shareStatus.value = 'copied'
-  setTimeout(() => (shareStatus.value = 'idle'), 2500)
-}
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -160,54 +137,6 @@ function fmtDate(iso: string) {
             </div>
           </div>
 
-          <div class="option-card">
-            <div class="option-body">
-              <div class="option-title">Copy Share Link</div>
-              <div class="option-desc">
-                Encodes the entire project into a URL. Anyone with the link can open it directly —
-                no account or upload needed.
-              </div>
-              <div class="share-breakdown">
-                <div class="breakdown-label">Compact payload by field</div>
-                <div v-for="row in shareInfo.breakdown" :key="row.field">
-                  <div
-                    class="share-breakdown-row"
-                    :class="{ 'is-expandable': row.detail.length > 0, 'is-expanded': expandedField === row.field }"
-                    @click="row.detail.length ? (expandedField = expandedField === row.field ? null : row.field) : null"
-                  >
-                    <span class="breakdown-field">{{ row.field }}</span>
-                    <div class="breakdown-bar-wrap">
-                      <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
-                    </div>
-                    <span class="breakdown-chars">
-                      {{ row.rawChars.toLocaleString() }}
-                      <span v-if="row.count !== null" class="breakdown-meta"> · {{ row.count }} items · ~{{ row.avgChars }}ch ea</span>
-                    </span>
-                  </div>
-                  <div v-if="expandedField === row.field" class="breakdown-detail">
-                    <div v-for="d in row.detail" :key="d.label" class="breakdown-detail-row">
-                      <span class="detail-field">{{ d.label }}</span>
-                      <span class="detail-chars">~{{ d.chars }} chars/item</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="shareInfo.tier !== 'full'" class="share-tier-note" :class="{ 'share-tier-note--error': shareInfo.tier === 'too-long' }">
-                  <template v-if="shareInfo.tier === 'truncated'">Titles truncated to {{ TITLE_TRUNCATE_LENGTH }} chars to fit</template>
-                  <template v-else-if="shareInfo.tier === 'stripped'">Titles omitted to fit</template>
-                  <template v-else>Too large even without titles — use JSON export instead</template>
-                </div>
-                <div class="share-total" :class="{ 'share-total--warn': shareInfo.tier === 'too-long' }">
-                  {{ shareInfo.urlLength.toLocaleString() }} chars after compression
-                </div>
-              </div>
-            </div>
-            <div class="option-action">
-              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim() || shareInfo.tier === 'too-long'">
-                <template v-if="shareStatus === 'copied'">✓ Copied</template>
-                <template v-else>Copy Link</template>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -370,127 +299,6 @@ h3 span {
   color: #e8a735;
 }
 
-.share-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-top: 0.6rem;
-}
-
-.breakdown-label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.35;
-  margin-bottom: 0.1rem;
-}
-
-.share-breakdown-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.breakdown-field {
-  width: 5.5rem;
-  flex-shrink: 0;
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.breakdown-bar-wrap {
-  flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.breakdown-bar {
-  height: 100%;
-  background: #e8a735;
-  border-radius: 2px;
-  opacity: 0.7;
-}
-
-.breakdown-chars {
-  flex-shrink: 0;
-  text-align: right;
-  opacity: 0.6;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.72rem;
-}
-
-.breakdown-meta {
-  opacity: 0.7;
-}
-
-.share-breakdown-row.is-expandable {
-  cursor: pointer;
-}
-
-.share-breakdown-row.is-expandable:hover .breakdown-field {
-  opacity: 1;
-}
-
-.share-breakdown-row.is-expanded .breakdown-field::before {
-  content: '▾ ';
-  font-size: 0.6rem;
-}
-
-.share-breakdown-row:not(.is-expanded) .breakdown-field.is-expandable::before {
-  content: '▸ ';
-  font-size: 0.6rem;
-}
-
-.breakdown-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  margin: 0.15rem 0 0.3rem 0.5rem;
-  padding-left: 0.6rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.breakdown-detail-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  opacity: 0.6;
-}
-
-.detail-field {
-  font-variant-numeric: tabular-nums;
-}
-
-.detail-chars {
-  font-variant-numeric: tabular-nums;
-  opacity: 0.8;
-}
-
-.share-tier-note {
-  font-size: 0.72rem;
-  color: #e8a735;
-  opacity: 0.85;
-  margin-top: 0.25rem;
-}
-
-.share-tier-note--error {
-  color: #e05252;
-}
-
-.share-total {
-  margin-top: 0.2rem;
-  font-size: 0.73rem;
-  opacity: 0.55;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.share-total--warn {
-  color: #e05252;
-  opacity: 0.9;
-}
 
 .option-action {
   flex-shrink: 0;

@@ -531,7 +531,7 @@ function onTicketListDrop(event: DragEvent) {
               <span>Project Brief</span>
             </div>
             <div class="panel-body">
-              <SummaryTile />
+              <SummaryTile :project-name="currentProjectName" :selected-months="selectedMonths" />
             </div>
           </div>
 

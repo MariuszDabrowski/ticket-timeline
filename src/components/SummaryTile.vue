@@ -1,14 +1,46 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useOptionsStore } from '../stores/options'
+import { useVacationsStore } from '../stores/vacations'
 import type { CalendarDate } from '../stores/tickets'
+import { buildSmartShareUrl } from '../utils/shareLink'
+import ShareInfoModal from './ShareInfoModal.vue'
+
+const props = defineProps<{
+  projectName: string
+  selectedMonths: number[]
+}>()
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
 const optionsStore = useOptionsStore()
+const vacationsStore = useVacationsStore()
+
+const shareResult = computed(() =>
+  buildSmartShareUrl({
+    name: props.projectName,
+    tickets: toRaw(ticketsStore.tickets),
+    placements: toRaw(ticketsStore.placements),
+    people: toRaw(peopleStore.people),
+    vacations: toRaw(vacationsStore.entries),
+    selectedMonths: toRaw(props.selectedMonths),
+  })
+)
+
+type CopyStatus = 'idle' | 'copied'
+const copyStatus = ref<CopyStatus>('idle')
+const showInfoModal = ref(false)
+
+function copyShareLink() {
+  const { url, tier } = shareResult.value
+  if (tier === 'too-long' || !url) return
+  navigator.clipboard.writeText(url)
+  copyStatus.value = 'copied'
+  setTimeout(() => (copyStatus.value = 'idle'), 2500)
+}
 
 const calendarCountByPerson = computed(() => {
   const counts = new Map<number, number>()
@@ -198,6 +230,26 @@ const headline = computed(() => {
         </div>
       </template>
     </template>
+
+    <div class="divider" />
+    <div class="section">
+      <div class="section-label">Share</div>
+      <div class="share-row">
+        <button
+          class="share-btn"
+          :class="{ 'share-btn--copied': copyStatus === 'copied' }"
+          :disabled="shareResult.tier === 'too-long'"
+          @click="copyShareLink"
+        >
+          <template v-if="copyStatus === 'copied'">✓ Link copied</template>
+          <template v-else-if="shareResult.tier === 'too-long'">Project too large to share</template>
+          <template v-else>Copy share link</template>
+        </button>
+        <button class="info-btn" @click="showInfoModal = true">?</button>
+      </div>
+    </div>
+
+    <ShareInfoModal v-if="showInfoModal" @close="showInfoModal = false" />
   </div>
 </template>
 
@@ -483,5 +535,66 @@ const headline = computed(() => {
 
 .team-visibility input[type='checkbox']:hover {
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.share-btn {
+  flex: 1;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.share-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.share-btn--copied {
+  color: #27ae60 !important;
+  border-color: rgba(39, 174, 96, 0.3) !important;
+}
+
+.share-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.info-btn {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.info-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
 }
 </style>
