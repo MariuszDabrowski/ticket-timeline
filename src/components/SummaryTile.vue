@@ -539,35 +539,32 @@ const headline = computed(() => {
 
 .share-row {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: stretch;
+  gap: 0.35rem;
 }
 
 .share-btn {
   flex: 1;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.78rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  font-size: 14px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.55);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  padding: 10px 0.75rem 8px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: color 0.2s ease;
+  line-height: 1;
+  font-family: 'Nunito', sans-serif;
 }
 
 .share-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
-  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .share-btn--copied {
   color: #27ae60 !important;
-  border-color: rgba(39, 174, 96, 0.3) !important;
 }
 
 .share-btn:disabled {
@@ -576,25 +573,24 @@ const headline = computed(() => {
 }
 
 .info-btn {
-  width: 22px;
-  height: 22px;
   flex-shrink: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
+  width: 32px;
+  font-size: 13px;
   font-weight: 700;
   font-family: 'Nunito', sans-serif;
   cursor: pointer;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.2s ease;
 }
 
 .info-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.85);
 }
 </style>
