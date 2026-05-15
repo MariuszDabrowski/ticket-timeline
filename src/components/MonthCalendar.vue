@@ -1155,10 +1155,6 @@ h2 {
   overflow: hidden;
 }
 
-.day-number {
-  font-size: 0.85rem;
-}
-
 .day-number-wrap {
   position: relative;
   display: inline-flex;
@@ -1166,7 +1162,6 @@ h2 {
 }
 
 .day-number {
-  cursor: pointer;
   border-radius: 50%;
   width: 1.7rem;
   height: 1.7rem;
@@ -1177,12 +1172,6 @@ h2 {
   font-size: 0.82rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
-  transition: background 0.1s, color 0.1s;
-}
-
-.day-number:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
 }
 
 
