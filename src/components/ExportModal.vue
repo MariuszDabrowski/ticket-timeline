@@ -66,24 +66,19 @@ const URL_WARN_THRESHOLD = 2000
 
 type ShareStatus = 'idle' | 'copied' | 'toolong'
 const shareStatus = ref<ShareStatus>('idle')
-const shareByteCount = ref(0)
 
 interface ShareBreakdown {
   field: string
   rawChars: number
   pct: number
 }
-const shareBreakdown = ref<ShareBreakdown[]>([])
 
-function getShareUrl(): { url: string; length: number } {
-  const name = projectName.value.trim() || 'project'
-  const payload: ProjectData = { name, ...snapshot() }
-  const url = buildShareUrl(payload)
-  return { url, length: url.length }
-}
-
-function computeBreakdown(): ShareBreakdown[] {
+const shareInfo = computed(() => {
   const data = snapshot()
+  const name = projectName.value.trim() || 'project'
+  const url = buildShareUrl({ name, ...data })
+  const urlLength = url.length
+
   const fields: [string, unknown][] = [
     ['tickets', data.tickets],
     ['placements', data.placements],
@@ -93,14 +88,17 @@ function computeBreakdown(): ShareBreakdown[] {
   ]
   const sizes = fields.map(([field, val]) => ({ field, rawChars: JSON.stringify(val).length }))
   const total = sizes.reduce((s, f) => s + f.rawChars, 0)
-  return sizes.map((f) => ({ ...f, pct: Math.round((f.rawChars / total) * 100) }))
-}
+  const breakdown: ShareBreakdown[] = sizes.map((f) => ({
+    ...f,
+    pct: Math.round((f.rawChars / total) * 100),
+  }))
+
+  return { url, urlLength, breakdown }
+})
 
 function copyShareLink() {
-  const { url, length } = getShareUrl()
-  shareByteCount.value = length
-  if (length > URL_WARN_THRESHOLD) {
-    shareBreakdown.value = computeBreakdown()
+  const { url, urlLength } = shareInfo.value
+  if (urlLength > URL_WARN_THRESHOLD) {
     shareStatus.value = 'toolong'
     return
   }
@@ -191,21 +189,22 @@ function fmtDate(iso: string) {
                 Encodes the entire project into a URL. Anyone with the link can open it directly —
                 no account or upload needed.
               </div>
-              <div v-if="shareStatus === 'toolong'" class="share-warn">
-                <div class="share-warn-msg">Link is {{ shareByteCount.toLocaleString() }} characters — too long to share reliably.</div>
-                <div class="share-breakdown">
-                  <div v-for="row in shareBreakdown" :key="row.field" class="share-breakdown-row">
-                    <span class="breakdown-field">{{ row.field }}</span>
-                    <div class="breakdown-bar-wrap">
-                      <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
-                    </div>
-                    <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} chars ({{ row.pct }}%)</span>
+              <div class="share-breakdown">
+                <div v-for="row in shareInfo.breakdown" :key="row.field" class="share-breakdown-row">
+                  <span class="breakdown-field">{{ row.field }}</span>
+                  <div class="breakdown-bar-wrap">
+                    <div class="breakdown-bar" :style="{ width: row.pct + '%' }" />
                   </div>
+                  <span class="breakdown-chars">{{ row.rawChars.toLocaleString() }} chars ({{ row.pct }}%)</span>
+                </div>
+                <div class="share-total" :class="{ 'share-total--warn': shareInfo.urlLength > URL_WARN_THRESHOLD }">
+                  {{ shareInfo.urlLength.toLocaleString() }} chars total
+                  <span v-if="shareInfo.urlLength > URL_WARN_THRESHOLD"> — too long, try JSON export</span>
                 </div>
               </div>
             </div>
             <div class="option-action">
-              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim()">
+              <button class="btn" @click="copyShareLink" :disabled="!projectName.trim() || shareInfo.urlLength > URL_WARN_THRESHOLD">
                 <template v-if="shareStatus === 'copied'">✓ Copied</template>
                 <template v-else>Copy Link</template>
               </button>
@@ -366,21 +365,11 @@ h3 span {
   color: #e8a735;
 }
 
-.share-warn {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #e8a735;
-}
-
-.share-warn-msg {
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
-}
-
 .share-breakdown {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  margin-top: 0.6rem;
 }
 
 .share-breakdown-row {
@@ -417,6 +406,19 @@ h3 span {
   text-align: right;
   opacity: 0.6;
   font-variant-numeric: tabular-nums;
+}
+
+.share-total {
+  margin-top: 0.2rem;
+  font-size: 0.73rem;
+  opacity: 0.55;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.share-total--warn {
+  color: #e8a735;
+  opacity: 0.9;
 }
 
 .option-action {
