@@ -228,7 +228,7 @@ function onScroll() {
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true, capture: true }))
 onUnmounted(() => window.removeEventListener('scroll', onScroll, { capture: true }))
 
-function showTicketTooltip(e: MouseEvent, info: DayTicketInfo) {
+function showTicketTooltip(e: MouseEvent | FocusEvent, info: DayTicketInfo) {
   if (hideTooltipTimer) { clearTimeout(hideTooltipTimer); hideTooltipTimer = null }
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
   dragState.hoveredTicketId = info.ticket.id
@@ -920,9 +920,16 @@ function onDrop(event: DragEvent, day: number) {
                 }"
                 :style="{ '--tc': ticketColor(info.ticket), background: ticketSegmentBg(info.ticket, info.spanIndex, info.spanTotal) }"
                 draggable="true"
+                tabindex="0"
+                role="button"
+                :aria-label="info.ticket.isLabel ? `${info.ticket.title || 'Event'} — edit` : `${info.ticket.number} ${info.ticket.title} — edit`"
                 @mouseenter="showTicketTooltip($event, info)"
                 @mouseleave="hideTicketTooltip()"
+                @focus="showTicketTooltip($event, info)"
+                @blur="hideTicketTooltip()"
                 @click.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
+                @keydown.enter.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
+                @keydown.space.prevent.stop="info.ticket.isLabel ? (editingLabel = info.ticket) : (editingTicket = info.ticket)"
                 @dragstart="onTicketDragStart($event, info)"
                 @dragend="dragState.clearMoveDrag"
               >
