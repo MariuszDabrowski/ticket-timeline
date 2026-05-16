@@ -31,7 +31,14 @@ npm run build
 ## Type Check
 
 ```sh
-npx tsc --noEmit
+npm run type-check
+```
+
+## Tests
+
+```sh
+npm run test:unit   # vitest, runs all *.test.ts in src/
+npm run test:e2e    # playwright (auto-starts dev server)
 ```
 
 ## Tech Stack

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, toRaw, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
 import { seedSampleData } from '../utils/seedSampleData'
@@ -344,22 +344,21 @@ function resetAll() {
 }
 
 const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
-  tickets: toRaw(tickets.tickets),
-  placements: toRaw(tickets.placements),
-  people: toRaw(people.people),
-  vacations: toRaw(vacations.entries),
-  selectedMonths: toRaw(selectedMonths.value),
+  tickets: [...tickets.tickets],
+  placements: [...tickets.placements],
+  people: [...people.people],
+  vacations: [...vacations.entries],
+  selectedMonths: [...selectedMonths.value],
 }))
 
-const shareProjectData = computed(() => ({
+const { shareResult, copyStatus, copyShareLink, bugReportUrl } = useShareLink(() => ({
   name: currentProjectName.value,
-  tickets: toRaw(tickets.tickets),
-  placements: toRaw(tickets.placements),
-  people: toRaw(people.people),
-  vacations: toRaw(vacations.entries),
-  selectedMonths: toRaw(selectedMonths.value),
+  tickets: [...tickets.tickets],
+  placements: [...tickets.placements],
+  people: [...people.people],
+  vacations: [...vacations.entries],
+  selectedMonths: [...selectedMonths.value],
 }))
-const { shareResult, copyStatus, copyShareLink, bugReportUrl } = useShareLink(shareProjectData)
 const showShareInfo = ref(false)
 
 const anyModalOpen = computed(() =>

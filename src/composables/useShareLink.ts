@@ -1,11 +1,11 @@
-import { ref, computed, type ComputedRef } from 'vue'
+import { ref, computed } from 'vue'
 import { buildSmartShareUrl } from '../utils/shareLink'
 import type { ProjectData } from '../utils/projectStorage'
 
 type CopyStatus = 'idle' | 'copied'
 
-export function useShareLink(projectData: ComputedRef<ProjectData>) {
-  const shareResult = computed(() => buildSmartShareUrl(projectData.value))
+export function useShareLink(getProjectData: () => ProjectData) {
+  const shareResult = computed(() => buildSmartShareUrl(getProjectData()))
   const copyStatus = ref<CopyStatus>('idle')
 
   function copyShareLink() {
