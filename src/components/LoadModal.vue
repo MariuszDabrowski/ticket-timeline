@@ -59,8 +59,8 @@ function fmtDate(iso: string) {
 
 <template>
   <div class="backdrop" @click.self="emit('close')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3><span>Load Project</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="load-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
+      <h3 id="load-modal-title"><span>Load Project</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="section">
@@ -87,7 +87,7 @@ function fmtDate(iso: string) {
                     <button class="btn action-btn" @click="confirmId = null">No</button>
                   </template>
                   <template v-else>
-                    <button class="btn action-btn delete" @click="confirmId = project.id" title="Delete">✕</button>
+                    <button class="btn action-btn delete" aria-label="Delete project" @click="confirmId = project.id" title="Delete">✕</button>
                     <button class="btn action-btn primary" @click="loadSaved(project.id)">Load</button>
                   </template>
                 </div>

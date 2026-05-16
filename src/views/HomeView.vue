@@ -594,7 +594,7 @@ function onEventListDrop(event: DragEvent) {
     <div class="sidebar-wrap">
     <aside class="sidebar" v-simplebar>
       <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
-        <button class="section-header" @click="toggleSection('months')">
+        <button class="section-header" :aria-expanded="!collapsed.months" @click="toggleSection('months')">
           <span data-label="Months">Months</span>
           <span class="chevron">
             <Transition name="arrow">
@@ -627,7 +627,7 @@ function onEventListDrop(event: DragEvent) {
       </section>
 
       <section :class="{ 'drawer-open': !collapsed.people, 'drawer-closing': closingSection.has('people') }">
-        <button class="section-header" @click="toggleSection('people')">
+        <button class="section-header" :aria-expanded="!collapsed.people" @click="toggleSection('people')">
           <span data-label="People">People</span>
           <span class="chevron">
             <Transition name="arrow">
@@ -662,7 +662,7 @@ function onEventListDrop(event: DragEvent) {
         @dragleave="onTicketListDragLeave"
         @drop="onTicketListDrop"
       >
-        <button class="section-header" @click="toggleSection('tickets')">
+        <button class="section-header" :aria-expanded="!collapsed.tickets" @click="toggleSection('tickets')">
           <span data-label="Tickets">Tickets</span>
           <span class="chevron">
             <Transition name="arrow">
@@ -707,7 +707,7 @@ function onEventListDrop(event: DragEvent) {
         @dragleave="onEventListDragLeave"
         @drop="onEventListDrop"
       >
-        <button class="section-header" @click="toggleSection('labels')">
+        <button class="section-header" :aria-expanded="!collapsed.labels" @click="toggleSection('labels')">
           <span data-label="Events">Events</span>
           <span class="chevron">
             <Transition name="arrow">
@@ -749,7 +749,7 @@ function onEventListDrop(event: DragEvent) {
         @dragleave="onVacationListDragLeave"
         @drop="onVacationListDrop"
       >
-        <button class="section-header" @click="toggleSection('vacations')">
+        <button class="section-header" :aria-expanded="!collapsed.vacations" @click="toggleSection('vacations')">
           <span data-label="Vacations">Vacations</span>
           <span class="chevron">
             <Transition name="arrow">
@@ -851,7 +851,7 @@ function onEventListDrop(event: DragEvent) {
                 </div>
               </div>
             </button>
-            <button class="info-btn" @click="showShareInfo = true">?</button>
+            <button class="info-btn" aria-label="About the share link" @click="showShareInfo = true">?</button>
           </div>
 
         </div>
@@ -1008,8 +1008,8 @@ function onEventListDrop(event: DragEvent) {
 
   <Transition name="modal">
     <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
-      <div class="reset-modal">
-        <h3><span>Reset Calendar</span></h3>
+      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+        <h3 id="reset-modal-title"><span>Reset Calendar</span></h3>
         <div class="reset-body">
           <p>This will permanently clear all people, tickets, events, and vacations from the calendar.</p>
           <p class="reset-warning">This action cannot be undone.</p>

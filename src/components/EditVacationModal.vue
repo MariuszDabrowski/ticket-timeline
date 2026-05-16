@@ -21,8 +21,8 @@ const { trapRef, onKeydown } = useFocusTrap()
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Edit Vacation</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="edit-vacation-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="edit-vacation-modal-title"><span>Edit Vacation</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">

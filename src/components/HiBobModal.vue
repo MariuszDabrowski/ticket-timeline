@@ -46,8 +46,8 @@ function onFileInput(e: Event) {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Sync HiBob Vacation Days</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="hibob-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="hibob-modal-title"><span>Sync HiBob Vacation Days</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="instructions">

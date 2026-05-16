@@ -930,6 +930,7 @@ function onDrop(event: DragEvent, day: number) {
                   v-if="info.isStart"
                   class="resize-handle"
                   draggable="true"
+                  aria-label="Drag to change start date"
                   @click.stop
                   @dragstart="onHandleDragStart($event, info.ticket.id, 'start')"
                   @dragend="dragState.clearResizeDrag"
@@ -939,6 +940,7 @@ function onDrop(event: DragEvent, day: number) {
                   v-if="info.isEnd"
                   class="resize-handle right-handle"
                   draggable="true"
+                  aria-label="Drag to change end date"
                   @dragstart="onHandleDragStart($event, info.ticket.id, 'end')"
                   @dragend="dragState.clearResizeDrag"
                 >›</button>
@@ -980,6 +982,7 @@ function onDrop(event: DragEvent, day: number) {
                   v-if="info.isStart"
                   class="resize-handle"
                   draggable="true"
+                  aria-label="Drag to change vacation start date"
                   @click.stop
                   @dragstart="onVacationHandleDragStart($event, info.vacationId, 'start')"
                   @dragend="dragState.clearVacationResizeDrag()"
@@ -989,6 +992,7 @@ function onDrop(event: DragEvent, day: number) {
                   v-if="info.isEnd"
                   class="resize-handle right-handle"
                   draggable="true"
+                  aria-label="Drag to change vacation end date"
                   @click.stop
                   @dragstart="onVacationHandleDragStart($event, info.vacationId, 'end')"
                   @dragend="dragState.clearVacationResizeDrag()"

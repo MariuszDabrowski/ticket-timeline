@@ -48,8 +48,8 @@ function handleSubmit() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Add Ticket</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="add-ticket-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="add-ticket-modal-title"><span>Add Ticket</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">

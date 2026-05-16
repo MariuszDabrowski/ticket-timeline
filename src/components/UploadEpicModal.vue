@@ -52,8 +52,8 @@ function handleImport() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Import Epic from Shortcut</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="upload-epic-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="upload-epic-modal-title"><span>Import Epic from Shortcut</span></h3>
 
       <div class="modal-body" v-simplebar>
         <ol class="instructions">

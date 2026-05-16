@@ -61,8 +61,8 @@ function handleSubmit() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Edit Ticket</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="edit-ticket-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="edit-ticket-modal-title"><span>Edit Ticket</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">

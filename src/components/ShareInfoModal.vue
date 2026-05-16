@@ -8,8 +8,8 @@ const { trapRef, onKeydown } = useFocusTrap()
 <template>
   <Teleport to="body">
   <div class="backdrop" @click.self="emit('close')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3><span>Share Link</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="share-info-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
+      <h3 id="share-info-modal-title"><span>Share Link</span></h3>
 
       <div class="body">
         <p>Copies a link that contains your full ticket timeline. Anyone with the link can open it directly in their browser — no account, login, or file upload needed.</p>

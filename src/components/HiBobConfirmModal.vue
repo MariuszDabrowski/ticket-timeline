@@ -66,8 +66,8 @@ function confirm() {
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3><span>Confirm Sync</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="hibob-confirm-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
+      <h3 id="hibob-confirm-modal-title"><span>Confirm Sync</span></h3>
 
       <div class="modal-body" v-simplebar>
         <p class="subtitle">

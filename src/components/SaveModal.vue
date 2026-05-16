@@ -71,8 +71,8 @@ function fmtDate(iso: string) {
 
 <template>
   <div class="backdrop" @click.self="emit('close')">
-    <div class="modal" ref="trapRef" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3><span>Save Project</span></h3>
+    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="save-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
+      <h3 id="save-modal-title"><span>Save Project</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">
