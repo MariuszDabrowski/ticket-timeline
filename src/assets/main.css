@@ -1,17 +1,5 @@
 @import './base.css';
 
-/* Reserve stable 1em×1em space for icon font glyphs so the fallback text
-   never causes a layout shift when the font loads. overflow:hidden hides
-   any multi-character fallback text within that fixed box. */
-.material-symbols-rounded {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  overflow: hidden;
-  vertical-align: middle;
-  user-select: none;
-}
-
 /* Global button hover fade via ::after overlay — works on any gradient background */
 button {
   position: relative;

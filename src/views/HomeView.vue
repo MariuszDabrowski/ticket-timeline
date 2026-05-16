@@ -3,7 +3,6 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
 import { seedSampleData } from '../utils/seedSampleData'
-import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
@@ -331,6 +330,8 @@ async function handleExportImage(includeSummary: boolean) {
   panel.style.overflow = 'visible'
 
   try {
+    // Lazy-load html-to-image so it only ships in the bundle for users who export
+    const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(row, {
       pixelRatio: 2,
       width: row.scrollWidth,

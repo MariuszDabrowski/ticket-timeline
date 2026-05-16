@@ -190,6 +190,7 @@ const headline = computed(() => {
                 <input
                   v-if="stat.id !== null"
                   type="checkbox"
+                  :aria-label="`Show ${stat.name}'s tickets on the calendar`"
                   :checked="!!calendarCountByPerson.get(stat.id) && !optionsStore.hiddenPersonIds.has(stat.id)"
                   :disabled="!calendarCountByPerson.get(stat.id)"
                   @change="optionsStore.togglePersonVisibility(stat.id!)"
