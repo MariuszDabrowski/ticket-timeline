@@ -2,12 +2,12 @@
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true">
     <defs>
       <linearGradient id="logoShine" gradientUnits="userSpaceOnUse" x1="0" y1="-480" x2="4800" y2="-480">
-        <stop offset="0%"   stop-color="#a78bfa"/>
-        <stop offset="20%"  stop-color="#38bdf8"/>
-        <stop offset="35%"  stop-color="#22d3ee"/>
-        <stop offset="65%"  stop-color="#818cf8"/>
-        <stop offset="80%"  stop-color="#a78bfa"/>
-        <stop offset="100%" stop-color="#38bdf8"/>
+        <stop offset="0%"   style="stop-color: var(--shine-1)"/>
+        <stop offset="20%"  style="stop-color: var(--shine-2)"/>
+        <stop offset="35%"  style="stop-color: var(--shine-3)"/>
+        <stop offset="65%"  style="stop-color: var(--shine-4)"/>
+        <stop offset="80%"  style="stop-color: var(--shine-1)"/>
+        <stop offset="100%" style="stop-color: var(--shine-2)"/>
         <animateTransform
           attributeName="gradientTransform"
           type="translate"

@@ -899,7 +899,7 @@ function onDrop(event: DragEvent, day: number) {
     </div>
   </Transition>
   <div class="month-calendar">
-    <h2><span class="month-name">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
+    <h2><span class="month-name shine-text">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
       <div v-for="header in dayHeaders" :key="header" class="cell header">{{ header }}</div>
       <div v-for="n in startOffset" :key="`empty-${n}`" class="cell" />
@@ -1104,27 +1104,9 @@ h2 {
 }
 
 .month-name {
-  background: linear-gradient(
-    to right,
-    #a78bfa 20%,
-    #38bdf8 35%,
-    #22d3ee 65%,
-    #818cf8 80%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.3),
     0 -1px 0 rgba(255, 255, 255, 0.1);
-}
-
-@keyframes textShine {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 .year-sup {
@@ -1191,7 +1173,7 @@ h2 {
 }
 
 .day.drag-over {
-  background: rgba(167, 139, 250, 0.18);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .day-header {
@@ -1235,9 +1217,9 @@ h2 {
   inset: 0;
   border-radius: 50%;
   padding: 2px;
-  background: linear-gradient(to right, #4c3585 20%, #0e6688 35%, #0b7a85 65%, #2d3178 80%);
+  background: var(--shine-gradient-dark);
   background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
+  animation: textShine var(--shine-duration) ease-in-out infinite alternate;
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -1378,9 +1360,9 @@ h2 {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  background: linear-gradient(to right, #4c3585 20%, #0e6688 35%, #0b7a85 65%, #2d3178 80%);
+  background: var(--shine-gradient-dark);
   background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
+  animation: textShine var(--shine-duration) ease-in-out infinite alternate;
   border: 2px solid rgba(255, 255, 255, 0.85);
   font-size: 11px;
   font-weight: 900;

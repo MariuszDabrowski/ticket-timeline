@@ -56,7 +56,7 @@ export function seedSampleData(
   const t4 = tickets.addTicket({ number: 'PROJ-156', title: 'Frontend pagination fix', assignedTo: alexId, link: '' })
   placeFor(monday2, t4, 0, 2)
 
-  const releaseId = tickets.addTicket({ number: '', title: 'Beta release', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
+  const releaseId = tickets.addTicket({ number: '', title: 'Beta release', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
   placeFor(monday2, releaseId, 3, 3)
 
   // Myra is out for the back half of week 2 — shows the vacation pill in context
@@ -66,5 +66,5 @@ export function seedSampleData(
 
   // Backlog — gives a first-time visitor something to drag onto the calendar
   tickets.addTicket({ number: 'PROJ-161', title: 'Add audit logging', assignedTo: alexId, link: '' })
-  tickets.addTicket({ number: '', title: 'Code freeze', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
+  tickets.addTicket({ number: '', title: 'Code freeze', assignedTo: null, link: '', isLabel: true, labelColor: '#5d4037' })
 }

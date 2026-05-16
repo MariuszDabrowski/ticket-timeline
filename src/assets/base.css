@@ -1,3 +1,38 @@
+/* Animated shine palette — used by modal titles, the month name, the logo,
+   and the today-ring. Swap these eight hex values to change the entire app's
+   accent color. The dark variant is for backgrounds that need to read against
+   light text (e.g. the today-indicator ring). */
+:root {
+  --shine-1: #60a5fa;
+  --shine-2: #22d3ee;
+  --shine-3: #2dd4bf;
+  --shine-4: #0ea5e9;
+
+  --shine-dark-1: #1e40af;
+  --shine-dark-2: #155e75;
+  --shine-dark-3: #115e59;
+  --shine-dark-4: #075985;
+
+  --shine-gradient: linear-gradient(to right, var(--shine-1) 20%, var(--shine-2) 35%, var(--shine-3) 65%, var(--shine-4) 80%);
+  --shine-gradient-dark: linear-gradient(to right, var(--shine-dark-1) 20%, var(--shine-dark-2) 35%, var(--shine-dark-3) 65%, var(--shine-dark-4) 80%);
+
+  --shine-duration: 10s;
+}
+
+@keyframes textShine {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.shine-text {
+  background: var(--shine-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine var(--shine-duration) ease-in-out infinite alternate;
+}
+
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;

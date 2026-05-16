@@ -460,7 +460,7 @@ function handleHiBobConfirm(
         <div class="summary-column">
           <div class="panel-section">
             <div class="panel-header-static">
-              <span>Project Brief</span>
+              <span class="shine-text">Project Brief</span>
             </div>
             <div class="panel-body">
               <SummaryTile />
@@ -647,7 +647,7 @@ function handleHiBobConfirm(
   <Transition name="modal">
     <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
       <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
-        <h3 id="reset-modal-title"><span>Reset Calendar</span></h3>
+        <h3 id="reset-modal-title"><span class="shine-text">Reset Calendar</span></h3>
         <div class="reset-body">
           <p>This will permanently clear all people, tickets, events, and vacations from the calendar.</p>
           <p class="reset-warning">This action cannot be undone.</p>
@@ -773,12 +773,6 @@ function handleHiBobConfirm(
 }
 
 .reset-modal h3 span {
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
   padding-top: 2px;
 }
 
@@ -907,20 +901,9 @@ function handleHiBobConfirm(
 }
 
 .panel-header-static span {
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.3),
     0 -1px 0 rgba(255, 255, 255, 0.1);
-}
-
-@keyframes textShine {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 .panel-body {

@@ -1038,12 +1038,12 @@ section .section-header > span:first-child::after {
   position: absolute;
   left: 0;
   top: 0;
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
+  background: var(--shine-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
+  animation: textShine var(--shine-duration) ease-in-out infinite alternate;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -1053,11 +1053,6 @@ section .section-header > span:first-child::after {
 section.drawer-open .section-header > span:first-child::after,
 section.drawer-closing .section-header > span:first-child::after {
   opacity: 1;
-}
-
-@keyframes textShine {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 @media (max-width: 920px) {

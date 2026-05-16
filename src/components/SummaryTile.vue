@@ -312,11 +312,6 @@ const headline = computed(() => {
     0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-@keyframes textShine {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
 .stat-desc {
   opacity: 0.82;
   font-size: 14px;

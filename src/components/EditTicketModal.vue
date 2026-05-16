@@ -62,7 +62,7 @@ function handleSubmit() {
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
     <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="edit-ticket-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="edit-ticket-modal-title"><span>Edit Ticket</span></h3>
+      <h3 id="edit-ticket-modal-title"><span class="shine-text">Edit Ticket</span></h3>
 
       <div class="modal-body" v-simplebar>
         <div class="field">
@@ -158,21 +158,10 @@ h3 {
 }
 
 h3 span {
-  background: linear-gradient(to right, #a78bfa 20%, #38bdf8 35%, #22d3ee 65%, #818cf8 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 5s ease-in-out infinite alternate;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.3),
     0 -1px 0 rgba(255, 255, 255, 0.1);
   padding-top: 2px;
-}
-
-@keyframes textShine {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 .modal-body {
