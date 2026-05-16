@@ -117,6 +117,13 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
 const showUploadEpic = ref(false)
 
 function handleEpicImport(csvText: string, workspaceSlug: string) {
+  if (isSampleData.value) {
+    people.loadData([])
+    tickets.loadData({ tickets: [], placements: [] })
+    vacations.loadData([])
+    currentProjectName.value = ''
+    isSampleData.value = false
+  }
   importEpicCSV(csvText, people, tickets, workspaceSlug)
   showUploadEpic.value = false
 
@@ -246,6 +253,8 @@ function resetAll() {
   tickets.loadData({ tickets: [], placements: [] })
   vacations.loadData([])
   undoStack.clear()
+  isSampleData.value = false
+  currentProjectName.value = ''
   showReset.value = false
 }
 

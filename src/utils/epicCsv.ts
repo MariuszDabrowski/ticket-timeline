@@ -92,9 +92,14 @@ export function importEpicCSV(
     for (const email of emails) {
       if (emailToPersonId.has(email)) continue
       const name = nameFromEmail(email)
-      const existing = peopleStore.people.find(
-        (p) => p.name.toLowerCase() === name.toLowerCase(),
-      )
+      const normalized = name.toLowerCase()
+      // Match an existing person by exact name first, then by either-way
+      // substring (so "Mariusz" matches an existing "Mariusz Dabrowski" added
+      // earlier from a HiBob ICS import, and vice versa).
+      const existing =
+        peopleStore.people.find((p) => p.name.toLowerCase() === normalized) ??
+        peopleStore.people.find((p) => p.name.toLowerCase().includes(normalized)) ??
+        peopleStore.people.find((p) => normalized.includes(p.name.toLowerCase()))
       if (existing) {
         emailToPersonId.set(email, existing.id)
       } else {

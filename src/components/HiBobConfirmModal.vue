@@ -41,6 +41,16 @@ const rows = ref<Row[]>(
   })
 )
 
+const searchQuery = ref('')
+const filteredRows = computed(() => {
+  const q = normalizeName(searchQuery.value)
+  if (!q) return rows.value
+  return rows.value.filter((r) =>
+    normalizeName(r.group.personName).includes(q) ||
+    (r.person && normalizeName(r.person.name).includes(q))
+  )
+})
+
 const matchedCount = computed(() => rows.value.filter((r) => r.person !== null).length)
 const unmatchedCount = computed(() => rows.value.filter((r) => r.person === null).length)
 const { trapRef, onKeydown } = useFocusTrap()
@@ -76,8 +86,15 @@ function confirm() {
           people. Select who to sync.
         </p>
 
+        <input
+          v-model="searchQuery"
+          class="search-input"
+          type="text"
+          placeholder="Search people…"
+          aria-label="Filter people by name"
+        />
         <div class="list" v-simplebar>
-          <div v-for="row in rows" :key="row.group.personName" class="row">
+          <div v-for="row in filteredRows" :key="row.group.personName" class="row">
             <label class="row-label">
               <input type="checkbox" v-model="row.selected" />
               <span class="dot" v-if="row.person" :style="{ background: row.person.color }" />
@@ -95,6 +112,9 @@ function confirm() {
                 </template>
               </span>
             </label>
+          </div>
+          <div v-if="filteredRows.length === 0" class="empty">
+            No matches for "{{ searchQuery }}"
           </div>
         </div>
       </div>
@@ -155,14 +175,14 @@ h3 span {
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
 }
 .modal-body :deep(.simplebar-content) {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-bottom: 1.25rem;
+  gap: 0.6rem;
+  padding-bottom: 0;
 }
 
 .subtitle {
@@ -174,35 +194,59 @@ h3 span {
   color: rgba(255, 255, 255, 0.95);
 }
 
+.search-input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.search-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .list {
-  max-height: 50vh;
+  /* Fixed height so the modal doesn't resize (and re-center, causing a jump)
+     when search filters the row count. Long lists scroll internally. */
+  height: 18rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.1rem;
   border: 1px dashed rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  padding: 0.5rem;
+  padding: 0.4rem;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .row {
   border-radius: 4px;
-  padding: 0.3rem 0.4rem;
+  padding: 0.1rem 0.35rem;
 }
 
 .row-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.83rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
   cursor: pointer;
   user-select: none;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -214,7 +258,15 @@ h3 span {
 
 .meta {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+}
+
+.empty {
+  padding: 0.6rem 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  text-align: center;
 }
 
 .dot-new {
