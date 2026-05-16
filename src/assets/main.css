@@ -109,3 +109,67 @@ button:hover:not(:disabled)::after {
   }
 }
 
+/* Print: hide interactive chrome, flatten dark theme to ink-friendly white,
+   keep ticket/event pill colors so they remain visually distinct on paper. */
+@media print {
+  html,
+  body,
+  #app {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+  }
+
+  /* Hide everything that isn't the calendar itself */
+  .app-header,
+  .sidebar-wrap,
+  .share-panel,
+  .hint-bubble,
+  .below-header > .sidebar-footer,
+  .reset-backdrop,
+  .global-tooltip,
+  .conflict-toast,
+  .vacation-toast {
+    display: none !important;
+  }
+
+  /* Let the calendar expand and flow naturally across pages */
+  .layout,
+  .below-header,
+  .panel,
+  .months-row,
+  .months-stack {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Keep month calendars together when possible */
+  .month-calendar {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Strip shadows and animations that don't translate to paper */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
+
+  /* Make sure ticket/event/vacation pill colors print */
+  .ticket-pill,
+  .vacation-pill,
+  .vacation-person-pill {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
