@@ -8,7 +8,7 @@ A drag-and-drop calendar for figuring out when an epic actually ships.
 
 ----
 
-<img width="1506" height="854" alt="image" src="https://github.com/user-attachments/assets/ffadac9c-7397-4a37-8c87-fbec62c89b4d" />
+<img width="1509" height="854" alt="image" src="https://github.com/user-attachments/assets/5a1b2758-6fab-4c6e-90fd-57b0e5d0a252" />
 
 
 ## The problem
