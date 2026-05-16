@@ -23,78 +23,28 @@ import SaveModal from '../components/SaveModal.vue'
 import LoadModal from '../components/LoadModal.vue'
 import ShareInfoModal from '../components/ShareInfoModal.vue'
 import HintBubble from '../components/HintBubble.vue'
+import AppSidebar from '../components/AppSidebar.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { compareCalendarDates } from '../stores/tickets'
 import { importEpicCSV } from '../utils/epicCsv'
-import { useDragStateStore } from '../stores/dragState'
 import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
 
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-const currentYear = new Date().getFullYear()
-const currentMonth = new Date().getMonth()
-
 // Absolute month key: year * 12 + month — spans across year boundaries
-const currentAbs = currentYear * 12 + currentMonth
+const currentAbs = new Date().getFullYear() * 12 + new Date().getMonth()
 const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentAbs + i))
 
-// Range of months visible as checkboxes in the sidebar
-const visibleStart = ref(currentAbs)              // first pre-selected month
-const visibleEnd   = ref(currentAbs + 3 + 3)     // last pre-selected + 3 unselected
 function absToYearMonth(abs: number) {
   return { year: Math.floor(abs / 12), month: abs % 12 }
-}
-
-// Months to show in the sidebar, grouped by year
-const monthsByYear = computed(() => {
-  const groups: { year: number; months: number[] }[] = []
-  for (let abs = visibleStart.value; abs <= visibleEnd.value; abs++) {
-    const { year } = absToYearMonth(abs)
-    const last = groups[groups.length - 1]
-    if (last && last.year === year) last.months.push(abs)
-    else groups.push({ year, months: [abs] })
-  }
-  return groups
-})
-
-function trimToSelection() {
-  if (selectedMonths.value.length === 0) return
-  visibleStart.value = Math.min(...selectedMonths.value)
-  visibleEnd.value = Math.max(...selectedMonths.value)
 }
 
 const sortedMonths = computed(() =>
   [...selectedMonths.value].sort((a, b) => a - b).map(absToYearMonth)
 )
 
-const openSection = ref<string | null>(null)
-const closingSection = ref<Set<string>>(new Set())
-
-function toggleSection(key: string) {
-  const wasOpen = openSection.value === key
-  openSection.value = wasOpen ? null : key
-  if (wasOpen) {
-    closingSection.value = new Set([...closingSection.value, key])
-    setTimeout(() => {
-      closingSection.value = new Set([...closingSection.value].filter(k => k !== key))
-    }, 500)
-  }
-}
-
-const collapsed = computed<Record<string, boolean>>(() => ({
-  months: openSection.value !== 'months',
-  people: openSection.value !== 'people',
-  tickets: openSection.value !== 'tickets',
-  labels: openSection.value !== 'labels',
-  vacations: openSection.value !== 'vacations',
-  filters: openSection.value !== 'filters',
-}))
+const sidebarRef = ref<InstanceType<typeof AppSidebar> | null>(null)
 
 const isSampleData = ref(false)
 
@@ -105,7 +55,7 @@ const editingPerson = ref<typeof people.people[0] | null>(null)
 function handleAddPerson(name: string, color: string) {
   people.addPerson(name, color)
   showAddPerson.value = false
-  openSection.value = 'people'
+  sidebarRef.value?.openPeopleSection()
   dismissHint()
 }
 
@@ -164,23 +114,6 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
   dismissHint()
 }
 
-function ticketColor(assignedTo: number | null): string {
-  if (assignedTo === null) return '#555'
-  return people.people.find((p) => p.id === assignedTo)?.color ?? '#555'
-}
-
-const unplacedTickets = computed(() => {
-  const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
-  return tickets.tickets
-    .filter((t) => !t.isLabel && !placedIds.has(t.id))
-    .sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }))
-})
-
-const unplacedLabels = computed(() => {
-  const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
-  return tickets.tickets.filter((t) => t.isLabel && !placedIds.has(t.id))
-})
-
 const showUploadEpic = ref(false)
 
 function handleEpicImport(csvText: string, workspaceSlug: string) {
@@ -189,17 +122,20 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 
   // Auto-select any months that have newly placed tickets
   const selected = new Set(selectedMonths.value)
+  let minAbs = Infinity
+  let maxAbs = -Infinity
   for (const p of tickets.placements) {
     for (const date of [p.startDate, p.endDate]) {
       const abs = date.year * 12 + date.month
       if (!selected.has(abs)) {
         selected.add(abs)
-        if (abs < visibleStart.value) visibleStart.value = abs
-        if (abs > visibleEnd.value) visibleEnd.value = abs
+        if (abs < minAbs) minAbs = abs
+        if (abs > maxAbs) maxAbs = abs
       }
     }
   }
   selectedMonths.value = [...selected]
+  if (minAbs !== Infinity) sidebarRef.value?.expandVisibleRange(minAbs, maxAbs)
 }
 
 const editingTicket = ref<Ticket | null>(null)
@@ -248,36 +184,10 @@ function handleDeleteTicket() {
   editingTicket.value = null
 }
 
-const draggingTicketId = ref<number | null>(null)
-const dragState = useDragStateStore()
-const ticketListIsOver = ref(false)
-const eventListIsOver = ref(false)
-
 const vacations = useVacationsStore()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const editingVacationId = ref<number | null>(null)
-const draggingPersonId = ref<number | null>(null)
-const vacationListIsOver = ref(false)
-
-function onVacationListDragOver(event: DragEvent) {
-  if (!event.dataTransfer?.types.includes('movecalendarvacation')) return
-  event.preventDefault()
-  vacationListIsOver.value = true
-}
-
-function onVacationListDragLeave() {
-  vacationListIsOver.value = false
-}
-
-function onVacationListDrop(event: DragEvent) {
-  vacationListIsOver.value = false
-  const id = event.dataTransfer?.getData('moveCalendarVacation')
-  if (!id) return
-  event.preventDefault()
-  vacations.removeVacation(Number(id))
-  dragState.clearVacationMoveDrag()
-}
 
 function handleAddVacation(personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null) {
   const id = vacations.addVacation(personId)
@@ -297,12 +207,6 @@ function handleDeleteVacation(vacationId: number) {
   editingVacationId.value = null
 }
 
-function onVacationPersonClick(personId: number) {
-  if (!window.matchMedia('(pointer: coarse)').matches) return
-  vacationModalPersonId.value = personId
-  showAddVacation.value = true
-}
-
 
 const showSave = ref(false)
 const showLoad = ref(false)
@@ -315,14 +219,14 @@ const HINT_DISMISSED_KEY = 'ticket-timeline:hint-dismissed'
 const hintDismissed = ref(localStorage.getItem(HINT_DISMISSED_KEY) === '1')
 const hintFadingOut = ref(false)
 const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
-const ticketsSectionRef = ref<HTMLElement | null>(null)
 const layoutRef = ref<HTMLElement | null>(null)
 const hintTop = ref<number | null>(null)
 
 function computeHintPosition() {
-  if (!ticketsSectionRef.value || !layoutRef.value) return
-  const hdr = ticketsSectionRef.value.querySelector('.section-header')
-  const r = hdr?.getBoundingClientRect() ?? ticketsSectionRef.value.getBoundingClientRect()
+  const ticketsSectionEl = sidebarRef.value?.ticketsSectionEl
+  if (!ticketsSectionEl || !layoutRef.value) return
+  const hdr = ticketsSectionEl.querySelector('.section-header')
+  const r = hdr?.getBoundingClientRect() ?? ticketsSectionEl.getBoundingClientRect()
   const lr = layoutRef.value.getBoundingClientRect()
   hintTop.value = r.top + r.height / 2 - lr.top
 }
@@ -377,8 +281,10 @@ function handleLoad(data: ProjectData) {
   if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
     selectedMonths.value = data.selectedMonths
-    visibleStart.value = Math.min(...data.selectedMonths)
-    visibleEnd.value = Math.max(...data.selectedMonths)
+    sidebarRef.value?.expandVisibleRange(
+      Math.min(...data.selectedMonths),
+      Math.max(...data.selectedMonths),
+    )
   }
   showLoad.value = false
 }
@@ -464,7 +370,7 @@ function handleHiBobConfirm(
     const personId = people.addPerson(name)
     matches.push({ personId, group })
   }
-  if (newPeople.length > 0) openSection.value = 'people'
+  if (newPeople.length > 0) sidebarRef.value?.openPeopleSection()
   vacations.addVacations(
     matches.flatMap(({ personId, group }) =>
       group.events.map((ev) => ({
@@ -477,46 +383,6 @@ function handleHiBobConfirm(
   hibobGroups.value = []
 }
 
-
-function onTicketListDragOver(event: DragEvent) {
-  if (!event.dataTransfer?.types.includes('movecalendarticket')) return
-  const id = dragState.moveDrag?.ticketId
-  if (id != null && tickets.tickets.find((t) => t.id === id)?.isLabel) return
-  event.preventDefault()
-  ticketListIsOver.value = true
-}
-
-function onTicketListDragLeave() {
-  ticketListIsOver.value = false
-}
-
-function onTicketListDrop(event: DragEvent) {
-  ticketListIsOver.value = false
-  const id = event.dataTransfer?.getData('moveCalendarTicket')
-  if (!id) return
-  event.preventDefault()
-  tickets.removePlacement(Number(id))
-}
-
-function onEventListDragOver(event: DragEvent) {
-  if (!event.dataTransfer?.types.includes('movecalendarticket')) return
-  const id = dragState.moveDrag?.ticketId
-  if (id != null && !tickets.tickets.find((t) => t.id === id)?.isLabel) return
-  event.preventDefault()
-  eventListIsOver.value = true
-}
-
-function onEventListDragLeave() {
-  eventListIsOver.value = false
-}
-
-function onEventListDrop(event: DragEvent) {
-  eventListIsOver.value = false
-  const id = event.dataTransfer?.getData('moveCalendarTicket')
-  if (!id) return
-  event.preventDefault()
-  tickets.removePlacement(Number(id))
-}
 
 </script>
 
@@ -534,217 +400,20 @@ function onEventListDrop(event: DragEvent) {
       </div>
     </header>
     <div class="below-header">
-    <div class="sidebar-wrap">
-    <aside class="sidebar" v-simplebar>
-      <section :class="{ 'drawer-open': !collapsed.months, 'drawer-closing': closingSection.has('months') }">
-        <button class="section-header" :aria-expanded="!collapsed.months" @click="toggleSection('months')">
-          <span data-label="Months">Months</span>
-          <span class="chevron">
-            <Transition name="arrow">
-              <svg v-if="collapsed.months" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </Transition>
-          </span>
-        </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.months }" :inert="collapsed.months || undefined">
-          <div class="slide-inner">
-            <div class="section-body">
-              <button class="load-more-btn" @click="visibleStart -= 3">← 3 earlier</button>
-              <template v-for="group in monthsByYear" :key="group.year">
-                <span class="year-label">{{ group.year }}</span>
-                <label v-for="abs in group.months" :key="abs" class="month-option">
-                  <input type="checkbox" :value="abs" v-model="selectedMonths" />
-                  {{ MONTH_NAMES[absToYearMonth(abs).month] }}
-                </label>
-              </template>
-              <button class="load-more-btn" @click="visibleEnd += 3">3 later →</button>
-              <button
-                v-if="selectedMonths.length > 0"
-                class="load-more-btn trim-btn"
-                @click="trimToSelection"
-              >Hide unselected</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section :class="{ 'drawer-open': !collapsed.people, 'drawer-closing': closingSection.has('people') }">
-        <button class="section-header" :aria-expanded="!collapsed.people" @click="toggleSection('people')">
-          <span data-label="People">People</span>
-          <span class="chevron">
-            <Transition name="arrow">
-              <svg v-if="collapsed.people" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </Transition>
-          </span>
-        </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.people }" :inert="collapsed.people || undefined">
-          <div class="slide-inner">
-            <div class="section-body">
-              <button class="add-btn" @click="showAddPerson = true">Add Person</button>
-              <ul v-if="people.people.length > 0" class="people-list">
-                <li v-for="person in people.people" :key="person.id" class="person">
-                  <span class="color-dot" :style="{ background: person.color }" />
-                  <span
-                    class="person-name"
-                    @click="editingPerson = person"
-                  >{{ person.name }}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        ref="ticketsSectionRef"
-        :class="['ticket-section', { 'drawer-open': !collapsed.tickets, 'drawer-closing': closingSection.has('tickets'), 'drop-target': ticketListIsOver }]"
-        @dragover="onTicketListDragOver"
-        @dragleave="onTicketListDragLeave"
-        @drop="onTicketListDrop"
-      >
-        <button class="section-header" :aria-expanded="!collapsed.tickets" @click="toggleSection('tickets')">
-          <span data-label="Tickets">Tickets</span>
-          <span class="chevron">
-            <Transition name="arrow">
-              <svg v-if="collapsed.tickets" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </Transition>
-          </span>
-        </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.tickets }" :inert="collapsed.tickets || undefined">
-          <div class="slide-inner">
-            <div class="section-body">
-              <button class="add-btn" @click="showAddTicket = true">Add Ticket</button>
-              <ol v-if="unplacedTickets.length > 0" class="ticket-list">
-                <li v-for="ticket in unplacedTickets" :key="ticket.id">
-                  <span
-                    class="ticket-pill"
-                    :class="{ dragging: draggingTicketId === ticket.id }"
-                    :style="{ background: ticketColor(ticket.assignedTo) }"
-                    draggable="true"
-                    tabindex="0"
-                    @click.stop="editingTicket = ticket"
-                    @keydown.enter.stop="editingTicket = ticket"
-                    @keydown.space.prevent.stop="editingTicket = ticket"
-                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
-                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                  >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
-                </li>
-              </ol>
-              <div class="import-section">
-                <span class="import-label">Import</span>
-                <button class="import-btn" @click="showUploadEpic = true">Shortcut Epic CSV</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        :class="{ 'drawer-open': !collapsed.labels, 'drawer-closing': closingSection.has('labels'), 'drop-target': eventListIsOver }"
-        @dragover="onEventListDragOver"
-        @dragleave="onEventListDragLeave"
-        @drop="onEventListDrop"
-      >
-        <button class="section-header" :aria-expanded="!collapsed.labels" @click="toggleSection('labels')">
-          <span data-label="Events">Events</span>
-          <span class="chevron">
-            <Transition name="arrow">
-              <svg v-if="collapsed.labels" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </Transition>
-          </span>
-        </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.labels }" :inert="collapsed.labels || undefined">
-          <div class="slide-inner">
-            <div class="section-body">
-              <p class="event-blurb">Used to mark events on the calendar that aren't meant to be counted as a ticket, like buffers or product testing.</p>
-              <button class="add-btn" @click="showAddLabel = true">Add Event</button>
-              <ol v-if="unplacedLabels.length > 0" class="ticket-list">
-                <li v-for="label in unplacedLabels" :key="label.id">
-                  <span
-                    class="ticket-pill event-pill"
-                    :class="{ dragging: draggingTicketId === label.id }"
-                    :style="{ background: label.labelColor }"
-                    draggable="true"
-                    tabindex="0"
-                    @click.stop="editingLabel = label"
-                    @keydown.enter.stop="editingLabel = label"
-                    @keydown.space.prevent.stop="editingLabel = label"
-                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
-                    @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
-                  >{{ label.title }}</span>
-                </li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        :class="{ 'drawer-open': !collapsed.vacations, 'drawer-closing': closingSection.has('vacations'), 'drop-target': vacationListIsOver }"
-        @dragover="onVacationListDragOver"
-        @dragleave="onVacationListDragLeave"
-        @drop="onVacationListDrop"
-      >
-        <button class="section-header" :aria-expanded="!collapsed.vacations" @click="toggleSection('vacations')">
-          <span data-label="Vacations">Vacations</span>
-          <span class="chevron">
-            <Transition name="arrow">
-              <svg v-if="collapsed.vacations" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </Transition>
-          </span>
-        </button>
-        <div class="slide-wrap" :class="{ 'slide-closed': collapsed.vacations }" :inert="collapsed.vacations || undefined">
-          <div class="slide-inner">
-            <div class="section-body">
-              <p v-if="people.people.length === 0" class="people-blurb">Add people to the team first.</p>
-              <p v-else class="event-blurb">Drag a person onto the calendar to add a vacation.</p>
-              <div v-if="people.people.length > 0" class="vacation-person-list">
-                <span
-                  v-for="person in people.people"
-                  :key="person.id"
-                  class="vacation-person-pill"
-                  :class="{ dragging: draggingPersonId === person.id }"
-                  draggable="true"
-                  tabindex="0"
-                  @click="onVacationPersonClick(person.id)"
-                  @keydown.enter.stop="onVacationPersonClick(person.id)"
-                  @keydown.space.prevent.stop="onVacationPersonClick(person.id)"
-                  @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
-                  @dragend="draggingPersonId = null"
-                >
-                  <span class="vac-pill-dot" :style="{ background: person.color }" />
-                  {{ person.name }}
-                </span>
-              </div>
-              <div class="import-section">
-                <span class="import-label">Import</span>
-                <button class="import-btn" @click="showHiBob = true">HiBob Vacation Days</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </aside>
-    <div class="sidebar-footer">
-      <div class="sidebar-footer-by">by <a class="sidebar-footer-link" href="https://www.linkedin.com/in/mariuszpdabrowski/" target="_blank" rel="noopener noreferrer">Mariusz Dabrowski</a></div>
-      <div class="sidebar-footer-divider" />
-      <div class="sidebar-footer-links">
-        <a class="sidebar-footer-link" href="https://github.com/MariuszDabrowski/ticket-timeline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-        <span class="sidebar-footer-sep">·</span>
-        <a class="sidebar-footer-link" :href="bugReportUrl" target="_blank" rel="noopener noreferrer">Report a bug</a>
-      </div>
-    </div>
-    </div>
+    <AppSidebar
+      ref="sidebarRef"
+      v-model:selected-months="selectedMonths"
+      :bug-report-url="bugReportUrl"
+      @open-add-person="showAddPerson = true"
+      @open-add-ticket="showAddTicket = true"
+      @open-add-label="showAddLabel = true"
+      @open-upload-epic="showUploadEpic = true"
+      @open-hibob="showHiBob = true"
+      @edit-person="(p) => editingPerson = p"
+      @edit-ticket="(t) => editingTicket = t"
+      @edit-label="(l) => editingLabel = l"
+      @vacation-person-clicked="(personId) => { vacationModalPersonId = personId; showAddVacation = true }"
+    />
 
     <main class="panel">
       <p v-if="selectedMonths.length === 0" class="empty">Select a month from the sidebar.</p>
