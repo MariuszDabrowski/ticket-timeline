@@ -20,14 +20,39 @@ export interface SavedProject {
 
 export const STORAGE_KEY = 'ticket-timeline-projects'
 
+// Bump when the on-disk schema for SavedProject (or its inner data shape) changes,
+// then add a migration branch in `migrate` below.
+const SCHEMA_VERSION = 1
+
+interface StorageEnvelope {
+  version: number
+  projects: SavedProject[]
+}
+
+function migrate(raw: unknown): SavedProject[] {
+  // Pre-versioning: data was stored as a raw SavedProject[] array.
+  if (Array.isArray(raw)) return raw as SavedProject[]
+
+  if (raw && typeof raw === 'object' && 'version' in raw && 'projects' in raw) {
+    const envelope = raw as StorageEnvelope
+    // Future migrations would chain here, e.g.:
+    //   if (envelope.version < 2) projects = migrateV1toV2(projects)
+    return Array.isArray(envelope.projects) ? envelope.projects : []
+  }
+
+  return []
+}
+
 export function getSavedProjects(): SavedProject[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
+    return migrate(raw)
   } catch {
     return []
   }
 }
 
 export function setSavedProjects(projects: SavedProject[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
+  const envelope: StorageEnvelope = { version: SCHEMA_VERSION, projects }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope))
 }

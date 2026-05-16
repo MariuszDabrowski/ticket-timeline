@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getSavedProjects, STORAGE_KEY } from '../utils/projectStorage'
+import { getSavedProjects, setSavedProjects } from '../utils/projectStorage'
 import type { ProjectData } from '../utils/projectStorage'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
@@ -19,8 +19,7 @@ function refresh() {
 }
 
 function deleteProject(id: string) {
-  const projects = getSavedProjects().filter((p) => p.id !== id)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
+  setSavedProjects(getSavedProjects().filter((p) => p.id !== id))
   refresh()
 }
 
