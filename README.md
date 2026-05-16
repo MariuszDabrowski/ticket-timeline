@@ -4,7 +4,7 @@ A drag-and-drop calendar for figuring out when an epic actually ships.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**[→ Try it live](https://mariuszdabrowski.github.io/ticket-timeline/)**
+**[Try it live](https://mariuszdabrowski.github.io/ticket-timeline/)**
 
 <img width="1506" height="852" alt="image" src="https://github.com/user-attachments/assets/c47e98f5-f9e0-4291-8bde-cc57b8a3878c" />
 
