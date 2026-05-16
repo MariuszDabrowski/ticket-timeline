@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, toRaw, onMounted, nextTick } from 'vue'
-import { decodeShareLink, buildSmartShareUrl } from '../utils/shareLink'
+import { decodeShareLink } from '../utils/shareLink'
+import { useShareLink } from '../composables/useShareLink'
+import { seedSampleData } from '../utils/seedSampleData'
 import { toPng } from 'html-to-image'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -20,6 +22,7 @@ import EditVacationModal from '../components/EditVacationModal.vue'
 import SaveModal from '../components/SaveModal.vue'
 import LoadModal from '../components/LoadModal.vue'
 import ShareInfoModal from '../components/ShareInfoModal.vue'
+import HintBubble from '../components/HintBubble.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { compareCalendarDates } from '../stores/tickets'
@@ -315,7 +318,6 @@ const anyHintVisible = computed(() => hintsActive.value && !hintDismissed.value)
 const ticketsSectionRef = ref<HTMLElement | null>(null)
 const layoutRef = ref<HTMLElement | null>(null)
 const hintTop = ref<number | null>(null)
-const hintTopCss = computed(() => hintTop.value !== null ? hintTop.value + 'px' : '0px')
 
 function computeHintPosition() {
   if (!ticketsSectionRef.value || !layoutRef.value) return
@@ -349,28 +351,15 @@ const saveData = computed<Omit<ProjectData, 'name'>>(() => ({
   selectedMonths: toRaw(selectedMonths.value),
 }))
 
-const shareResult = computed(() =>
-  buildSmartShareUrl({
-    name: currentProjectName.value,
-    tickets: toRaw(tickets.tickets),
-    placements: toRaw(tickets.placements),
-    people: toRaw(people.people),
-    vacations: toRaw(vacations.entries),
-    selectedMonths: toRaw(selectedMonths.value),
-  })
-)
-const bugReportUrl = computed(() => {
-  const base = 'https://github.com/MariuszDabrowski/ticket-timeline/issues/new'
-  const { url, tier } = shareResult.value
-  const shareSection = tier !== 'too-long' && url
-    ? `## Share link\n\n${url}\n\n`
-    : `## Share link\n\n<!-- Project is too large to encode as a share link -->\n\n`
-  const body = `## What happened?\n\n<!-- A clear description of the bug -->\n\n## Steps to reproduce\n\n1. \n2. \n3. \n\n## Screenshot\n\n<!-- Drag and drop a screenshot here -->\n\n${shareSection}## Environment\n\n- **Device:** \n- **OS:** \n- **Browser:** `
-  return `${base}?template=bug_report.md&body=${encodeURIComponent(body)}`
-})
-
-type CopyStatus = 'idle' | 'copied'
-const copyStatus = ref<CopyStatus>('idle')
+const shareProjectData = computed(() => ({
+  name: currentProjectName.value,
+  tickets: toRaw(tickets.tickets),
+  placements: toRaw(tickets.placements),
+  people: toRaw(people.people),
+  vacations: toRaw(vacations.entries),
+  selectedMonths: toRaw(selectedMonths.value),
+}))
+const { shareResult, copyStatus, copyShareLink, bugReportUrl } = useShareLink(shareProjectData)
 const showShareInfo = ref(false)
 
 const anyModalOpen = computed(() =>
@@ -381,14 +370,6 @@ const anyModalOpen = computed(() =>
   showAddVacation.value || showAddLabel.value ||
   editingLabel.value !== null || editingTicket.value !== null
 )
-function copyShareLink() {
-  const { url, tier } = shareResult.value
-  if (tier === 'too-long' || !url) return
-  navigator.clipboard.writeText(url)
-  copyStatus.value = 'copied'
-  setTimeout(() => (copyStatus.value = 'idle'), 2500)
-}
-
 function handleLoad(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
@@ -404,44 +385,7 @@ function handleLoad(data: ProjectData) {
 }
 
 function seedDefaultData() {
-  const now = new Date()
-
-  function toCalDate(d: Date): CalendarDate {
-    return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
-  }
-  function calAddDays(d: Date, n: number): Date {
-    const r = new Date(d); r.setDate(r.getDate() + n); return r
-  }
-
-  // Find the second full week of the current month for ticket/event placement
-  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const firstDow = firstOfMonth.getDay()
-  const monday1 = calAddDays(firstOfMonth, (8 - firstDow) % 7)
-  const monday2 = calAddDays(monday1, 7)
-
-  // Tickets: Tue–Thu (3 days) and Thu–Fri (2 days), centered in week 2
-  const t1Start  = toCalDate(calAddDays(monday2, 1))
-  const t1End    = toCalDate(calAddDays(monday2, 3))
-
-  // Sample Event 1: last 2 days of ticket 1 (Wed–Thu of week 2)
-  const e1Start  = toCalDate(calAddDays(monday2, 2))
-  const e1End    = toCalDate(calAddDays(monday2, 3))
-
-  const user1Id = people.addPerson('Sample User 1', '#3498db')
-  const user2Id = people.addPerson('Sample User 2', '#e91e63')
-
-  const t1Id = tickets.addTicket({ number: 'Sample Ticket 1', title: 'Sample Ticket 1', assignedTo: user1Id, link: '' })
-  tickets.placeTicket(t1Id, t1Start)
-  tickets.moveTicket(t1Id, t1Start, t1End)
-
-  tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: user2Id, link: '' })
-
-  const e1Id = tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
-  tickets.placeTicket(e1Id, e1Start)
-  tickets.moveTicket(e1Id, e1Start, e1End)
-
-  tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
-
+  seedSampleData(people, tickets)
   isSampleData.value = true
 }
 
@@ -1022,16 +966,12 @@ function onEventListDrop(event: DragEvent) {
     </div>
   </Transition>
 
-  <div
+  <HintBubble
     v-if="anyHintVisible && !anyModalOpen && hintTop !== null"
-    class="hint-bubble hint-arrow-left"
-    :class="{ 'hint-bubble--fading': hintFadingOut }"
-  >
-    <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create new items in the sidebar, then drag them onto the calendar to place them.</span>
-    <div class="hint-footer">
-      <button class="hint-gotit" @click.stop="dismissHint()">Got it</button>
-    </div>
-  </div>
+    :top="hintTop"
+    :fading-out="hintFadingOut"
+    @dismiss="dismissHint"
+  />
 </template>
 
 <style scoped>
@@ -1099,119 +1039,6 @@ function onEventListDrop(event: DragEvent) {
     0 0 1px rgba(255, 255, 255, 0.07),
     0 2px 5px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.25s ease;
-}
-
-.hint-bubble {
-  position: absolute;
-  left: calc(230px + 18px);
-  top: v-bind(hintTopCss);
-  z-index: 80;
-  pointer-events: none;
-  background:
-    linear-gradient(to top left, rgba(0, 0, 0, 0.3) 0%, transparent 55%),
-    #665c22;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 0.7rem;
-  max-width: 200px;
-  font-size: 0.72rem;
-  line-height: 1.5;
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
-  font-family: 'Nunito', sans-serif;
-  opacity: 1;
-  transform: translateY(-50%);
-  animation: hintFadeIn 0.3s ease-out;
-  transition: opacity 0.4s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 0.35rem;
-}
-
-.hint-bubble > span {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-}
-
-.hint-footer {
-  width: 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  padding-top: 0.3rem;
-  margin-top: 0.1rem;
-  display: flex;
-  justify-content: flex-end;
-  pointer-events: none;
-}
-
-.hint-gotit {
-  all: unset;
-  display: inline-block;
-  pointer-events: all;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: rgba(255, 223, 7, 0.85);
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s ease;
-}
-
-.hint-gotit::after {
-  display: none;
-}
-
-.hint-gotit:hover {
-  color: #fff;
-}
-
-@media (max-width: 920px), (pointer: coarse) {
-  .hint-bubble { display: none; }
-}
-
-
-.hint-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: #ffdf07;
-}
-
-@keyframes hintFadeIn {
-  from { transform: translateY(calc(-50% - 4px)); }
-  to   { transform: translateY(-50%); }
-}
-
-.hint-arrow-up::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  bottom: 100%;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #665c22;
-}
-
-
-.hint-arrow-left::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  right: 100%;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-right: 7px solid #665c22;
 }
 
 .reset-backdrop {
@@ -2168,8 +1995,6 @@ section.drawer-closing .section-header > span:first-child::after {
     overflow-x: auto;
   }
 }
-
-.hint-bubble--fading { opacity: 0; }
 
 :global(.conflict-toast) {
   position: fixed;

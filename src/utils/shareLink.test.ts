@@ -148,7 +148,7 @@ describe('shareLink: buildSmartShareUrl tiering', () => {
     expect(result.url).not.toBeNull()
   })
 
-  it('falls back to truncated when titles push over the URL limit', () => {
+  it('falls back below "full" when titles push past the URL limit', () => {
     // Use random-looking unique titles so lz-string can't dedupe them effectively
     const tickets = Array.from({ length: 800 }, (_, i) => ({
       id: i,
@@ -159,10 +159,21 @@ describe('shareLink: buildSmartShareUrl tiering', () => {
     }))
     const result = buildSmartShareUrl(makeProject({ tickets }))
     expect(['truncated', 'stripped', 'too-long']).toContain(result.tier)
-    if (result.tier === 'truncated') {
-      const decoded = decodeShareLink(result.url!.split('#share=')[1]!)
-      expect(decoded!.tickets[0]!.title.length).toBeLessThanOrEqual(TITLE_TRUNCATE_LENGTH)
-    }
+  })
+
+  it('truncates titles to TITLE_TRUNCATE_LENGTH in the truncated tier', () => {
+    // Just enough payload that truncation is the right answer.
+    const tickets = Array.from({ length: 200 }, (_, i) => ({
+      id: i,
+      number: `T-${i}`,
+      title: `${'x'.repeat(50)}-${i}`,
+      assignedTo: 1,
+      link: '',
+    }))
+    const result = buildSmartShareUrl(makeProject({ tickets }))
+    if (result.tier !== 'truncated') return // not the scenario we wanted; first test covers fallback
+    const decoded = decodeShareLink(result.url!.split('#share=')[1]!)
+    expect(decoded!.tickets[0]!.title.length).toBeLessThanOrEqual(TITLE_TRUNCATE_LENGTH)
   })
 })
 
