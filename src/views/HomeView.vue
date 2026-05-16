@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
+import { useUndoStack } from '../composables/useUndoStack'
 import { seedSampleData } from '../utils/seedSampleData'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -184,6 +185,7 @@ function handleDeleteTicket() {
 }
 
 const vacations = useVacationsStore()
+const undoStack = useUndoStack()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const editingVacationId = ref<number | null>(null)
@@ -243,6 +245,7 @@ function resetAll() {
   people.loadData([])
   tickets.loadData({ tickets: [], placements: [] })
   vacations.loadData([])
+  undoStack.clear()
   showReset.value = false
 }
 
@@ -276,6 +279,7 @@ function handleLoad(data: ProjectData) {
   people.loadData(data.people)
   tickets.loadData({ tickets: data.tickets, placements: data.placements })
   vacations.loadData(data.vacations ?? [])
+  undoStack.clear()
   isSampleData.value = false
   if (data.name) currentProjectName.value = data.name
   if (Array.isArray(data.selectedMonths) && data.selectedMonths.length > 0) {
@@ -293,7 +297,24 @@ function seedDefaultData() {
   isSampleData.value = true
 }
 
+function onKeydown(e: KeyboardEvent) {
+  // Cmd/Ctrl+Z — undo the last drag operation
+  if (e.key === 'z' && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
+    const target = e.target as HTMLElement | null
+    const tag = target?.tagName
+    // Don't hijack undo from text inputs or any modal that's open
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return
+    if (anyModalOpen.value) return
+    if (undoStack.canUndo.value) {
+      e.preventDefault()
+      undoStack.undo()
+    }
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+
   const match = window.location.hash.match(/[#&]share=([^&]+)/)
   if (match) {
     const data = decodeShareLink(match[1]!)
@@ -310,6 +331,10 @@ onMounted(() => {
   if (hintsActive.value) {
     nextTick(() => computeHintPosition())
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 
 

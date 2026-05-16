@@ -2,8 +2,9 @@
 import { ref, computed, useTemplateRef } from 'vue'
 import { usePeopleStore, type Person } from '../stores/people'
 import { useTicketsStore, type Ticket } from '../stores/tickets'
-import { useVacationsStore } from '../stores/vacations'
+import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { useDragStateStore } from '../stores/dragState'
+import { useUndoStack } from '../composables/useUndoStack'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -37,6 +38,7 @@ const people = usePeopleStore()
 const tickets = useTicketsStore()
 const vacations = useVacationsStore()
 const dragState = useDragStateStore()
+const undoStack = useUndoStack()
 
 const ticketsSectionEl = useTemplateRef<HTMLElement>('ticketsSectionEl')
 
@@ -111,6 +113,19 @@ function ticketColor(assignedTo: number | null): string {
   return people.people.find((p) => p.id === assignedTo)?.color ?? '#555'
 }
 
+// Matches the visual treatment of single-segment calendar pills: full color on the
+// left, 40% darker on the right, both at 0.75 alpha so they blend with the sidebar.
+function pillGradient(hex: string): string {
+  let h = hex.startsWith('#') ? hex.slice(1) : hex
+  if (h.length === 3) h = h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2]
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  const left = `rgba(${r}, ${g}, ${b}, 0.75)`
+  const right = `rgba(${Math.round(r * 0.6)}, ${Math.round(g * 0.6)}, ${Math.round(b * 0.6)}, 0.75)`
+  return `linear-gradient(to right, ${left}, ${right})`
+}
+
 const unplacedTickets = computed(() => {
   const placedIds = new Set(tickets.placements.map((p) => p.ticketId))
   return tickets.tickets
@@ -147,7 +162,16 @@ function onTicketListDrop(event: DragEvent) {
   const id = event.dataTransfer?.getData('moveCalendarTicket')
   if (!id) return
   event.preventDefault()
+  const prev = tickets.placements.find((p) => p.ticketId === Number(id))
   tickets.removePlacement(Number(id))
+  if (prev) {
+    const oldStart = prev.startDate
+    const oldEnd = prev.endDate
+    undoStack.push(() => {
+      tickets.placeTicket(Number(id), oldStart)
+      tickets.moveTicket(Number(id), oldStart, oldEnd)
+    })
+  }
 }
 
 function onEventListDragOver(event: DragEvent) {
@@ -167,7 +191,16 @@ function onEventListDrop(event: DragEvent) {
   const id = event.dataTransfer?.getData('moveCalendarTicket')
   if (!id) return
   event.preventDefault()
+  const prev = tickets.placements.find((p) => p.ticketId === Number(id))
   tickets.removePlacement(Number(id))
+  if (prev) {
+    const oldStart = prev.startDate
+    const oldEnd = prev.endDate
+    undoStack.push(() => {
+      tickets.placeTicket(Number(id), oldStart)
+      tickets.moveTicket(Number(id), oldStart, oldEnd)
+    })
+  }
 }
 
 function onVacationListDragOver(event: DragEvent) {
@@ -185,7 +218,17 @@ function onVacationListDrop(event: DragEvent) {
   const id = event.dataTransfer?.getData('moveCalendarVacation')
   if (!id) return
   event.preventDefault()
+  const prev: VacationEntry | undefined = vacations.entries.find((v) => v.id === Number(id))
   vacations.removeVacation(Number(id))
+  if (prev && prev.startDate && prev.endDate) {
+    const personId = prev.personId
+    const oldStart = prev.startDate
+    const oldEnd = prev.endDate
+    undoStack.push(() => {
+      const newId = vacations.addVacation(personId)
+      vacations.placeVacation(newId, oldStart, oldEnd)
+    })
+  }
   dragState.clearVacationMoveDrag()
 }
 
@@ -287,7 +330,7 @@ function onVacationPersonClick(personId: number) {
                   <span
                     class="ticket-pill"
                     :class="{ dragging: draggingTicketId === ticket.id }"
-                    :style="{ background: ticketColor(ticket.assignedTo) }"
+                    :style="{ background: pillGradient(ticketColor(ticket.assignedTo)) }"
                     draggable="true"
                     tabindex="0"
                     @click.stop="emit('edit-ticket', ticket)"
@@ -333,7 +376,7 @@ function onVacationPersonClick(personId: number) {
                   <span
                     class="ticket-pill event-pill"
                     :class="{ dragging: draggingTicketId === label.id }"
-                    :style="{ background: label.labelColor }"
+                    :style="{ background: pillGradient(label.labelColor ?? '#555') }"
                     draggable="true"
                     tabindex="0"
                     @click.stop="emit('edit-label', label)"

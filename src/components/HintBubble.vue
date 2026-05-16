@@ -12,7 +12,7 @@ const topCss = computed(() => props.top + 'px')
     class="hint-bubble hint-arrow-left"
     :class="{ 'hint-bubble--fading': fadingOut }"
   >
-    <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>Create items in the sidebar, then drag them onto the calendar. Hit Reset (top right) to start your own project.</span>
+    <span><svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-200v-80h320v80H320Zm10-120q-69-41-109.5-110T180-580q0-125 87.5-212.5T480-880q125 0 212.5 87.5T780-580q0 81-40.5 150T630-320H330Zm24-80h252q45-32 69.5-79T700-580q0-92-64-156t-156-64q-92 0-156 64t-64 156q0 54 24.5 101t69.5 79Zm126 0Z"/></svg>This is a sample epic to play with. Drag tickets around to see how the calendar updates. Hit Reset (top right) when you're ready to plan your own.</span>
     <div class="hint-footer">
       <button class="hint-gotit" @click.stop="$emit('dismiss')">Got it</button>
     </div>
@@ -31,9 +31,9 @@ const topCss = computed(() => props.top + 'px')
     #665c22;
   border: none;
   border-radius: 6px;
-  padding: 0.5rem 0.7rem;
-  max-width: 240px;
-  font-size: 0.72rem;
+  padding: 0.7rem;
+  max-width: 280px;
+  font-size: 13px;
   line-height: 1.5;
   color: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -72,7 +72,7 @@ const topCss = computed(() => props.top + 'px')
   display: inline-block;
   pointer-events: all;
   font-family: 'Nunito', sans-serif;
-  font-size: 0.68rem;
+  font-size: 13px;
   font-weight: 700;
   color: rgba(255, 223, 7, 0.85);
   cursor: pointer;

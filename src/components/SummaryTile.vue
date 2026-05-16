@@ -66,6 +66,33 @@ const durationWeeks = computed(() => {
   return Math.ceil(ms / (7 * 86_400_000))
 })
 
+type RemainingState =
+  | { kind: 'before'; days: number }
+  | { kind: 'during'; days: number; weeks: number }
+  | { kind: 'today' }
+  | { kind: 'after' }
+
+const remaining = computed<RemainingState | null>(() => {
+  if (!projectStart.value || !projectEnd.value) return null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayMs = today.getTime()
+  const startMs = new Date(projectStart.value.year, projectStart.value.month, projectStart.value.day).getTime()
+  const endMs = new Date(projectEnd.value.year, projectEnd.value.month, projectEnd.value.day).getTime()
+
+  if (todayMs < startMs) return { kind: 'before', days: Math.ceil((startMs - todayMs) / 86_400_000) }
+  if (todayMs > endMs) return { kind: 'after' }
+  if (todayMs === endMs) return { kind: 'today' }
+
+  const remainingMs = endMs - todayMs
+  return {
+    kind: 'during',
+    days: Math.ceil(remainingMs / 86_400_000),
+    weeks: Math.ceil(remainingMs / (7 * 86_400_000)),
+  }
+})
+
 interface PersonStat {
   id: number | null
   name: string
@@ -169,7 +196,21 @@ const headline = computed(() => {
             </div>
           </div>
           <div v-if="durationWeeks !== null" class="duration-chip">
-            {{ durationWeeks }} week{{ durationWeeks !== 1 ? 's' : '' }}
+            {{ durationWeeks }} week{{ durationWeeks !== 1 ? 's' : '' }} total
+            <template v-if="remaining">
+              <span class="chip-sep">·</span>
+              <template v-if="remaining.kind === 'before'">
+                starts in {{ remaining.days }} day{{ remaining.days !== 1 ? 's' : '' }}
+              </template>
+              <template v-else-if="remaining.kind === 'today'">wraps today</template>
+              <template v-else-if="remaining.kind === 'after'">wrapped</template>
+              <template v-else-if="remaining.days < 7">
+                {{ remaining.days }} day{{ remaining.days !== 1 ? 's' : '' }} remaining
+              </template>
+              <template v-else>
+                {{ remaining.weeks }} week{{ remaining.weeks !== 1 ? 's' : '' }} remaining
+              </template>
+            </template>
           </div>
         </div>
       </template>
@@ -392,10 +433,12 @@ const headline = computed(() => {
 
 .duration-chip {
   display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   align-self: flex-start;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
   border-radius: 999px;
-  padding: 0.15rem 0.55rem;
+  padding: 0.15rem 0.65rem;
   font-size: 13px;
   opacity: 1;
   text-shadow:
@@ -404,6 +447,10 @@ const headline = computed(() => {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.chip-sep {
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .team-list {

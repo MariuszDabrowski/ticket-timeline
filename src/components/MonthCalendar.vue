@@ -7,6 +7,7 @@ import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
+import { useUndoStack } from '../composables/useUndoStack'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
@@ -42,6 +43,7 @@ const peopleStore = usePeopleStore()
 const dragState = useDragStateStore()
 const options = useOptionsStore()
 const vacationsStore = useVacationsStore()
+const undoStack = useUndoStack()
 
 function isWeekend(day: number): boolean {
   const dow = new Date(props.year, props.month, day).getDay()
@@ -766,7 +768,13 @@ function onDrop(event: DragEvent, day: number) {
       showRejection("Tickets can't start or end on a vacation day")
       return
     }
+    const prev = ticketsStore.placements.find((p) => p.ticketId === Number(id))
+    const oldStart = prev?.startDate
+    const oldEnd = prev?.endDate
     ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
+    if (oldStart && oldEnd) {
+      undoStack.push(() => ticketsStore.moveTicket(Number(id), oldStart, oldEnd))
+    }
     dragState.clearResizeDrag()
     return
   }
@@ -783,7 +791,13 @@ function onDrop(event: DragEvent, day: number) {
       showRejection("Tickets can't start or end on a vacation day")
       return
     }
+    const prev = ticketsStore.placements.find((p) => p.ticketId === Number(moveData))
+    const oldStart = prev?.startDate
+    const oldEnd = prev?.endDate
     ticketsStore.moveTicket(Number(moveData), newStart, newEnd)
+    if (oldStart && oldEnd) {
+      undoStack.push(() => ticketsStore.moveTicket(Number(moveData), oldStart, oldEnd))
+    }
     dragState.clearMoveDrag()
     return
   }
@@ -797,6 +811,7 @@ function onDrop(event: DragEvent, day: number) {
       return
     }
     ticketsStore.placeTicket(Number(ticketId), calDate(day))
+    undoStack.push(() => ticketsStore.removePlacement(Number(ticketId)))
     dragState.clearMoveDrag()
     return
   }
@@ -807,6 +822,8 @@ function onDrop(event: DragEvent, day: number) {
     const id = Number(idStr)
     const entry = vacationsStore.entries.find((v) => v.id === id)
     if (entry && entry.startDate && entry.endDate) {
+      const oldStart = entry.startDate
+      const oldEnd = entry.endDate
       let newStart = entry.startDate
       let newEnd = entry.endDate
       if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0) newStart = calDate(day)
@@ -817,6 +834,7 @@ function onDrop(event: DragEvent, day: number) {
         return
       }
       vacationsStore.moveVacation(id, newStart, newEnd)
+      undoStack.push(() => vacationsStore.moveVacation(id, oldStart, oldEnd))
     }
     dragState.clearVacationResizeDrag()
     return
@@ -830,7 +848,12 @@ function onDrop(event: DragEvent, day: number) {
       showRejection("Vacations can't cover a ticket's start or end day")
       return
     }
+    const oldStart = entry?.startDate
+    const oldEnd = entry?.endDate
     vacationsStore.placeVacation(Number(vacationId), calDate(day), calDate(day))
+    if (oldStart && oldEnd) {
+      undoStack.push(() => vacationsStore.placeVacation(Number(vacationId), oldStart, oldEnd))
+    }
     dragState.clearVacationMoveDrag()
     return
   }
@@ -844,6 +867,7 @@ function onDrop(event: DragEvent, day: number) {
     }
     const id = vacationsStore.addVacation(personId)
     vacationsStore.placeVacation(id, calDate(day), calDate(day))
+    undoStack.push(() => vacationsStore.removeVacation(id))
     return
   }
 
@@ -857,7 +881,12 @@ function onDrop(event: DragEvent, day: number) {
       showRejection("Vacations can't cover a ticket's start or end day")
       return
     }
+    const oldStart = entry?.startDate
+    const oldEnd = entry?.endDate
     vacationsStore.moveVacation(Number(moveVacationData), newStart, newEnd)
+    if (oldStart && oldEnd) {
+      undoStack.push(() => vacationsStore.moveVacation(Number(moveVacationData), oldStart, oldEnd))
+    }
     dragState.clearVacationMoveDrag()
   }
 }
@@ -879,7 +908,7 @@ function onDrop(event: DragEvent, day: number) {
         :key="day"
         class="cell day"
         :class="{
-          'drag-over': dragOverDay === day && !dragState.resizeDrag && !dragState.moveDrag,
+          'drag-over': dragOverDay === day,
           'is-holiday': holidayMap.has(day),
           'is-today': isToday(day),
         }"
@@ -1162,8 +1191,7 @@ h2 {
 }
 
 .day.drag-over {
-  background: rgba(100, 120, 255, 0.1);
-  outline: 1px dashed rgba(150, 150, 255, 0.4);
+  background: rgba(167, 139, 250, 0.18);
 }
 
 .day-header {
@@ -1190,6 +1218,32 @@ h2 {
   font-size: 0.82rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.day.is-today .day-number {
+  position: relative;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 700;
+}
+
+/* Gradient ring around today, matching the darker S/F marker gradient and
+   animating via the same textShine keyframe. mask-composite punches a hole
+   in the center so only the border ring shows the gradient. */
+.day.is-today .day-number::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(to right, #4c3585 20%, #0e6688 35%, #0b7a85 65%, #2d3178 80%);
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
 }
 
 
@@ -1254,7 +1308,7 @@ h2 {
 
 .vacation-pill.is-hovered {
   opacity: 1;
-  filter: brightness(1.35);
+  filter: brightness(1.1);
 }
 
 .vacation-pill.is-dimmed {
@@ -1394,7 +1448,7 @@ h2 {
 }
 
 .ticket-pill.is-hovered:not(.is-on-vacation)::before {
-  opacity: 1;
+  opacity: 0.35;
 }
 
 .ticket-pill.is-event::after {
