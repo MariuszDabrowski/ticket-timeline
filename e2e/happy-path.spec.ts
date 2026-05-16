@@ -22,11 +22,11 @@ test('app loads with sample data seeded', async ({ page }) => {
 
   // Project brief panel shows the seeded team
   const brief = page.getByRole('main')
-  await expect(brief.getByText('Sample User 1')).toBeVisible()
-  await expect(brief.getByText('Sample User 2')).toBeVisible()
+  await expect(brief.getByText('Alex', { exact: true })).toBeVisible()
+  await expect(brief.getByText('Myra', { exact: true })).toBeVisible()
 
-  // Sample Ticket 1 is placed on the calendar; Sample Ticket 2 is unplaced (sidebar)
-  await expect(page.getByText('Sample Ticket 1').first()).toBeVisible()
+  // A few seeded tickets are placed on the calendar; at least one should be visible
+  await expect(page.getByText('PROJ-148').first()).toBeVisible()
 })
 
 test('user can add a new person via the modal', async ({ page }) => {
@@ -108,5 +108,5 @@ test('share link encodes and decodes the project', async ({ page, context }) => 
   const fresh = await context.newPage()
   await fresh.goto(copiedUrl)
 
-  await expect(fresh.getByRole('main').getByText('Sample User 1')).toBeVisible()
+  await expect(fresh.getByRole('main').getByText('Alex', { exact: true })).toBeVisible()
 })

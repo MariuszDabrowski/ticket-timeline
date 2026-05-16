@@ -1,5 +1,6 @@
 import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
+import type { useVacationsStore } from '../stores/vacations'
 import type { CalendarDate } from '../stores/tickets'
 
 function toCalDate(d: Date): CalendarDate {
@@ -15,35 +16,55 @@ function calAddDays(d: Date, n: number): Date {
 export function seedSampleData(
   people: ReturnType<typeof usePeopleStore>,
   tickets: ReturnType<typeof useTicketsStore>,
+  vacations: ReturnType<typeof useVacationsStore>,
 ) {
   const now = new Date()
 
-  // Find the second full week of the current month for ticket/event placement
+  // Anchor on the first Monday of the current month so the demo always lands on
+  // a clean week boundary regardless of when someone visits.
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const firstDow = firstOfMonth.getDay()
   const monday1 = calAddDays(firstOfMonth, (8 - firstDow) % 7)
   const monday2 = calAddDays(monday1, 7)
 
-  // Sample Ticket 1: Tue–Thu of week 2
-  const t1Start = toCalDate(calAddDays(monday2, 1))
-  const t1End = toCalDate(calAddDays(monday2, 3))
+  // People
+  const alexId = people.addPerson('Alex', '#3498db')
+  const myraId = people.addPerson('Myra', '#e91e63')
 
-  // Sample Event 1: last 2 days of ticket 1 (Wed–Thu of week 2)
-  const e1Start = toCalDate(calAddDays(monday2, 2))
-  const e1End = toCalDate(calAddDays(monday2, 3))
+  // Helper: place a ticket spanning [startOffset, endOffset] days from the given Monday
+  function placeFor(weekStart: Date, ticketId: number, startOffset: number, endOffset: number) {
+    const start = toCalDate(calAddDays(weekStart, startOffset))
+    const end = toCalDate(calAddDays(weekStart, endOffset))
+    tickets.placeTicket(ticketId, start)
+    tickets.moveTicket(ticketId, start, end)
+  }
 
-  const user1Id = people.addPerson('Sample User 1', '#3498db')
-  const user2Id = people.addPerson('Sample User 2', '#e91e63')
+  // Week 1 — looks like a real busy planning week
+  const t1 = tickets.addTicket({ number: 'PROJ-142', title: 'Migrate user permissions table', assignedTo: myraId, link: '' })
+  placeFor(monday1, t1, 0, 1)
 
-  const t1Id = tickets.addTicket({ number: 'Sample Ticket 1', title: 'Sample Ticket 1', assignedTo: user1Id, link: '' })
-  tickets.placeTicket(t1Id, t1Start)
-  tickets.moveTicket(t1Id, t1Start, t1End)
+  const t2 = tickets.addTicket({ number: 'PROJ-148', title: 'Refactor auth middleware', assignedTo: alexId, link: '' })
+  placeFor(monday1, t2, 1, 3)
 
-  tickets.addTicket({ number: 'Sample Ticket 2', title: 'Sample Ticket 2', assignedTo: user2Id, link: '' })
+  const t3 = tickets.addTicket({ number: 'PROJ-153', title: 'Update API rate limits', assignedTo: myraId, link: '' })
+  placeFor(monday1, t3, 2, 3)
 
-  const e1Id = tickets.addTicket({ number: '', title: 'Sample Event 1', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
-  tickets.placeTicket(e1Id, e1Start)
-  tickets.moveTicket(e1Id, e1Start, e1End)
+  const bufferId = tickets.addTicket({ number: '', title: 'Buffer', assignedTo: null, link: '', isLabel: true, labelColor: '#c47f10' })
+  placeFor(monday1, bufferId, 3, 4)
 
-  tickets.addTicket({ number: '', title: 'Sample Event 2', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
+  // Week 2
+  const t4 = tickets.addTicket({ number: 'PROJ-156', title: 'Frontend pagination fix', assignedTo: alexId, link: '' })
+  placeFor(monday2, t4, 0, 2)
+
+  const releaseId = tickets.addTicket({ number: '', title: 'Beta release', assignedTo: null, link: '', isLabel: true, labelColor: '#9b59b6' })
+  placeFor(monday2, releaseId, 3, 3)
+
+  // Myra is out for the back half of week 2 — shows the vacation pill in context
+  // without overlapping any of her assigned work (which would look like a planning error).
+  const vacId = vacations.addVacation(myraId)
+  vacations.placeVacation(vacId, toCalDate(calAddDays(monday2, 2)), toCalDate(calAddDays(monday2, 4)))
+
+  // Backlog — gives a first-time visitor something to drag onto the calendar
+  tickets.addTicket({ number: 'PROJ-161', title: 'Add audit logging', assignedTo: alexId, link: '' })
+  tickets.addTicket({ number: '', title: 'Code freeze', assignedTo: null, link: '', isLabel: true, labelColor: '#148a72' })
 }

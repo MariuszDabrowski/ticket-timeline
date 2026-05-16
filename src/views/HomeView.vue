@@ -289,7 +289,7 @@ function handleLoad(data: ProjectData) {
 }
 
 function seedDefaultData() {
-  seedSampleData(people, tickets)
+  seedSampleData(people, tickets, vacations)
   isSampleData.value = true
 }
 
