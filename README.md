@@ -6,8 +6,7 @@ A drag-and-drop calendar for figuring out when an epic actually ships.
 
 **[→ Try it live](https://mariuszdabrowski.github.io/ticket-timeline/)**
 
-<!-- TODO: hero.gif — full-tool overview (drag a ticket onto the calendar, resize it, watch the brief update) -->
-![Ticket Timeline](docs/hero.png)
+<img width="1506" height="852" alt="image" src="https://github.com/user-attachments/assets/c47e98f5-f9e0-4291-8bde-cc57b8a3878c" />
 
 ## The problem
 
