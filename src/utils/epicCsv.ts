@@ -121,6 +121,9 @@ export function importEpicCSV(
         : '',
     })
 
+    // Place by started_at (not completed_at) on purpose: tickets often sit in
+    // rollout for 10+ days after being finished, so completed_at would make past
+    // work look like it took way longer than it actually did.
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
     if (startedDate) {
       ticketsStore.placeTicket(ticketId, startedDate)
