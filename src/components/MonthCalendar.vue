@@ -979,9 +979,16 @@ function onDrop(event: DragEvent, day: number) {
                   'is-dimmed': (dragState.hoveredVacationId !== null && dragState.hoveredVacationId !== info.vacationId) || (dragState.hoveredTicketId !== null),
                 }"
                 draggable="true"
+                tabindex="0"
+                role="button"
+                :aria-label="`${info.personName} vacation — edit`"
                 @mouseenter="dragState.hoveredVacationId = info.vacationId"
                 @mouseleave="dragState.hoveredVacationId = null"
+                @focus="dragState.hoveredVacationId = info.vacationId"
+                @blur="dragState.hoveredVacationId = null"
                 @click.stop="emit('editVacation', info.vacationId)"
+                @keydown.enter.stop="emit('editVacation', info.vacationId)"
+                @keydown.space.prevent.stop="emit('editVacation', info.vacationId)"
                 @dragstart="onVacationDragStart($event, info)"
                 @dragend="dragState.clearVacationMoveDrag()"
               >

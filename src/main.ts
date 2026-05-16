@@ -16,6 +16,12 @@ import App from './App.vue'
 
 const app = createApp(App)
 
+app.config.errorHandler = (err, _instance, info) => {
+  // onErrorCaptured in App.vue catches render-cycle errors and shows the fallback UI.
+  // This catches async / event-handler errors that bypass component boundaries.
+  console.error('[Ticket Timeline] uncaught error:', err, info)
+}
+
 app.use(createPinia())
 
 app.directive('simplebar', {
