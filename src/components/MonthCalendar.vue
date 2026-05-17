@@ -1599,19 +1599,13 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  /* Red base with dark diagonal stripes running top-right → bottom-left
-     (opposite the 45deg `\\` stripes on vacation pills, so a conflicted
-     vacation reads as a crosshatch and stands out from the surrounding
-     vacation hatching). */
+  /* Translucent red wash over the segment, with a solid red badge in the
+     center carrying the emergency_home icon. The circle gives the icon a
+     guaranteed contrast surface in case the ticket title sits underneath. */
   background:
-    repeating-linear-gradient(
-      -45deg,
-      transparent 0,
-      transparent 4px,
-      rgba(0, 0, 0, 0.4) 4px,
-      rgba(0, 0, 0, 0.4) 7px
-    ),
-    rgba(220, 38, 38, 0.5);
+    url("../assets/icons/emergency_home.svg") no-repeat center / 12px,
+    radial-gradient(circle at center, #dc2626 0, #dc2626 9px, transparent 9.5px),
+    rgba(220, 38, 38, 0.45);
   pointer-events: none;
   border-radius: inherit;
 }
