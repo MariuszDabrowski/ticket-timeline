@@ -190,28 +190,15 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
 }
 
 const editingTicket = ref<Ticket | null>(null)
-const conflictToast = ref('')
-let conflictToastTimer: ReturnType<typeof setTimeout> | null = null
-
-function showConflictToast(msg: string) {
-  conflictToast.value = msg
-  if (conflictToastTimer) clearTimeout(conflictToastTimer)
-  conflictToastTimer = setTimeout(() => { conflictToast.value = '' }, 5000)
-}
 
 function handleEditTicket(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
   if (!editingTicket.value) return
   const id = editingTicket.value.id
   const { startDate, endDate, ...ticketData } = data
 
-  if (ticketData.assignedTo !== null && startDate) {
-    const end = endDate ?? startDate
-    if (vacations.isPersonOnVacation(ticketData.assignedTo, startDate, end)) {
-      const personName = people.people.find((p) => p.id === ticketData.assignedTo)?.name ?? 'This person'
-      showConflictToast(`Can't assign to ${personName} — they're on vacation during those dates and the ticket would be hidden.`)
-      return
-    }
-  }
+  // Vacation overlap used to block this with a toast. Now the conflict
+  // badge renders on the overlapping segment so the conflict is visible
+  // without blocking the user from making the assignment.
 
   tickets.updateTicket(id, ticketData)
   if (startDate) {
@@ -238,7 +225,9 @@ function handleDeleteTicket() {
 
 const vacations = useVacationsStore()
 const undoStack = useUndoStack()
-const { message: rejectionMessage, showRejection } = useRejectionToast()
+// rejectionMessage is rendered as a toast in this view; showRejection is
+// called from AppSidebar / MonthCalendar via the same module-level state.
+const { message: rejectionMessage } = useRejectionToast()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const editingVacationId = ref<number | null>(null)
@@ -257,19 +246,9 @@ function handleEditVacation(vacationId: number, personId: number) {
     return
   }
 
-  // Reject if the new person has any ticket overlapping the vacation dates —
-  // otherwise the swap would silently clip those tickets on the vacation days.
-  // Skip the check when the person isn't actually changing or when the vacation
-  // hasn't been placed yet (no dates).
-  if (
-    entry.personId !== personId &&
-    entry.startDate && entry.endDate &&
-    tickets.hasTicketOverlappingRange(personId, entry.startDate, entry.endDate)
-  ) {
-    const person = people.people.find((p) => p.id === personId)
-    showRejection(`Can't assign vacation to ${person?.name ?? 'this person'} — they have a ticket during these dates.`)
-    return
-  }
+  // Ticket overlap used to block this with a toast. Now the conflict badge
+  // renders on the overlapping segment so the conflict is visible without
+  // blocking the user from making the reassignment.
 
   entry.personId = personId
   editingVacationId.value = null
@@ -740,14 +719,6 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
     </Transition>
   </Teleport>
 
-  <Teleport to="body">
-    <Transition name="toast">
-      <div v-if="conflictToast" class="conflict-toast" @click="conflictToast = ''">
-        {{ conflictToast }}
-      </div>
-    </Transition>
-  </Teleport>
-
   <Transition name="modal">
     <BaseModal v-if="showReset" title="Reset Calendar" size="compact" @close="showReset = false">
       <div class="modal-body prompt-body">
@@ -1161,27 +1132,6 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   }
 }
 
-:global(.conflict-toast) {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  background: #1a1a1a;
-  border: 1px solid rgba(231, 76, 60, 0.45);
-  color: rgba(255, 200, 195, 0.95);
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  max-width: calc(100vw - 2rem);
-  text-align: center;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
 .rejection-toast {
   position: fixed;
   top: 1.5rem;
@@ -1204,8 +1154,4 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
 .drop-toast-enter-from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 .drop-toast-leave-to { opacity: 0; }
 
-:global(.toast-enter-active) { transition: opacity 0.2s ease, transform 0.2s ease; }
-:global(.toast-leave-active) { transition: opacity 0.3s ease, transform 0.3s ease; }
-:global(.toast-enter-from) { opacity: 0; transform: translateX(-50%) translateY(8px); }
-:global(.toast-leave-to) { opacity: 0; transform: translateX(-50%) translateY(8px); }
 </style>

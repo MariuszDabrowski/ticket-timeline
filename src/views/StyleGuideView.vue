@@ -154,23 +154,13 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
       </div>
     </section>
 
-    <!-- Toasts -->
+    <!-- Toast -->
     <section class="sg-section">
-      <h2>Toasts</h2>
-      <p class="sg-section-desc">Two distinct toast styles. Both are positioned <code>fixed</code> in the real app; the demos here just sit inline so the section stays scrollable.</p>
+      <h2>Toast</h2>
+      <p class="sg-section-desc">Neutral rejection toast for "you can't do that" rules (e.g. uncheck the last month). Positioned <code>fixed</code> at the top of the screen in the real app; demo sits inline. Auto-dismisses; not clickable.</p>
 
-      <div class="sg-toast-block">
-        <div class="sg-toast-label">Rejection toast — top of screen, neutral. Used for "you can't do that" rules (e.g. uncheck the last month). Auto-dismisses; not clickable.</div>
-        <div class="sg-toast-demo">
-          <div class="sg-rejection-toast">At least one month must be selected</div>
-        </div>
-      </div>
-
-      <div class="sg-toast-block">
-        <div class="sg-toast-label">Conflict toast — bottom of screen, red-bordered. Used for conflict warnings (ticket + vacation overlap). Click anywhere on it to dismiss.</div>
-        <div class="sg-toast-demo">
-          <div class="sg-conflict-toast">Can't assign vacation to Alice — she has a ticket during these dates.</div>
-        </div>
+      <div class="sg-toast-demo">
+        <div class="sg-rejection-toast">At least one month must be selected</div>
       </div>
     </section>
 
@@ -393,25 +383,8 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
 .sg-tier-none { background: rgba(52, 152, 219, 0.18); color: #6dd5fa; }
 .sg-tier-email-known { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.55); }
 
-/* Toast demos — both styles copied from HomeView so the catalog renders
-   them in-place (they're position: fixed in the real app). */
-.sg-toast-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1.25rem;
-}
-.sg-toast-block:last-child {
-  margin-bottom: 0;
-}
-
-.sg-toast-label {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.5;
-  max-width: 60ch;
-}
-
+/* Toast demo — copy of .rejection-toast from HomeView so the catalog
+   renders it in-place (it's position: fixed in the real app). */
 .sg-toast-demo {
   display: flex;
   justify-content: center;
@@ -428,20 +401,6 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  white-space: nowrap;
-}
-
-.sg-conflict-toast {
-  background: #1a1a1a;
-  border: 1px solid rgba(231, 76, 60, 0.45);
-  color: rgba(255, 200, 195, 0.95);
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  text-align: center;
   white-space: nowrap;
 }
 

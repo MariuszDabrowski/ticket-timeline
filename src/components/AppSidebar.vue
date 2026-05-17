@@ -5,6 +5,7 @@ import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { compactCalendarLayout } from '../utils/layout'
 import { colorForPerson, pillGradient } from '../utils/colors'
+import { suppressNativeDragImage } from '../utils/drag'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
@@ -347,7 +348,7 @@ function onVacationPersonClick(personId: number) {
                     @click.stop="emit('edit-ticket', ticket)"
                     @keydown.enter.stop="emit('edit-ticket', ticket)"
                     @keydown.space.prevent.stop="emit('edit-ticket', ticket)"
-                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                    @dragstart="(e) => { suppressNativeDragImage(e); e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
                 </li>
@@ -393,7 +394,7 @@ function onVacationPersonClick(personId: number) {
                     @click.stop="emit('edit-label', label)"
                     @keydown.enter.stop="emit('edit-label', label)"
                     @keydown.space.prevent.stop="emit('edit-label', label)"
-                    @dragstart="(e) => { e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
+                    @dragstart="(e) => { suppressNativeDragImage(e); e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ label.title }}</span>
                 </li>
@@ -435,7 +436,7 @@ function onVacationPersonClick(personId: number) {
                   @click="onVacationPersonClick(person.id)"
                   @keydown.enter.stop="onVacationPersonClick(person.id)"
                   @keydown.space.prevent.stop="onVacationPersonClick(person.id)"
-                  @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id; dragState.startNewVacationDrag(person.id) }"
+                  @dragstart="(e) => { suppressNativeDragImage(e); e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id; dragState.startNewVacationDrag(person.id) }"
                   @dragend="draggingPersonId = null; dragState.clearNewVacationDrag()"
                 >
                   <span class="vac-pill-dot" :style="{ background: person.color }" />
