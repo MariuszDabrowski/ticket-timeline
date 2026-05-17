@@ -1599,12 +1599,11 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  /* Just a black badge with a red error icon at the center — no overlay
-     wash. The dark circle guarantees the icon stays legible even when a
-     ticket title sits underneath. */
-  background:
-    url("../assets/icons/error.svg") no-repeat center / 12px,
-    radial-gradient(circle at center, rgba(0, 0, 0, 0.9) 0, rgba(0, 0, 0, 0.9) 9px, transparent 9.5px);
+  /* Just the error icon, centered. drop-shadow filter tracks the icon's
+     actual shape (background is transparent everywhere else) so the badge
+     reads as floating above the pill underneath. */
+  background: url("../assets/icons/error.svg") no-repeat center / 20px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
   pointer-events: none;
   border-radius: inherit;
 }
