@@ -37,7 +37,8 @@ import { classifyIncoming, uniquifyName, type Classification, type IncomingPerso
 
 // Absolute month key: year * 12 + month — spans across year boundaries
 const currentAbs = new Date().getFullYear() * 12 + new Date().getMonth()
-const selectedMonths = ref<number[]>([0, 1, 2, 3].map((i) => currentAbs + i))
+// Default: current month + 2 ahead = 3 months on the calendar.
+const selectedMonths = ref<number[]>([0, 1, 2].map((i) => currentAbs + i))
 
 function absToYearMonth(abs: number) {
   return { year: Math.floor(abs / 12), month: abs % 12 }

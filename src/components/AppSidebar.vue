@@ -62,7 +62,10 @@ const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth()
 const currentAbs = currentYear * 12 + currentMonth
 const visibleStart = ref(currentAbs)
-const visibleEnd = ref(currentAbs + 3 + 3)
+// Default selection covers current + 2 ahead (3 months). Show 2 extra in the
+// sidebar so the user has room to extend the timeline without us cluttering
+// the list with months they're unlikely to need yet.
+const visibleEnd = ref(currentAbs + 2 + 2)
 
 function absToYearMonth(abs: number) {
   return { year: Math.floor(abs / 12), month: abs % 12 }
