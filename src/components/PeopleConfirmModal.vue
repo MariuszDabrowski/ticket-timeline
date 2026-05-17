@@ -83,33 +83,36 @@ const { trapRef, onKeydown } = useFocusTrap()
         </p>
 
         <div class="list">
-          <div v-for="(state, idx) in states" :key="idx" class="row">
-            <div class="row-header">
-              <span class="incoming-name">{{ state.classification.incoming.name || '(no name)' }}</span>
-              <span v-if="state.classification.incoming.email" class="incoming-email">{{ state.classification.incoming.email }}</span>
-              <span class="tier-badge" :class="`tier-${state.classification.tier}`">
-                {{ tierLabel(state.classification.tier) }}
-              </span>
-            </div>
+          <template v-for="(state, idx) in states" :key="idx">
+            <div v-if="idx > 0" class="row-divider" />
+            <div class="row">
+              <div class="row-header">
+                <span class="incoming-name">{{ state.classification.incoming.name || '(no name)' }}</span>
+                <span v-if="state.classification.incoming.email" class="incoming-email">{{ state.classification.incoming.email }}</span>
+                <span class="tier-badge" :class="`tier-${state.classification.tier}`">
+                  {{ tierLabel(state.classification.tier) }}
+                </span>
+              </div>
 
-            <div class="row-action">
-              <select v-model="state.action" class="action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
-                <option value="merge">Merge with</option>
-                <option value="create">Create new</option>
-              </select>
+              <div class="row-action">
+                <select v-model="state.action" class="action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
+                  <option value="merge">Merge with</option>
+                  <option value="create">Create new</option>
+                </select>
 
-              <select
-                v-if="state.action === 'merge'"
-                v-model="state.personId"
-                class="person-select"
-                :class="{ 'needs-pick': state.personId === null }"
-                :aria-label="`Person to merge ${state.classification.incoming.name} with`"
-              >
-                <option :value="null" disabled>Pick a person…</option>
-                <option v-for="p in people" :key="p.id" :value="p.id">{{ p.name }}</option>
-              </select>
+                <select
+                  v-if="state.action === 'merge'"
+                  v-model="state.personId"
+                  class="person-select"
+                  :class="{ 'needs-pick': state.personId === null }"
+                  :aria-label="`Person to merge ${state.classification.incoming.name} with`"
+                >
+                  <option :value="null" disabled>Pick a person…</option>
+                  <option v-for="p in people" :key="p.id" :value="p.id">{{ p.name }}</option>
+                </select>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -182,17 +185,21 @@ h3 span {
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 7px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .row {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 0.55rem 0.7rem;
-  background: rgba(255, 255, 255, 0.02);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.row-divider {
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.2);
 }
 
 .row-header {
