@@ -2,151 +2,105 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { CalendarDate } from './tickets'
 
+function datesEqual(a: CalendarDate, b: CalendarDate): boolean {
+  return a.year === b.year && a.month === b.month && a.day === b.day
+}
+
 export const useDragStateStore = defineStore('dragState', () => {
-  const moveDrag = ref<{ ticketId: number; span: number } | null>(null)
-  const movePreviewDate = ref<CalendarDate | null>(null)
-  // Row index the cursor is hovering during a ticket move. Set by drop targets
-  // each dragover frame; read by the cascade-push preview so every visible
-  // month renders the same would-be layout.
+  // Cross-drag shared state. movePreviewRow is the row index the cursor is
+  // hovering during any *move* drag (ticket move, vacation move, sidebar
+  // new-vacation drag) — all three share one row so the cascade preview can
+  // render off a single source of truth. The two hovered ids are cleared on
+  // every drag end because cascade-pushed pills can vanish out from under
+  // the cursor before their own mouseleave fires.
   const movePreviewRow = ref<number | null>(null)
+  const hoveredTicketId = ref<number | null>(null)
+  const hoveredVacationId = ref<number | null>(null)
 
-  const resizeDrag = ref<{ ticketId: number; side: 'start' | 'end' } | null>(null)
-  const resizePreviewDate = ref<CalendarDate | null>(null)
+  // Factory: every drag type was implementing the same triple (start,
+  // updatePreview, clear) over a payload + a preview date. Centralizing the
+  // boilerplate means a future hover-clearing tweak (or any other shared
+  // behavior) lands in one place. `withRow: true` opts the drag into the
+  // shared movePreviewRow lifecycle.
+  function makeDrag<T>(opts: { withRow?: boolean } = {}) {
+    const drag = ref<T | null>(null)
+    const previewDate = ref<CalendarDate | null>(null)
 
-  function startMoveDrag(ticketId: number, span: number) {
-    moveDrag.value = { ticketId, span }
-    movePreviewDate.value = null
-    movePreviewRow.value = null
+    function start(payload: T) {
+      drag.value = payload
+      previewDate.value = null
+      if (opts.withRow) movePreviewRow.value = null
+    }
+
+    function updatePreview(date: CalendarDate) {
+      if (!drag.value) return
+      const cur = previewDate.value
+      if (cur && datesEqual(cur, date)) return
+      previewDate.value = date
+    }
+
+    function clear() {
+      drag.value = null
+      previewDate.value = null
+      if (opts.withRow) movePreviewRow.value = null
+      hoveredTicketId.value = null
+      hoveredVacationId.value = null
+    }
+
+    return { drag, previewDate, start, updatePreview, clear }
   }
 
-  function updateMovePreview(date: CalendarDate) {
-    if (!moveDrag.value) return
-    const cur = movePreviewDate.value
-    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
-    movePreviewDate.value = date
-  }
+  const ticketMove = makeDrag<{ ticketId: number; span: number }>({ withRow: true })
+  const ticketResize = makeDrag<{ ticketId: number; side: 'start' | 'end' }>()
+  const vacationMove = makeDrag<{ vacationId: number; span: number }>({ withRow: true })
+  const vacationResize = makeDrag<{ vacationId: number; side: 'start' | 'end' }>()
+  // Sidebar drag for a brand-new vacation. Mirrors vacationMove but isn't
+  // tied to an existing id — previewItems injects a virtual occupant keyed
+  // 'new-vacation' so the cascade preview runs the same as a real move.
+  const newVacation = makeDrag<{ personId: number }>({ withRow: true })
 
   function updateMovePreviewRow(row: number) {
-    // Set the preview row for whichever move drag is active (ticket move,
-    // vacation move, or sidebar new-vacation drag) — all three run the same
-    // cascade preview off this value.
-    if (!moveDrag.value && !vacationMoveDrag.value && !newVacationDrag.value) return
+    if (!ticketMove.drag.value && !vacationMove.drag.value && !newVacation.drag.value) return
     if (movePreviewRow.value === row) return
     movePreviewRow.value = row
   }
 
-  function clearMoveDrag() {
-    moveDrag.value = null
-    movePreviewDate.value = null
-    movePreviewRow.value = null
-    // Clear hover too — cascade-pushed pills can vanish under the cursor
-    // before their mouseleave fires, leaving a stale hovered id that dims
-    // every other pill until the next manual hover.
-    hoveredTicketId.value = null
-    hoveredVacationId.value = null
-  }
-
-  function startResizeDrag(ticketId: number, side: 'start' | 'end') {
-    resizeDrag.value = { ticketId, side }
-    resizePreviewDate.value = null
-  }
-
-  function updateResizePreview(date: CalendarDate) {
-    if (!resizeDrag.value) return
-    const cur = resizePreviewDate.value
-    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
-    resizePreviewDate.value = date
-  }
-
-  function clearResizeDrag() {
-    resizeDrag.value = null
-    resizePreviewDate.value = null
-    hoveredTicketId.value = null
-    hoveredVacationId.value = null
-  }
-
-  const vacationResizeDrag = ref<{ vacationId: number; side: 'start' | 'end' } | null>(null)
-  const vacationResizePreviewDate = ref<CalendarDate | null>(null)
-
-  function startVacationResizeDrag(vacationId: number, side: 'start' | 'end') {
-    vacationResizeDrag.value = { vacationId, side }
-    vacationResizePreviewDate.value = null
-  }
-
-  function updateVacationResizePreview(date: CalendarDate) {
-    if (!vacationResizeDrag.value) return
-    const cur = vacationResizePreviewDate.value
-    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
-    vacationResizePreviewDate.value = date
-  }
-
-  function clearVacationResizeDrag() {
-    vacationResizeDrag.value = null
-    vacationResizePreviewDate.value = null
-    hoveredTicketId.value = null
-    hoveredVacationId.value = null
-  }
-
-  const vacationMoveDrag = ref<{ vacationId: number; span: number } | null>(null)
-  const vacationMovePreviewDate = ref<CalendarDate | null>(null)
-
-  function startVacationMoveDrag(vacationId: number, span: number) {
-    vacationMoveDrag.value = { vacationId, span }
-    vacationMovePreviewDate.value = null
-    movePreviewRow.value = null
-  }
-
-  function updateVacationMovePreview(date: CalendarDate) {
-    if (!vacationMoveDrag.value) return
-    const cur = vacationMovePreviewDate.value
-    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
-    vacationMovePreviewDate.value = date
-  }
-
-  function clearVacationMoveDrag() {
-    vacationMoveDrag.value = null
-    vacationMovePreviewDate.value = null
-    movePreviewRow.value = null
-    hoveredTicketId.value = null
-    hoveredVacationId.value = null
-  }
-
-  // Sidebar drag for a brand-new vacation. Mirrors vacationMoveDrag but isn't
-  // tied to an existing vacation id — previewItems injects a virtual occupant
-  // keyed 'new-vacation' so the cascade preview runs the same as a real move.
-  const newVacationDrag = ref<{ personId: number } | null>(null)
-  const newVacationPreviewDate = ref<CalendarDate | null>(null)
-
-  function startNewVacationDrag(personId: number) {
-    newVacationDrag.value = { personId }
-    newVacationPreviewDate.value = null
-    movePreviewRow.value = null
-  }
-
-  function updateNewVacationPreview(date: CalendarDate) {
-    if (!newVacationDrag.value) return
-    const cur = newVacationPreviewDate.value
-    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
-    newVacationPreviewDate.value = date
-  }
-
-  function clearNewVacationDrag() {
-    newVacationDrag.value = null
-    newVacationPreviewDate.value = null
-    movePreviewRow.value = null
-    hoveredTicketId.value = null
-    hoveredVacationId.value = null
-  }
-
-  const hoveredTicketId = ref<number | null>(null)
-  const hoveredVacationId = ref<number | null>(null)
-
+  // External API names + positional start signatures preserved verbatim so
+  // every call site continues to work unchanged.
   return {
-    moveDrag, movePreviewDate, movePreviewRow, startMoveDrag, updateMovePreview, updateMovePreviewRow, clearMoveDrag,
-    resizeDrag, resizePreviewDate, startResizeDrag, updateResizePreview, clearResizeDrag,
-    vacationResizeDrag, vacationResizePreviewDate, startVacationResizeDrag, updateVacationResizePreview, clearVacationResizeDrag,
-    vacationMoveDrag, vacationMovePreviewDate, startVacationMoveDrag, updateVacationMovePreview, clearVacationMoveDrag,
-    newVacationDrag, newVacationPreviewDate, startNewVacationDrag, updateNewVacationPreview, clearNewVacationDrag,
-    hoveredTicketId, hoveredVacationId,
+    moveDrag: ticketMove.drag,
+    movePreviewDate: ticketMove.previewDate,
+    movePreviewRow,
+    startMoveDrag: (ticketId: number, span: number) => ticketMove.start({ ticketId, span }),
+    updateMovePreview: ticketMove.updatePreview,
+    updateMovePreviewRow,
+    clearMoveDrag: ticketMove.clear,
+
+    resizeDrag: ticketResize.drag,
+    resizePreviewDate: ticketResize.previewDate,
+    startResizeDrag: (ticketId: number, side: 'start' | 'end') => ticketResize.start({ ticketId, side }),
+    updateResizePreview: ticketResize.updatePreview,
+    clearResizeDrag: ticketResize.clear,
+
+    vacationResizeDrag: vacationResize.drag,
+    vacationResizePreviewDate: vacationResize.previewDate,
+    startVacationResizeDrag: (vacationId: number, side: 'start' | 'end') => vacationResize.start({ vacationId, side }),
+    updateVacationResizePreview: vacationResize.updatePreview,
+    clearVacationResizeDrag: vacationResize.clear,
+
+    vacationMoveDrag: vacationMove.drag,
+    vacationMovePreviewDate: vacationMove.previewDate,
+    startVacationMoveDrag: (vacationId: number, span: number) => vacationMove.start({ vacationId, span }),
+    updateVacationMovePreview: vacationMove.updatePreview,
+    clearVacationMoveDrag: vacationMove.clear,
+
+    newVacationDrag: newVacation.drag,
+    newVacationPreviewDate: newVacation.previewDate,
+    startNewVacationDrag: (personId: number) => newVacation.start({ personId }),
+    updateNewVacationPreview: newVacation.updatePreview,
+    clearNewVacationDrag: newVacation.clear,
+
+    hoveredTicketId,
+    hoveredVacationId,
   }
 })
