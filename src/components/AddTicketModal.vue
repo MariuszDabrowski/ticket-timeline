@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import type { Person } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
-import { useFocusTrap } from '../composables/useFocusTrap'
+import BaseModal from './BaseModal.vue'
 
 const props = defineProps<{
   people: Person[]
@@ -19,7 +19,6 @@ const assignedTo = ref<number | null>(null)
 const link = ref('')
 const startDateStr = ref('')
 const endDateStr = ref('')
-const { trapRef, onKeydown } = useFocusTrap()
 
 function parseDate(str: string): CalendarDate | null {
   if (!str) return null
@@ -47,109 +46,58 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="add-ticket-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="add-ticket-modal-title"><span class="shine-text">Add Ticket</span></h3>
-
-      <div class="modal-body" v-simplebar>
-        <div class="field">
-          <label>Ticket ID</label>
-          <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" />
-        </div>
-
-        <div class="field">
-          <label>Title</label>
-          <input v-model="title" type="text" placeholder="Ticket title" @keydown.enter.prevent="handleSubmit" />
-        </div>
-
-        <div class="field">
-          <label>Assigned To</label>
-          <select v-model="assignedTo">
-            <option :value="null">Unassigned</option>
-            <option v-for="person in props.people" :key="person.id" :value="person.id">
-              {{ person.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Ticket Link</label>
-          <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
-        </div>
-
-        <div class="field schedule-field">
-          <label>Schedule <span class="label-hint">— optional</span></label>
-          <div class="date-row">
-            <input v-model="startDateStr" type="date" />
-            <span class="date-sep">to</span>
-            <input v-model="endDateStr" type="date" :min="startDateStr" />
-          </div>
-          <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
-        </div>
+  <BaseModal title="Add Ticket" size="compact" @close="emit('cancel')">
+    <div class="modal-body form-body" v-simplebar>
+      <div class="field">
+        <label>Ticket ID</label>
+        <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="actions">
-        <button class="btn" @click="emit('cancel')">Cancel</button>
-        <button class="btn" @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Add</button>
+      <div class="field">
+        <label>Title</label>
+        <input v-model="title" type="text" placeholder="Ticket title" @keydown.enter.prevent="handleSubmit" />
+      </div>
+
+      <div class="field">
+        <label>Assigned To</label>
+        <select v-model="assignedTo">
+          <option :value="null">Unassigned</option>
+          <option v-for="person in props.people" :key="person.id" :value="person.id">
+            {{ person.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Ticket Link</label>
+        <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
+      </div>
+
+      <div class="field schedule-field">
+        <label>Schedule <span class="label-hint">— optional</span></label>
+        <div class="date-row">
+          <input v-model="startDateStr" type="date" />
+          <span class="date-sep">to</span>
+          <input v-model="endDateStr" type="date" :min="startDateStr" />
+        </div>
+        <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
       </div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('cancel')">Cancel</button>
+      <button class="btn" @click="handleSubmit" :disabled="!number.trim() || !title.trim() || !datesValid">Add</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 420px;
-  max-width: calc(100vw - 2rem);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Field-form body — denser padding + larger gap than default. */
+.form-body {
   padding: 1.25rem 1.5rem;
-  overflow-y: auto;
+  gap: 1rem;
 }
-.modal-body :deep(.simplebar-content) {
-  display: flex;
-  flex-direction: column;
+.form-body :deep(.simplebar-content) {
   gap: 1rem;
   padding-bottom: 1.25rem;
 }
@@ -244,15 +192,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;
   }
 }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-}
-
 </style>

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { getSavedProjects, setSavedProjects } from '../utils/projectStorage'
 import type { ProjectData } from '../utils/projectStorage'
-import { useFocusTrap } from '../composables/useFocusTrap'
+import BaseModal from './BaseModal.vue'
 
 const emit = defineEmits<{
   load: [data: ProjectData]
@@ -12,7 +12,6 @@ const emit = defineEmits<{
 const savedProjects = ref(getSavedProjects())
 const error = ref('')
 const confirmId = ref<string | null>(null)
-const { trapRef, onKeydown } = useFocusTrap()
 
 function refresh() {
   savedProjects.value = getSavedProjects()
@@ -57,121 +56,67 @@ function fmtDate(iso: string) {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('close')">
-    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="load-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
-      <h3 id="load-modal-title"><span class="shine-text">Load Project</span></h3>
-
-      <div class="modal-body" v-simplebar>
-        <div class="section">
-          <div class="section-label">Saved in this browser</div>
-          <div v-if="savedProjects.length === 0" class="empty">
-            No projects saved yet.
-          </div>
-          <ul v-else class="project-list">
-            <li v-for="(project, index) in savedProjects" :key="project.id" class="project-row">
-              <div class="project-index">{{ String(index + 1).padStart(2, '0') }}</div>
-              <div class="project-body">
-                <div class="project-info">
-                  <span class="project-name">{{ project.name }}</span>
-                  <span class="project-meta">
-                    {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
-                    · {{ project.data.people.length }} people
-                    · saved {{ fmtDate(project.savedAt) }}
-                  </span>
-                </div>
-                <div class="project-actions">
-                  <template v-if="confirmId === project.id">
-                    <span class="confirm-text">Delete?</span>
-                    <button class="btn btn-danger action-btn" @click="deleteProject(project.id); confirmId = null">Yes</button>
-                    <button class="btn action-btn" @click="confirmId = null">No</button>
-                  </template>
-                  <template v-else>
-                    <button class="btn action-btn delete" aria-label="Delete project" @click="confirmId = project.id" title="Delete">✕</button>
-                    <button class="btn action-btn primary" @click="loadSaved(project.id)">Load</button>
-                  </template>
-                </div>
+  <BaseModal title="Load Project" size="wide" @close="emit('close')">
+    <div class="modal-body wide-body" v-simplebar>
+      <div class="section">
+        <div class="section-label">Saved in this browser</div>
+        <div v-if="savedProjects.length === 0" class="empty">
+          No projects saved yet.
+        </div>
+        <ul v-else class="project-list">
+          <li v-for="(project, index) in savedProjects" :key="project.id" class="project-row">
+            <div class="project-index">{{ String(index + 1).padStart(2, '0') }}</div>
+            <div class="project-body">
+              <div class="project-info">
+                <span class="project-name">{{ project.name }}</span>
+                <span class="project-meta">
+                  {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
+                  · {{ project.data.people.length }} people
+                  · saved {{ fmtDate(project.savedAt) }}
+                </span>
               </div>
-              <div v-if="index < savedProjects.length - 1" class="project-divider" />
-            </li>
-          </ul>
-        </div>
-
-        <div class="section">
-          <div class="section-label">Load from file</div>
-          <div class="upload-area">
-            <p class="upload-desc">Upload a <code>.json</code> file saved from this app.</p>
-            <label class="btn file-btn">
-              Choose File
-              <input type="file" accept=".json,application/json" @change="onFileInput" />
-            </label>
-          </div>
-          <p v-if="error" class="error">{{ error }}</p>
-        </div>
+              <div class="project-actions">
+                <template v-if="confirmId === project.id">
+                  <span class="confirm-text">Delete?</span>
+                  <button class="btn btn-danger action-btn" @click="deleteProject(project.id); confirmId = null">Yes</button>
+                  <button class="btn action-btn" @click="confirmId = null">No</button>
+                </template>
+                <template v-else>
+                  <button class="btn btn-danger action-btn" aria-label="Delete project" @click="confirmId = project.id" title="Delete">✕</button>
+                  <button class="btn action-btn primary" @click="loadSaved(project.id)">Load</button>
+                </template>
+              </div>
+            </div>
+            <div v-if="index < savedProjects.length - 1" class="project-divider" />
+          </li>
+        </ul>
       </div>
 
-      <div class="footer">
-        <button class="btn" @click="emit('close')">Cancel</button>
+      <div class="section">
+        <div class="section-label">Load from file</div>
+        <div class="upload-area">
+          <p class="upload-desc">Upload a <code>.json</code> file saved from this app.</p>
+          <label class="btn file-btn">
+            Choose File
+            <input type="file" accept=".json,application/json" @change="onFileInput" />
+          </label>
+        </div>
+        <p v-if="error" class="error">{{ error }}</p>
       </div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('close')">Cancel</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 540px;
-  max-width: calc(100vw - 2rem);
-  max-height: calc(100vh - 4rem);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.wide-body {
   padding: 1.25rem 1.5rem;
-  overflow-y: auto;
+  gap: 1rem;
 }
-.modal-body :deep(.simplebar-content) {
-  display: flex;
-  flex-direction: column;
+.wide-body :deep(.simplebar-content) {
   gap: 1rem;
   padding-bottom: 1.25rem;
 }
@@ -283,15 +228,6 @@ h3 span {
   padding: 4px 0.65rem;
 }
 
-.action-btn.delete {
-  display: flex;
-  align-items: center;
-  border-color: transparent;
-  background: linear-gradient(180deg, rgba(160, 40, 30, 0.35) 0%, rgba(120, 30, 20, 0.35) 100%);
-  color: rgba(255, 120, 110, 0.8);
-}
-
-
 .upload-area {
   display: flex;
   align-items: center;
@@ -321,14 +257,4 @@ h3 span {
   font-size: 0.8rem;
   color: #e74c3c;
 }
-
-.footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-}
-
 </style>

@@ -61,6 +61,83 @@ button:hover:not(:disabled)::after {
   color: rgba(255, 140, 130, 1);
 }
 
+/* Push a button to the left edge of the actions footer; remaining buttons
+   stay right-aligned. Used for "Delete" in split-layout edit modals. */
+.btn.leading {
+  margin-right: auto;
+}
+
+/* Default modal body container. Modal owners place content inside; the simplebar
+   directive can be applied here to scroll long content. Padding/gap chosen to
+   match what most modals were already using before BaseModal. */
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+}
+
+.modal-body .simplebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding-bottom: 0;
+}
+
+/* Custom checkbox — animated gradient fill on check + drawn check mark. Used
+   inside modals; the duplicated copy used to live in three of them. */
+input[type='checkbox'].app-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+input[type='checkbox'].app-checkbox:checked {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
+  background-size: 200% auto;
+  animation: appCheckboxGradient 2.5s ease-in-out infinite alternate;
+  border-color: rgba(167, 139, 250, 0.6);
+}
+
+@keyframes appCheckboxGradient {
+  0%   { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
+
+@keyframes appCheckboxDraw {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+input[type='checkbox'].app-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: -3px;
+  width: 6px;
+  height: 12px;
+  border: 2px solid rgba(200, 180, 255, 0.9);
+  border-top: none;
+  border-left: none;
+  border-radius: 0 2px 2px 0;
+  transform: rotate(45deg);
+  animation: appCheckboxDraw 0.2s ease-out forwards;
+}
+
+input[type='checkbox'].app-checkbox:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .simplebar-scrollbar::before {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;

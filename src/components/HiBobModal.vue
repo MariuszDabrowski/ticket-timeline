@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { parseICS, groupByPerson } from '../utils/icsParser'
 import type { ICSPersonGroup } from '../utils/icsParser'
-import { useFocusTrap } from '../composables/useFocusTrap'
+import BaseModal from './BaseModal.vue'
 
 const emit = defineEmits<{
   parsed: [groups: ICSPersonGroup[]]
@@ -11,7 +11,6 @@ const emit = defineEmits<{
 
 const dragOver = ref(false)
 const error = ref('')
-const { trapRef, onKeydown } = useFocusTrap()
 
 function processFile(file: File) {
   error.value = ''
@@ -45,102 +44,49 @@ function onFileInput(e: Event) {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="hibob-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="hibob-modal-title"><span class="shine-text">Sync HiBob Vacation Days</span></h3>
-
-      <div class="modal-body" v-simplebar>
-        <div class="instructions">
-          <p class="instructions-title">How to get your ICS file:</p>
-          <ol>
-            <li>In <a href="https://www.hibob.com" target="_blank" rel="noopener noreferrer">HiBob</a>, go to <strong>Time → People's Time Off</strong></li>
-            <li>Click the <strong>three dots (⋯)</strong> menu and choose <strong>Sync with external calendar</strong></li>
-            <li>Select <strong>Everyone</strong> in the modal, then copy the link in the <strong>Time Off</strong> section</li>
-            <li>Paste that link into your browser — it will download a file</li>
-            <li>Confirm the file has a <strong>.ics</strong> extension (rename it if needed), then upload it below</li>
-          </ol>
-        </div>
-
-        <div
-          class="drop-zone"
-          :class="{ over: dragOver }"
-          @dragover.prevent="dragOver = true"
-          @dragleave="dragOver = false"
-          @drop.prevent="onDrop"
-        >
-          <p>Drag & drop your .ics file here</p>
-          <p class="or">or</p>
-          <label class="btn file-btn" tabindex="0" @keydown.enter.prevent="($event.currentTarget as HTMLElement).click()" @keydown.space.prevent="($event.currentTarget as HTMLElement).click()">
-            Choose File
-            <input type="file" accept=".ics,text/calendar" @change="onFileInput" />
-          </label>
-        </div>
-
-        <p v-if="error" class="error">{{ error }}</p>
+  <BaseModal title="Sync HiBob Vacation Days" size="normal" @close="emit('cancel')">
+    <div class="modal-body wide-body" v-simplebar>
+      <div class="instructions">
+        <p class="instructions-title">How to get your ICS file:</p>
+        <ol>
+          <li>In <a href="https://www.hibob.com" target="_blank" rel="noopener noreferrer">HiBob</a>, go to <strong>Time → People's Time Off</strong></li>
+          <li>Click the <strong>three dots (⋯)</strong> menu and choose <strong>Sync with external calendar</strong></li>
+          <li>Select <strong>Everyone</strong> in the modal, then copy the link in the <strong>Time Off</strong> section</li>
+          <li>Paste that link into your browser — it will download a file</li>
+          <li>Confirm the file has a <strong>.ics</strong> extension (rename it if needed), then upload it below</li>
+        </ol>
       </div>
 
-      <div class="actions">
-        <button class="btn" @click="emit('cancel')">Cancel</button>
+      <div
+        class="drop-zone"
+        :class="{ over: dragOver }"
+        @dragover.prevent="dragOver = true"
+        @dragleave="dragOver = false"
+        @drop.prevent="onDrop"
+      >
+        <p>Drag &amp; drop your .ics file here</p>
+        <p class="or">or</p>
+        <label class="btn file-btn" tabindex="0" @keydown.enter.prevent="($event.currentTarget as HTMLElement).click()" @keydown.space.prevent="($event.currentTarget as HTMLElement).click()">
+          Choose File
+          <input type="file" accept=".ics,text/calendar" @change="onFileInput" />
+        </label>
       </div>
+
+      <p v-if="error" class="error">{{ error }}</p>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('cancel')">Cancel</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 480px;
-  max-width: calc(100vw - 2rem);
-  max-height: calc(100vh - 4rem);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.wide-body {
   padding: 1.25rem 1.5rem;
-  overflow-y: auto;
+  gap: 1.25rem;
 }
-.modal-body :deep(.simplebar-content) {
-  display: flex;
-  flex-direction: column;
+.wide-body :deep(.simplebar-content) {
   gap: 1.25rem;
   padding-bottom: 1.25rem;
 }
@@ -218,14 +164,4 @@ ol {
   color: rgba(231, 76, 60, 0.9);
   font-size: 0.82rem;
 }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-}
-
 </style>

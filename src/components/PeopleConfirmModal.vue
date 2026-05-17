@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import type { Person } from '../stores/people'
 import type { Classification, MatchTier, Decision } from '../utils/peopleMatch'
-import { useFocusTrap } from '../composables/useFocusTrap'
+import BaseModal from './BaseModal.vue'
 
 const props = defineProps<{
   // Caller-classified incoming people that need user input. Email-known rows
@@ -59,124 +59,58 @@ function confirm() {
   }))
   emit('confirm', decisions)
 }
-
-const { trapRef, onKeydown } = useFocusTrap()
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('cancel')">
-    <div
-      class="modal"
-      ref="trapRef"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="people-confirm-title"
-      @keydown="onKeydown"
-      @keydown.escape.prevent="emit('cancel')"
-    >
-      <h3 id="people-confirm-title"><span class="shine-text">Confirm People</span></h3>
+  <BaseModal title="Confirm People" size="wide" @close="emit('cancel')">
+    <div class="modal-body">
+      <p class="subtitle">
+        Some incoming names need a decision. For each, choose whether to merge
+        with an existing person or create a new one.
+      </p>
 
-      <div class="modal-body">
-        <p class="subtitle">
-          Some incoming names need a decision. For each, choose whether to merge
-          with an existing person or create a new one.
-        </p>
-
-        <div class="list">
-          <template v-for="(state, idx) in states" :key="idx">
-            <div v-if="idx > 0" class="row-divider" />
-            <div class="row">
-              <div class="row-header">
-                <span class="incoming-name">{{ state.classification.incoming.name || '(no name)' }}</span>
-                <span v-if="state.classification.incoming.email" class="incoming-email">{{ state.classification.incoming.email }}</span>
-                <span class="tier-badge" :class="`tier-${state.classification.tier}`">
-                  {{ tierLabel(state.classification.tier) }}
-                </span>
-              </div>
-
-              <div class="row-action">
-                <select v-model="state.action" class="action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
-                  <option value="merge">Merge with</option>
-                  <option value="create">Create new</option>
-                </select>
-
-                <select
-                  v-if="state.action === 'merge'"
-                  v-model="state.personId"
-                  class="person-select"
-                  :class="{ 'needs-pick': state.personId === null }"
-                  :aria-label="`Person to merge ${state.classification.incoming.name} with`"
-                >
-                  <option :value="null" disabled>Pick a person…</option>
-                  <option v-for="p in people" :key="p.id" :value="p.id">{{ p.name }}</option>
-                </select>
-              </div>
+      <div class="list">
+        <template v-for="(state, idx) in states" :key="idx">
+          <div v-if="idx > 0" class="row-divider" />
+          <div class="row">
+            <div class="row-header">
+              <span class="incoming-name">{{ state.classification.incoming.name || '(no name)' }}</span>
+              <span v-if="state.classification.incoming.email" class="incoming-email">{{ state.classification.incoming.email }}</span>
+              <span class="tier-badge" :class="`tier-${state.classification.tier}`">
+                {{ tierLabel(state.classification.tier) }}
+              </span>
             </div>
-          </template>
-        </div>
-      </div>
 
-      <div class="actions">
-        <button class="btn" @click="emit('cancel')">Cancel</button>
-        <button class="btn" :disabled="!canConfirm()" @click="confirm">Confirm</button>
+            <div class="row-action">
+              <select v-model="state.action" class="action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
+                <option value="merge">Merge with</option>
+                <option value="create">Create new</option>
+              </select>
+
+              <select
+                v-if="state.action === 'merge'"
+                v-model="state.personId"
+                class="person-select"
+                :class="{ 'needs-pick': state.personId === null }"
+                :aria-label="`Person to merge ${state.classification.incoming.name} with`"
+              >
+                <option :value="null" disabled>Pick a person…</option>
+                <option v-for="p in people" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </select>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('cancel')">Cancel</button>
+      <button class="btn" :disabled="!canConfirm()" @click="confirm">Confirm</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 560px;
-  max-width: calc(100vw - 2rem);
-  max-height: calc(100vh - 4rem);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  padding: 1rem 1.25rem;
-  overflow-y: auto;
-}
-
 .subtitle {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
@@ -276,15 +210,5 @@ h3 span {
 .action-select:focus,
 .person-select:focus {
   border-color: rgba(255, 255, 255, 0.3);
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
 }
 </style>

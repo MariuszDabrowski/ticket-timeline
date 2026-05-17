@@ -32,6 +32,7 @@ import { parseEpicCSV, type EpicCsvImport } from '../utils/epicCsv'
 import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
 import PeopleConfirmModal from '../components/PeopleConfirmModal.vue'
+import BaseModal from '../components/BaseModal.vue'
 import { classifyIncoming, uniquifyName, type Classification, type IncomingPerson, type Decision } from '../utils/peopleMatch'
 
 
@@ -895,36 +896,30 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   </Teleport>
 
   <Transition name="modal">
-    <div v-if="showReset" class="reset-backdrop" @click.self="showReset = false">
-      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
-        <h3 id="reset-modal-title"><span class="shine-text">Reset Calendar</span></h3>
-        <div class="reset-body">
-          <p>This will permanently clear all people, tickets, events, and vacations from the calendar.</p>
-          <p class="reset-warning">This action cannot be undone.</p>
-        </div>
-        <div class="reset-actions">
-          <button class="btn" @click="showReset = false">Cancel</button>
-          <button class="btn btn-danger" @click="resetAll">Clear Everything</button>
-        </div>
+    <BaseModal v-if="showReset" title="Reset Calendar" size="compact" @close="showReset = false">
+      <div class="modal-body prompt-body">
+        <p>This will permanently clear all people, tickets, events, and vacations from the calendar.</p>
+        <p class="warning">This action cannot be undone.</p>
       </div>
-    </div>
+      <template #actions>
+        <button class="btn" @click="showReset = false">Cancel</button>
+        <button class="btn btn-danger" @click="resetAll">Clear Everything</button>
+      </template>
+    </BaseModal>
   </Transition>
 
   <Transition name="modal">
-    <div v-if="showImportPrompt" class="reset-backdrop" @click.self="onImportCancel">
-      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="import-prompt-title" @keydown.escape.prevent="onImportCancel">
-        <h3 id="import-prompt-title"><span class="shine-text">Calendar Has Data</span></h3>
-        <div class="reset-body">
-          <p>Your calendar already has data. Would you like to merge the import in alongside it, or replace it?</p>
-          <p class="reset-warning">Replace will permanently clear all current people, tickets, events, and vacations. This cannot be undone.</p>
-        </div>
-        <div class="reset-actions">
-          <button class="btn" @click="onImportCancel">Cancel</button>
-          <button class="btn" @click="onImportMerge">Merge</button>
-          <button class="btn btn-danger" @click="onImportReplace">Replace</button>
-        </div>
+    <BaseModal v-if="showImportPrompt" title="Calendar Has Data" size="compact" @close="onImportCancel">
+      <div class="modal-body prompt-body">
+        <p>Your calendar already has data. Would you like to merge the import in alongside it, or replace it?</p>
+        <p class="warning">Replace will permanently clear all current people, tickets, events, and vacations. This cannot be undone.</p>
       </div>
-    </div>
+      <template #actions>
+        <button class="btn" @click="onImportCancel">Cancel</button>
+        <button class="btn" @click="onImportMerge">Merge</button>
+        <button class="btn btn-danger" @click="onImportReplace">Replace</button>
+      </template>
+    </BaseModal>
   </Transition>
 
   <HintBubble
@@ -1002,70 +997,19 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   transition: box-shadow 0.25s ease;
 }
 
-.reset-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.reset-modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 360px;
-  max-width: calc(100vw - 2rem);
-}
-
-.reset-modal h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-  margin: 0;
-}
-
-.reset-modal h3 span {
-  padding-top: 2px;
-}
-
-.reset-body {
+/* Body styling for the confirm-prompt modals (Reset, Calendar Has Data).
+   Wider gap + danger-red warning line. */
+.prompt-body {
   padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
   gap: 0.5rem;
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.55;
 }
 
-.reset-warning {
+.prompt-body .warning {
   color: rgba(231, 76, 60, 0.8);
   font-size: 0.82rem;
-}
-
-.reset-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
 }
 
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useFocusTrap } from '../composables/useFocusTrap'
 import type { Person } from '../stores/people'
 import type { CalendarDate } from '../stores/tickets'
+import BaseModal from './BaseModal.vue'
 
 const props = defineProps<{ people: Person[]; preselectedPersonId?: number | null }>()
 const emit = defineEmits<{ save: [personId: number, startDate: CalendarDate | null, endDate: CalendarDate | null]; cancel: [] }>()
@@ -10,7 +10,6 @@ const emit = defineEmits<{ save: [personId: number, startDate: CalendarDate | nu
 const selectedPersonId = ref<number | null>(props.preselectedPersonId ?? props.people[0]?.id ?? null)
 const startDateStr = ref('')
 const endDateStr = ref('')
-const { trapRef, onKeydown } = useFocusTrap()
 
 function parseDate(str: string): CalendarDate | null {
   if (!str) return null
@@ -25,105 +24,52 @@ const datesValid = computed(() => {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="add-vacation-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="add-vacation-modal-title"><span class="shine-text">Add Vacation</span></h3>
-
-      <div class="modal-body" v-simplebar>
-        <div class="field">
-          <label>Person</label>
-          <div v-if="people.length === 0" class="empty-note">Add people to the team first.</div>
-          <div v-else class="person-list">
-            <button
-              v-for="person in people"
-              :key="person.id"
-              class="person-btn"
-              :class="{ selected: selectedPersonId === person.id }"
-              @click="selectedPersonId = person.id"
-            >
-              <span class="dot" :style="{ background: person.color }" />
-              {{ person.name }}
-            </button>
-          </div>
-        </div>
-        <div class="field">
-          <label>Dates</label>
-          <div class="date-row">
-            <input v-model="startDateStr" type="date" />
-            <span class="date-sep">to</span>
-            <input v-model="endDateStr" type="date" :min="startDateStr" />
-          </div>
-          <p v-if="startDateStr && endDateStr && !datesValid" class="date-error">End date must be on or after start date.</p>
+  <BaseModal title="Add Vacation" size="compact" @close="emit('cancel')">
+    <div class="modal-body form-body" v-simplebar>
+      <div class="field">
+        <label>Person</label>
+        <div v-if="people.length === 0" class="empty-note">Add people to the team first.</div>
+        <div v-else class="person-list">
+          <button
+            v-for="person in people"
+            :key="person.id"
+            class="person-btn"
+            :class="{ selected: selectedPersonId === person.id }"
+            @click="selectedPersonId = person.id"
+          >
+            <span class="dot" :style="{ background: person.color }" />
+            {{ person.name }}
+          </button>
         </div>
       </div>
-
-      <div class="actions">
-        <div class="actions-right">
-          <button class="btn" @click="emit('cancel')">Cancel</button>
-          <button
-            class="btn"
-            @click="selectedPersonId !== null && emit('save', selectedPersonId, parseDate(startDateStr), parseDate(endDateStr))"
-            :disabled="selectedPersonId === null || people.length === 0 || !startDateStr || !endDateStr || !datesValid"
-          >Add</button>
+      <div class="field">
+        <label>Dates</label>
+        <div class="date-row">
+          <input v-model="startDateStr" type="date" />
+          <span class="date-sep">to</span>
+          <input v-model="endDateStr" type="date" :min="startDateStr" />
         </div>
+        <p v-if="startDateStr && endDateStr && !datesValid" class="date-error">End date must be on or after start date.</p>
       </div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('cancel')">Cancel</button>
+      <button
+        class="btn"
+        @click="selectedPersonId !== null && emit('save', selectedPersonId, parseDate(startDateStr), parseDate(endDateStr))"
+        :disabled="selectedPersonId === null || people.length === 0 || !startDateStr || !endDateStr || !datesValid"
+      >Add</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 360px;
-  max-width: calc(100vw - 2rem);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.form-body {
   padding: 1.25rem 1.5rem;
-  overflow-y: auto;
+  gap: 1rem;
 }
-
-.modal-body :deep(.simplebar-content) {
-  display: flex;
-  flex-direction: column;
+.form-body :deep(.simplebar-content) {
   gap: 1rem;
   padding-bottom: 1.25rem;
 }
@@ -193,20 +139,6 @@ label {
   font-style: italic;
 }
 
-.hint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 1.5;
-  font-style: italic;
-}
-
-.label-hint {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: 0.7;
-}
-
 .date-row {
   display: flex;
   align-items: center;
@@ -245,19 +177,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 12px;
   color: #e74c3c;
 }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-}
-
-.actions-right {
-  display: flex;
-  gap: 0.5rem;
-}
-
 </style>

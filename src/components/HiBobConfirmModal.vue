@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import type { ICSPersonGroup } from '../utils/icsParser'
 import type { Person } from '../stores/people'
 import { classifyIncoming } from '../utils/peopleMatch'
-import { useFocusTrap } from '../composables/useFocusTrap'
+import BaseModal from './BaseModal.vue'
 
 // Picker step for HiBob ICS sync. Lets the user choose which people from the
 // file to import. Matching to existing people happens downstream in
@@ -52,7 +52,6 @@ const filteredRows = computed(() => {
 })
 
 const selectedCount = computed(() => rows.value.filter((r) => r.selected).length)
-const { trapRef, onKeydown } = useFocusTrap()
 
 function totalDays(group: ICSPersonGroup): number {
   return group.events.reduce((sum, ev) => {
@@ -68,104 +67,50 @@ function confirm() {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="emit('cancel')">
-    <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="hibob-confirm-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="hibob-confirm-modal-title"><span class="shine-text">Sync HiBob Vacations</span></h3>
+  <BaseModal title="Sync HiBob Vacations" size="wide" @close="emit('cancel')">
+    <div class="modal-body" v-simplebar>
+      <p class="subtitle">
+        Found <strong>{{ groups.length }}</strong>
+        {{ groups.length === 1 ? 'person' : 'people' }} in the calendar.
+        Pick who to sync — you'll confirm matches on the next step.
+      </p>
 
-      <div class="modal-body" v-simplebar>
-        <p class="subtitle">
-          Found <strong>{{ groups.length }}</strong>
-          {{ groups.length === 1 ? 'person' : 'people' }} in the calendar.
-          Pick who to sync — you'll confirm matches on the next step.
-        </p>
-
-        <input
-          v-model="searchQuery"
-          class="search-input"
-          type="text"
-          placeholder="Search people…"
-          aria-label="Filter people by name"
-        />
-        <div class="list" v-simplebar>
-          <div v-for="row in filteredRows" :key="row.group.personName" class="row">
-            <label class="row-label">
-              <input type="checkbox" v-model="row.selected" />
-              <span class="dot dot-new" />
-              <span class="name">{{ row.group.personName }}</span>
-              <span class="meta">
-                {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
-              </span>
-            </label>
-          </div>
-          <div v-if="filteredRows.length === 0" class="empty">
-            No matches for "{{ searchQuery }}"
-          </div>
+      <input
+        v-model="searchQuery"
+        class="search-input"
+        type="text"
+        placeholder="Search people…"
+        aria-label="Filter people by name"
+      />
+      <div class="list" v-simplebar>
+        <div v-for="row in filteredRows" :key="row.group.personName" class="row">
+          <label class="row-label">
+            <input type="checkbox" class="app-checkbox" v-model="row.selected" />
+            <span class="dot dot-new" />
+            <span class="name">{{ row.group.personName }}</span>
+            <span class="meta">
+              {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
+            </span>
+          </label>
+        </div>
+        <div v-if="filteredRows.length === 0" class="empty">
+          No matches for "{{ searchQuery }}"
         </div>
       </div>
-
-      <div class="actions">
-        <button class="btn" @click="emit('cancel')">Cancel</button>
-        <button class="btn" :disabled="selectedCount === 0" @click="confirm">Next</button>
-      </div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn" @click="emit('cancel')">Cancel</button>
+      <button class="btn" :disabled="selectedCount === 0" @click="confirm">Next</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal {
-  background-color: #1a1a1a;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 520px;
-  max-width: calc(100vw - 2rem);
-  max-height: calc(100vh - 4rem);
-}
-
-h3 {
-  padding: 0.65rem 1rem;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-h3 span {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-  padding-top: 2px;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding: 1rem 1.25rem;
-}
 .modal-body :deep(.simplebar-content) {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.7rem;
   padding-bottom: 0;
 }
 
@@ -254,66 +199,5 @@ h3 span {
 .dot-new {
   background: rgba(255, 255, 255, 0.15);
   border: 1px dashed rgba(255, 255, 255, 0.3);
-}
-
-input[type='checkbox'] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-  position: relative;
-  overflow: visible;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-input[type='checkbox']:checked {
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
-  background-size: 200% auto;
-  animation: checkboxGradient 2.5s ease-in-out infinite alternate;
-  border-color: rgba(167, 139, 250, 0.6);
-}
-
-@keyframes checkboxGradient {
-  0%   { background-position: 0% center; }
-  100% { background-position: 100% center; }
-}
-
-@keyframes checkDraw {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
-}
-
-input[type='checkbox']:checked::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: -3px;
-  width: 6px;
-  height: 12px;
-  border: 2px solid rgba(200, 180, 255, 0.9);
-  border-top: none;
-  border-left: none;
-  border-radius: 0 2px 2px 0;
-  transform: rotate(45deg);
-  animation: checkDraw 0.2s ease-out forwards;
-}
-
-input[type='checkbox']:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
 }
 </style>
