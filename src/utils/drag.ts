@@ -2,17 +2,20 @@
 // clone of the source element under the cursor during HTML5 drag — for our
 // pills that's duplicate feedback because the cascade preview already
 // shows the would-be landing position live. Replace it with a 1x1
-// transparent image so the cursor stays clean.
+// transparent canvas so the cursor stays clean.
 //
-// Cached as a module-level singleton so we're not allocating a fresh Image
-// every dragstart frame.
-let transparentDragImage: HTMLImageElement | null = null
+// Why a canvas and not an Image: an Image from a data URL still decodes
+// asynchronously, and on the very first drag setDragImage() fires before
+// the bitmap is ready — the browser then falls back to its default drag
+// image (Chrome renders a globe icon for payloads it can't classify). A
+// canvas is pixel-ready synchronously, so the first drag works too.
+let transparentDragImage: HTMLCanvasElement | null = null
 
-function getTransparentDragImage(): HTMLImageElement {
+function getTransparentDragImage(): HTMLCanvasElement {
   if (!transparentDragImage) {
-    transparentDragImage = new Image()
-    transparentDragImage.src =
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
+    transparentDragImage = document.createElement('canvas')
+    transparentDragImage.width = 1
+    transparentDragImage.height = 1
   }
   return transparentDragImage
 }
