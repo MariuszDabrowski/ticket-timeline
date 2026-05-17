@@ -69,3 +69,29 @@ export function fmtTimestamp(iso: string): string {
     month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
+
+// Count weekdays in [start, end] (inclusive on both ends). When isOnVacation
+// is provided, days the person is on vacation don't count — used by the
+// ticket tooltip's "duration" to subtract out vacation days.
+export function workingDayCount(
+  start: CalendarDate,
+  end: CalendarDate,
+  isOnVacation?: (date: CalendarDate) => boolean,
+): number {
+  let count = 0
+  const d = toDate(start)
+  const endD = toDate(end)
+  while (d <= endD) {
+    const dow = d.getDay()
+    if (dow !== 0 && dow !== 6) {
+      if (isOnVacation) {
+        const cd: CalendarDate = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
+        if (!isOnVacation(cd)) count++
+      } else {
+        count++
+      }
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return count
+}

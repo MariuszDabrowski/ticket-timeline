@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, toRef } from 'vue'
 import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
-import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
-import { snapToWeekday, workingDaysBetween, addWorkingDays, addDays, spanInDays, fmtShortDate } from '../utils/dates'
+import { snapToWeekday, workingDaysBetween, addWorkingDays, addDays, spanInDays, fmtShortDate, workingDayCount } from '../utils/dates'
 import { useUndoStack } from '../composables/useUndoStack'
+import { useMonthGrid } from '../composables/useMonthGrid'
 import { cascadePush, shrinkRows, type CascadeItem } from '../utils/cascade'
-import { colorForTicket } from '../utils/colors'
+import { colorForTicket, segmentGradient } from '../utils/colors'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
@@ -24,23 +24,19 @@ const emit = defineEmits<{
   editVacation: [vacationId: number]
 }>()
 
-const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-const monthName = computed(() => MONTH_NAMES[props.month])
-const daysInMonth = computed(() => new Date(props.year, props.month + 1, 0).getDate())
-
-const today = new Date()
-const todayYear = today.getFullYear()
-const todayMonth = today.getMonth()
-const todayDay = today.getDate()
-const isToday = (day: number) =>
-  props.year === todayYear && props.month === todayMonth && day === todayDay
+const {
+  monthName,
+  dayHeaders,
+  columnCount,
+  visibleDays,
+  startOffset,
+  firstVisibleDay,
+  lastVisibleDay,
+  holidayMap,
+  isToday,
+  colPos,
+  dayRowIndex,
+} = useMonthGrid(toRef(props, 'year'), toRef(props, 'month'))
 
 const ticketsStore = useTicketsStore()
 const peopleStore = usePeopleStore()
@@ -48,60 +44,6 @@ const dragState = useDragStateStore()
 const options = useOptionsStore()
 const vacationsStore = useVacationsStore()
 const undoStack = useUndoStack()
-
-function isWeekend(day: number): boolean {
-  const dow = new Date(props.year, props.month, day).getDay()
-  return dow === 0 || dow === 6
-}
-
-const dayHeaders = computed(() => options.hideWeekends ? WEEKDAY_HEADERS_SHORT : WEEKDAY_HEADERS)
-const columnCount = computed(() => options.hideWeekends ? 5 : 7)
-
-const visibleDays = computed(() => {
-  const days: number[] = []
-  for (let d = 1; d <= daysInMonth.value; d++) {
-    if (options.hideWeekends && isWeekend(d)) continue
-    days.push(d)
-  }
-  return days
-})
-
-const startOffset = computed(() => {
-  if (options.hideWeekends) {
-    for (let d = 1; d <= daysInMonth.value; d++) {
-      const dow = new Date(props.year, props.month, d).getDay()
-      if (dow !== 0 && dow !== 6) return dow - 1 // Mon=0 … Fri=4
-    }
-    return 0
-  }
-  return new Date(props.year, props.month, 1).getDay()
-})
-
-// Maps each visible weekday number to its 0-based index among weekdays (used for colPos)
-const weekdayIndexMap = computed(() => {
-  if (!options.hideWeekends) return new Map<number, number>()
-  const map = new Map<number, number>()
-  let idx = 0
-  for (let d = 1; d <= daysInMonth.value; d++) {
-    const dow = new Date(props.year, props.month, d).getDay()
-    if (dow !== 0 && dow !== 6) map.set(d, idx++)
-  }
-  return map
-})
-
-const firstVisibleDay = computed(() => visibleDays.value[0] ?? 1)
-const lastVisibleDay = computed(() => visibleDays.value[visibleDays.value.length - 1] ?? daysInMonth.value)
-
-const holidayMap = computed(() => {
-  const map = new Map<number, string>()
-  for (const h of getCanadianHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `CA ${h.name}`)
-  }
-  for (const h of getAmericanHolidays(props.year)) {
-    if (h.date.month === props.month) map.set(h.date.day, `US ${h.name}`)
-  }
-  return map
-})
 
 const dragOverDay = ref<number | null>(null)
 
@@ -116,22 +58,13 @@ function assignedName(ticket: Ticket): string {
 }
 
 function durationDays(start: CalendarDate, end: CalendarDate, personId?: number | null): number {
-  let count = 0
-  const d = new Date(start.year, start.month, start.day)
-  const endDate = new Date(end.year, end.month, end.day)
-  while (d <= endDate) {
-    const dow = d.getDay()
-    if (dow !== 0 && dow !== 6) {
-      if (personId != null) {
-        const cd: CalendarDate = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
-        if (!vacationsStore.isPersonOnVacation(personId, cd, cd)) count++
-      } else {
-        count++
-      }
-    }
-    d.setDate(d.getDate() + 1)
-  }
-  return count
+  return workingDayCount(
+    start,
+    end,
+    personId != null
+      ? (cd) => vacationsStore.isPersonOnVacation(personId, cd, cd)
+      : undefined,
+  )
 }
 
 interface TicketTooltipState {
@@ -252,17 +185,6 @@ interface DayTicketInfo {
   spanTotal: number
 }
 
-function colPos(day: number): number {
-  if (options.hideWeekends) {
-    const idx = weekdayIndexMap.value.get(day) ?? 0
-    return (startOffset.value + idx) % columnCount.value
-  }
-  return (startOffset.value + day - 1) % columnCount.value
-}
-
-function dayRowIndex(visibleDayIndex: number): number {
-  return Math.floor((startOffset.value + visibleDayIndex) / columnCount.value)
-}
 
 // --- Vacation date helpers (preview/resize-aware) ---
 
@@ -637,19 +559,7 @@ function effectiveDaySlots(day: number, weekIdx: number): UnifiedSlot[] {
 
 
 function ticketSegmentBg(ticket: Ticket, spanIndex: number, spanTotal: number): string {
-  const hex = ticketColor(ticket)
-  let h = hex.startsWith('#') ? hex.slice(1) : hex
-  if (h.length === 3) h = h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2]
-  const r = parseInt(h.slice(0, 2), 16)
-  const g = parseInt(h.slice(2, 4), 16)
-  const b = parseInt(h.slice(4, 6), 16)
-  const p0 = spanIndex / spanTotal
-  const p1 = Math.min(1, (spanIndex + 1) / spanTotal)
-  const shade = (p: number) => {
-    const d = 1 - p * 0.4
-    return `rgba(${Math.round(r * d)}, ${Math.round(g * d)}, ${Math.round(b * d)}, 0.75)`
-  }
-  return `linear-gradient(to right, ${shade(p0)}, ${shade(p1)})`
+  return segmentGradient(ticketColor(ticket), spanIndex, spanTotal)
 }
 
 

@@ -35,3 +35,23 @@ export function pillGradient(hex: string): string {
   const right = `rgba(${Math.round(r * 0.6)}, ${Math.round(g * 0.6)}, ${Math.round(b * 0.6)}, 0.75)`
   return `linear-gradient(to right, ${left}, ${right})`
 }
+
+// Gradient for one segment of a multi-day pill on the calendar. spanIndex /
+// spanTotal positions the segment along the full pill (0 = leftmost, 1 =
+// rightmost). Each segment fades from its share of "left" to its share of
+// "right" so a 5-day pill rendered as 5 daily segments still reads as one
+// continuous left→right gradient.
+export function segmentGradient(hex: string, spanIndex: number, spanTotal: number): string {
+  let h = hex.startsWith('#') ? hex.slice(1) : hex
+  if (h.length === 3) h = h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2]
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  const p0 = spanIndex / spanTotal
+  const p1 = Math.min(1, (spanIndex + 1) / spanTotal)
+  const shade = (p: number) => {
+    const d = 1 - p * 0.4
+    return `rgba(${Math.round(r * d)}, ${Math.round(g * d)}, ${Math.round(b * d)}, 0.75)`
+  }
+  return `linear-gradient(to right, ${shade(p0)}, ${shade(p1)})`
+}
