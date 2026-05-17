@@ -53,8 +53,7 @@ const canConfirm = () => states.value.every(
 function confirm() {
   if (!canConfirm()) return
   const decisions: Decision[] = states.value.map((s) => ({
-    email: s.classification.incoming.email,
-    name: s.classification.incoming.name,
+    incoming: s.classification.incoming,
     action: s.action,
     ...(s.action === 'merge' ? { personId: s.personId! } : {}),
   }))

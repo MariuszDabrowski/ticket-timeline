@@ -83,12 +83,13 @@ export function classifyIncoming(incoming: IncomingPerson, existing: Person[]): 
   return { incoming, tier: 'none' }
 }
 
-// One user decision emitted by PeopleConfirmModal. Merge → personId is set;
-// Create → personId is omitted and the caller creates a new Person (using
-// uniquifyName to avoid visual duplicates).
+// One user decision emitted by PeopleConfirmModal. The `incoming` ref is the
+// same object the caller passed into the modal, so it can be looked up in a
+// per-import Map<IncomingPerson, number> after applyDecisions runs.
+// Merge → personId is set; Create → personId is omitted and the caller spins
+// up a new Person (using uniquifyName to avoid visual duplicates).
 export interface Decision {
-  email: string | null
-  name: string
+  incoming: IncomingPerson
   action: 'merge' | 'create'
   personId?: number
 }

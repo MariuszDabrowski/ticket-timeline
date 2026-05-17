@@ -147,58 +147,64 @@ function expandSelectedMonthsForPlacements() {
 }
 
 // Walks incoming people, runs them through classifyIncoming, and splits into
-// (a) email-known auto-merges that go straight into the map, and (b) rows
-// that need user confirmation.
+// (a) email-known auto-merges (resolved immediately) and (b) rows that need
+// user confirmation.
 function resolveIncomingPeople(
   incoming: IncomingPerson[],
-): { autoMap: Map<string, number>; needsConfirm: Classification[] } {
-  const autoMap = new Map<string, number>()
+): { resolved: Map<IncomingPerson, number>; needsConfirm: Classification[] } {
+  const resolved = new Map<IncomingPerson, number>()
   const needsConfirm: Classification[] = []
   for (const p of incoming) {
     const c = classifyIncoming(p, people.people)
-    if (c.tier === 'email-known' && p.email && c.suggestedPersonId !== undefined) {
-      autoMap.set(p.email.toLowerCase(), c.suggestedPersonId)
+    if (c.tier === 'email-known' && c.suggestedPersonId !== undefined) {
+      resolved.set(p, c.suggestedPersonId)
     } else {
       needsConfirm.push(c)
     }
   }
-  return { autoMap, needsConfirm }
+  return { resolved, needsConfirm }
 }
 
-// Materialize decisions onto the roster: merges store the incoming email on
-// the matched person; creates spin up a new Person (with auto-suffix to dodge
-// visual duplicates) and store the email on it. Mutates `map` in place.
-function applyDecisions(map: Map<string, number>, decisions: Decision[]) {
+// Materialize decisions onto the roster: merges record the incoming email
+// (if any) on the matched person; creates spin up a new Person with
+// uniquifyName so two real Jonathans don't collapse. Resolves each Decision
+// back into the shared resolved map keyed by IncomingPerson ref. Returns
+// the count of newly-created people so the caller can decide whether to
+// open the sidebar's people section.
+function applyDecisions(resolved: Map<IncomingPerson, number>, decisions: Decision[]): number {
+  let created = 0
   for (const d of decisions) {
     let personId: number
     if (d.action === 'merge' && d.personId !== undefined) {
       personId = d.personId
     } else {
-      personId = people.addPerson(uniquifyName(d.name, people.people))
+      personId = people.addPerson(uniquifyName(d.incoming.name, people.people))
+      created++
     }
-    if (d.email) {
-      people.addEmail(personId, d.email)
-      map.set(d.email.toLowerCase(), personId)
-    }
+    if (d.incoming.email) people.addEmail(personId, d.incoming.email)
+    resolved.set(d.incoming, personId)
   }
+  return created
 }
 
-// Common entry: given the list of unique incoming people from any source and
-// a follow-up action that consumes the resolved email→personId map, either
-// run the action immediately (all email-known) or open PeopleConfirmModal.
+// Common entry for any import source: given the list of unique incoming
+// people and a follow-up action that consumes the resolved
+// IncomingPerson → personId map and the count of newly-created people,
+// either run the action immediately (all email-known) or open
+// PeopleConfirmModal first.
 function startImport(
   incoming: IncomingPerson[],
-  doImport: (emailToPersonId: Map<string, number>) => void,
+  doImport: (resolved: Map<IncomingPerson, number>, createdCount: number) => void,
 ) {
-  const { autoMap, needsConfirm } = resolveIncomingPeople(incoming)
+  const { resolved, needsConfirm } = resolveIncomingPeople(incoming)
   if (needsConfirm.length === 0) {
-    doImport(autoMap)
+    doImport(resolved, 0)
     return
   }
   peopleConfirmRows.value = needsConfirm
   pendingPeopleConfirm.value = (decisions) => {
-    applyDecisions(autoMap, decisions)
-    doImport(autoMap)
+    const created = applyDecisions(resolved, decisions)
+    doImport(resolved, created)
   }
 }
 
@@ -214,21 +220,31 @@ function handlePeopleCancel() {
   peopleConfirmRows.value = []
 }
 
+function clearSampleData() {
+  if (!isSampleData.value) return
+  people.loadData([])
+  tickets.loadData({ tickets: [], placements: [] })
+  vacations.loadData([])
+  currentProjectName.value = ''
+  isSampleData.value = false
+}
+
 function handleEpicImport(csvText: string, workspaceSlug: string) {
-  if (isSampleData.value) {
-    people.loadData([])
-    tickets.loadData({ tickets: [], placements: [] })
-    vacations.loadData([])
-    currentProjectName.value = ''
-    isSampleData.value = false
-  }
   const parsed: EpicCsvImport | null = parseEpicCSV(csvText, tickets, vacations, workspaceSlug)
   showUploadEpic.value = false
   if (!parsed) return
 
-  startImport(parsed.incomingPeople, (map) => {
-    parsed.apply(map)
+  // Defer sample-data clearing until the user actually commits the import,
+  // so cancelling the confirm modal doesn't wipe their starting state.
+  startImport(parsed.incomingPeople, (resolved, createdCount) => {
+    clearSampleData()
+    const emailMap = new Map<string, number>()
+    for (const [incoming, id] of resolved) {
+      if (incoming.email) emailMap.set(incoming.email.toLowerCase(), id)
+    }
+    parsed.apply(emailMap)
     expandSelectedMonthsForPlacements()
+    if (createdCount > 0) sidebarRef.value?.openPeopleSection()
   })
 }
 
@@ -501,41 +517,38 @@ function handleHiBobParsed(groups: ICSPersonGroup[]) {
   showHiBob.value = false
 }
 
-function handleHiBobConfirm(
-  matches: { personId: number; group: ICSPersonGroup }[],
-  newPeople: { name: string; group: ICSPersonGroup }[],
-) {
-  if (isSampleData.value) {
-    people.loadData([])
-    tickets.loadData({ tickets: [], placements: [] })
-    vacations.loadData([])
-    currentProjectName.value = ''
-    isSampleData.value = false
-  }
-  for (const { name, group } of newPeople) {
-    const personId = people.addPerson(name)
-    matches.push({ personId, group })
-  }
-  if (newPeople.length > 0) sidebarRef.value?.openPeopleSection()
-  // Greedy row assignment per the spec: each incoming vacation gets the lowest
-  // free row considering current tickets + vacations + others already added in
-  // this batch. Vacations on different days share rows when possible; same-day
-  // vacations stack vertically.
-  const occupants = combineRowOccupants(tickets.placements, vacations.entries)
-  const newVacations = matches.flatMap(({ personId, group }) =>
-    group.events.map((ev) => {
-      const row = findFirstFreeRow(occupants, ev.startDate, ev.endDate)
-      occupants.push({ startDate: ev.startDate, endDate: ev.endDate, row })
-      return {
-        personId,
-        startDate: ev.startDate,
-        endDate: ev.endDate,
-        row,
-      }
-    })
-  )
-  vacations.addVacations(newVacations)
+function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   hibobGroups.value = []
+  if (selectedGroups.length === 0) return
+
+  // HiBob carries no email, so every group flows through PeopleConfirmModal
+  // for at least a name-match decision. Build IncomingPersons in lockstep
+  // with selectedGroups so we can join back by index after resolution.
+  const incoming: IncomingPerson[] = selectedGroups.map((g) => ({
+    name: g.personName,
+    email: null,
+  }))
+
+  startImport(incoming, (resolved, createdCount) => {
+    clearSampleData()
+    const occupants = combineRowOccupants(tickets.placements, vacations.entries)
+    const newVacations = selectedGroups.flatMap((group, i) => {
+      const personId = resolved.get(incoming[i]!)
+      if (personId === undefined) return []
+      return group.events.map((ev) => {
+        const row = findFirstFreeRow(occupants, ev.startDate, ev.endDate)
+        occupants.push({ startDate: ev.startDate, endDate: ev.endDate, row })
+        return {
+          personId,
+          startDate: ev.startDate,
+          endDate: ev.endDate,
+          row,
+        }
+      })
+    })
+    vacations.addVacations(newVacations)
+    if (createdCount > 0) sidebarRef.value?.openPeopleSection()
+  })
 }
 
 
@@ -762,8 +775,7 @@ function handleHiBobConfirm(
     <HiBobConfirmModal
       v-if="hibobGroups.length > 0"
       :groups="hibobGroups"
-      :people="people.people"
-      @confirm="(matches, newPeople) => handleHiBobConfirm(matches, newPeople)"
+      @confirm="handleHiBobConfirm"
       @cancel="hibobGroups = []"
     />
   </Transition>

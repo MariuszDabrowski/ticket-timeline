@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { ICSPersonGroup } from '../utils/icsParser'
-import type { Person } from '../stores/people'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
+// Picker step for HiBob ICS sync. Lets the user choose which people from the
+// file to import. Matching to existing people happens downstream in
+// PeopleConfirmModal — we don't show that here so the user makes one decision
+// at a time (pick → confirm matches), not both at once.
 const props = defineProps<{
   groups: ICSPersonGroup[]
-  people: Person[]
 }>()
 
 const emit = defineEmits<{
-  confirm: [matches: { personId: number; group: ICSPersonGroup }[], newPeople: { name: string; group: ICSPersonGroup }[]]
+  confirm: [groups: ICSPersonGroup[]]
   cancel: []
 }>()
 
@@ -18,41 +20,21 @@ function normalizeName(name: string): string {
   return name.toLowerCase().trim()
 }
 
-function matchPerson(icsName: string): Person | null {
-  const normalized = normalizeName(icsName)
-  let match = props.people.find((p) => normalizeName(p.name) === normalized)
-  if (match) return match
-  match = props.people.find((p) => normalized.includes(normalizeName(p.name)))
-  if (match) return match
-  match = props.people.find((p) => normalizeName(p.name).includes(normalized))
-  return match ?? null
-}
-
 interface Row {
   group: ICSPersonGroup
-  person: Person | null
   selected: boolean
 }
 
-const rows = ref<Row[]>(
-  props.groups.map((g) => {
-    const person = matchPerson(g.personName)
-    return { group: g, person, selected: person !== null }
-  })
-)
+const rows = ref<Row[]>(props.groups.map((g) => ({ group: g, selected: true })))
 
 const searchQuery = ref('')
 const filteredRows = computed(() => {
   const q = normalizeName(searchQuery.value)
   if (!q) return rows.value
-  return rows.value.filter((r) =>
-    normalizeName(r.group.personName).includes(q) ||
-    (r.person && normalizeName(r.person.name).includes(q))
-  )
+  return rows.value.filter((r) => normalizeName(r.group.personName).includes(q))
 })
 
-const matchedCount = computed(() => rows.value.filter((r) => r.person !== null).length)
-const unmatchedCount = computed(() => rows.value.filter((r) => r.person === null).length)
+const selectedCount = computed(() => rows.value.filter((r) => r.selected).length)
 const { trapRef, onKeydown } = useFocusTrap()
 
 function totalDays(group: ICSPersonGroup): number {
@@ -64,26 +46,20 @@ function totalDays(group: ICSPersonGroup): number {
 }
 
 function confirm() {
-  const matches = rows.value
-    .filter((r) => r.selected && r.person !== null)
-    .map((r) => ({ personId: r.person!.id, group: r.group }))
-  const newPeople = rows.value
-    .filter((r) => r.selected && r.person === null)
-    .map((r) => ({ name: r.group.personName, group: r.group }))
-  emit('confirm', matches, newPeople)
+  emit('confirm', rows.value.filter((r) => r.selected).map((r) => r.group))
 }
 </script>
 
 <template>
   <div class="backdrop" @click.self="emit('cancel')">
     <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="hibob-confirm-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('cancel')">
-      <h3 id="hibob-confirm-modal-title"><span class="shine-text">Confirm Sync</span></h3>
+      <h3 id="hibob-confirm-modal-title"><span class="shine-text">Sync HiBob Vacations</span></h3>
 
       <div class="modal-body" v-simplebar>
         <p class="subtitle">
-          Found <strong>{{ matchedCount }}</strong> matched
-          <template v-if="unmatchedCount > 0"> and <strong>{{ unmatchedCount }}</strong> unmatched</template>
-          people. Select who to sync.
+          Found <strong>{{ groups.length }}</strong>
+          {{ groups.length === 1 ? 'person' : 'people' }} in the calendar.
+          Pick who to sync — you'll confirm matches on the next step.
         </p>
 
         <input
@@ -97,19 +73,10 @@ function confirm() {
           <div v-for="row in filteredRows" :key="row.group.personName" class="row">
             <label class="row-label">
               <input type="checkbox" v-model="row.selected" />
-              <span class="dot" v-if="row.person" :style="{ background: row.person.color }" />
-              <span class="dot dot-new" v-else />
+              <span class="dot dot-new" />
               <span class="name">{{ row.group.personName }}</span>
               <span class="meta">
-                <template v-if="row.person">
-                  → {{ row.person.name }} · {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
-                </template>
-                <template v-else-if="row.selected">
-                  <span class="will-add">Will be added to sidebar</span>
-                </template>
-                <template v-else>
-                  <span class="no-match">Not in sidebar — check to add</span>
-                </template>
+                {{ row.group.events.length }} period{{ row.group.events.length !== 1 ? 's' : '' }}, {{ totalDays(row.group) }} day{{ totalDays(row.group) !== 1 ? 's' : '' }}
               </span>
             </label>
           </div>
@@ -121,7 +88,7 @@ function confirm() {
 
       <div class="actions">
         <button class="btn" @click="emit('cancel')">Cancel</button>
-        <button class="btn" @click="confirm">Complete Sync</button>
+        <button class="btn" :disabled="selectedCount === 0" @click="confirm">Next</button>
       </div>
     </div>
   </div>
@@ -216,8 +183,6 @@ h3 span {
 }
 
 .list {
-  /* Fixed height so the modal doesn't resize (and re-center, causing a jump)
-     when search filters the row count. Long lists scroll internally. */
   height: 18rem;
   display: flex;
   flex-direction: column;
@@ -272,16 +237,6 @@ h3 span {
 .dot-new {
   background: rgba(255, 255, 255, 0.15);
   border: 1px dashed rgba(255, 255, 255, 0.3);
-}
-
-.no-match {
-  font-style: italic;
-  opacity: 0.5;
-}
-
-.will-add {
-  font-style: italic;
-  color: #6dd5fa;
 }
 
 input[type='checkbox'] {
@@ -344,5 +299,4 @@ input[type='checkbox']:hover {
   border-top: 1px solid rgba(0, 0, 0, 0.3);
   flex-shrink: 0;
 }
-
 </style>
