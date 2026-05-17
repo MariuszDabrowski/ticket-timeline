@@ -44,7 +44,7 @@ function onFileInput(e: Event) {
 </script>
 
 <template>
-  <BaseModal title="Sync HiBob Vacation Days" size="normal" @close="emit('cancel')">
+  <BaseModal title="Sync HiBob Vacation Days" size="wide" @close="emit('cancel')">
     <div class="modal-body wide-body" v-simplebar>
       <div class="instructions">
         <p class="instructions-title">How to get your ICS file:</p>

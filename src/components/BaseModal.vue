@@ -12,11 +12,12 @@ import { useFocusTrap } from '../composables/useFocusTrap'
 // .modal-body in main.css.
 withDefaults(defineProps<{
   title: string
-  // Three width tiers — compact for confirmations, normal for forms, wide
-  // for long-list pickers. Resolves the previous sprawl of 8 ad-hoc widths.
-  size?: 'compact' | 'normal' | 'wide'
+  // Two width tiers — compact for forms/confirmations, wide for long-list
+  // pickers and instructions. Resolves the previous sprawl of 8 ad-hoc
+  // widths into two predictable choices.
+  size?: 'compact' | 'wide'
 }>(), {
-  size: 'normal',
+  size: 'compact',
 })
 
 const emit = defineEmits<{ close: [] }>()
@@ -71,8 +72,7 @@ const titleId = `base-modal-title-${Math.random().toString(36).slice(2, 9)}`
   color: rgba(255, 255, 255, 0.8);
 }
 
-.modal--compact { width: 400px; }
-.modal--normal { width: 500px; }
+.modal--compact { width: 420px; }
 .modal--wide { width: 560px; }
 
 h3 {

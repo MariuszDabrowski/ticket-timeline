@@ -25,7 +25,7 @@ function pillGradient(hex: string): string {
 
 const checkboxOn = ref(true)
 const selectVal = ref('alice')
-const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
+const modalSize = ref<'compact' | 'wide' | null>(null)
 </script>
 
 <template>
@@ -45,6 +45,17 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
         <button class="btn" disabled>Disabled</button>
         <button class="btn btn-danger">Danger</button>
         <button class="btn btn-danger" disabled>Danger · Disabled</button>
+      </div>
+      <p class="sg-section-desc sg-section-desc--inline">Split icon + label button — the icon sits in its own darker column with a divider. Used for the "Copy shareable link" button under the project brief. Two zones (icon-wrap / body) so the label can do a slide-in/out animation independently.</p>
+      <div class="sg-row">
+        <button class="sg-share-btn">
+          <div class="sg-share-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+              <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z"/>
+            </svg>
+          </div>
+          <div class="sg-share-body">Copy shareable link</div>
+        </button>
       </div>
     </section>
 
@@ -71,7 +82,7 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
         </label>
         <label class="sg-checkbox-row">
           <input type="checkbox" class="app-checkbox" v-model="checkboxOn" />
-          <span>Custom checkbox <code>.app-checkbox</code></span>
+          <span>Custom checkbox</span>
         </label>
       </div>
     </section>
@@ -79,10 +90,9 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
     <!-- Modals -->
     <section class="sg-section">
       <h2>Modals</h2>
-      <p class="sg-section-desc">All modals use <code>&lt;BaseModal&gt;</code> with three size tiers. Click to open a sample.</p>
+      <p class="sg-section-desc">All modals use <code>&lt;BaseModal&gt;</code> with two size tiers. Click to open a sample.</p>
       <div class="sg-row">
-        <button class="btn" @click="modalSize = 'compact'">Open compact (400px)</button>
-        <button class="btn" @click="modalSize = 'normal'">Open normal (500px)</button>
+        <button class="btn" @click="modalSize = 'compact'">Open compact (420px)</button>
         <button class="btn" @click="modalSize = 'wide'">Open wide (560px)</button>
       </div>
 
@@ -146,10 +156,21 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
 
     <!-- Toasts -->
     <section class="sg-section">
-      <h2>Toast / notification</h2>
-      <p class="sg-section-desc">Rejection toast (rules a user tried to break — e.g. assigning a ticket to someone on vacation).</p>
-      <div class="sg-toast-demo">
-        <div class="sg-toast">Can't assign to Alice — she's on vacation during those dates.</div>
+      <h2>Toasts</h2>
+      <p class="sg-section-desc">Two distinct toast styles. Both are positioned <code>fixed</code> in the real app; the demos here just sit inline so the section stays scrollable.</p>
+
+      <div class="sg-toast-block">
+        <div class="sg-toast-label">Rejection toast — top of screen, neutral. Used for "you can't do that" rules (e.g. uncheck the last month). Auto-dismisses; not clickable.</div>
+        <div class="sg-toast-demo">
+          <div class="sg-rejection-toast">At least one month must be selected</div>
+        </div>
+      </div>
+
+      <div class="sg-toast-block">
+        <div class="sg-toast-label">Conflict toast — bottom of screen, red-bordered. Used for conflict warnings (ticket + vacation overlap). Click anywhere on it to dismiss.</div>
+        <div class="sg-toast-demo">
+          <div class="sg-conflict-toast">Can't assign vacation to Alice — she has a ticket during these dates.</div>
+        </div>
       </div>
     </section>
 
@@ -176,7 +197,6 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
         <div><span class="sg-type-label">Section header</span><h3 class="sg-h3">Project Settings</h3></div>
         <div><span class="sg-type-label">Field label</span><span class="sg-field-label">Project name</span></div>
         <div><span class="sg-type-label">Body</span><p class="sg-body-text">Standard paragraph text — used for descriptions, instructions, and tooltips throughout the app.</p></div>
-        <div><span class="sg-type-label">Inline code</span><code>const x = 42</code></div>
       </div>
     </section>
   </div>
@@ -216,15 +236,18 @@ const modalSize = ref<'compact' | 'normal' | 'wide' | null>(null)
 }
 
 .sg-sub code,
-.sg-section-desc code,
-.sg-checkbox-row code,
-.sg-type code {
+.sg-section-desc code {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.85em;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 3px;
   padding: 1px 5px;
+}
+
+.sg-section-desc--inline {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .sg-back {
@@ -416,23 +439,98 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .sg-tier-none { background: rgba(52, 152, 219, 0.18); color: #6dd5fa; }
 .sg-tier-email-known { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.55); }
 
-/* Toast demo */
+/* Toast demos — both styles copied from HomeView so the catalog renders
+   them in-place (they're position: fixed in the real app). */
+.sg-toast-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+.sg-toast-block:last-child {
+  margin-bottom: 0;
+}
+
+.sg-toast-label {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
 .sg-toast-demo {
   display: flex;
   justify-content: center;
-  padding: 1rem;
+  padding: 1.25rem;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
 }
 
-.sg-toast {
-  background: rgba(231, 76, 60, 0.92);
-  color: rgba(255, 255, 255, 0.95);
-  padding: 0.55rem 0.9rem;
+.sg-rejection-toast {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.sg-conflict-toast {
+  background: #1a1a1a;
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  color: rgba(255, 200, 195, 0.95);
+  font-family: 'Nunito', sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Split icon-+-label button (the "Copy shareable link" pattern). The icon
+   sits in its own darker column with a vertical divider, the label fills
+   the rest. Same source styling as .share-btn in HomeView. */
+.sg-share-btn {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  min-height: 36px;
+  overflow: hidden;
+  font-size: 14px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: 'Nunito', sans-serif;
+  transition: color 0.2s ease;
+}
+.sg-share-btn:hover { color: rgba(255, 255, 255, 0.95); }
+
+.sg-share-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+}
+.sg-share-icon-wrap svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.75;
+}
+
+.sg-share-body {
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
 }
 
 /* Color palette */
