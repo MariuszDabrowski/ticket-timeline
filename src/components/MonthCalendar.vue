@@ -9,6 +9,7 @@ import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays, addDays, spanInDays, fmtShortDate } from '../utils/dates'
 import { useUndoStack } from '../composables/useUndoStack'
 import { cascadePush, shrinkRows, type CascadeItem } from '../utils/cascade'
+import { colorForTicket } from '../utils/colors'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 
 const props = defineProps<{
@@ -200,9 +201,7 @@ function setVacationHover(vacationId: number | null) {
 
 
 function ticketColor(ticket: { assignedTo: number | null; isLabel?: boolean; labelColor?: string }): string {
-  if (ticket.isLabel) return ticket.labelColor ?? '#607d8b'
-  if (ticket.assignedTo === null) return '#555555'
-  return peopleStore.people.find((p) => p.id === ticket.assignedTo)?.color ?? '#555555'
+  return colorForTicket(ticket, peopleStore.people)
 }
 
 function effectivePlacement(placement: Placement): Placement {

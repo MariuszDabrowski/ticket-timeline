@@ -4,6 +4,7 @@ import { usePeopleStore, type Person } from '../stores/people'
 import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { compactCalendarLayout } from '../utils/layout'
+import { colorForPerson, pillGradient } from '../utils/colors'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
@@ -126,23 +127,9 @@ function expandVisibleRange(start: number, end: number) {
 }
 defineExpose({ openPeopleSection, expandVisibleRange, ticketsSectionEl })
 
-// Sidebar ticket-pill data
+// Sidebar ticket-pill data — thin wrapper so existing call sites stay legible.
 function ticketColor(assignedTo: number | null): string {
-  if (assignedTo === null) return '#555'
-  return people.people.find((p) => p.id === assignedTo)?.color ?? '#555'
-}
-
-// Matches the visual treatment of single-segment calendar pills: full color on the
-// left, 40% darker on the right, both at 0.75 alpha so they blend with the sidebar.
-function pillGradient(hex: string): string {
-  let h = hex.startsWith('#') ? hex.slice(1) : hex
-  if (h.length === 3) h = h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2]
-  const r = parseInt(h.slice(0, 2), 16)
-  const g = parseInt(h.slice(2, 4), 16)
-  const b = parseInt(h.slice(4, 6), 16)
-  const left = `rgba(${r}, ${g}, ${b}, 0.75)`
-  const right = `rgba(${Math.round(r * 0.6)}, ${Math.round(g * 0.6)}, ${Math.round(b * 0.6)}, 0.75)`
-  return `linear-gradient(to right, ${left}, ${right})`
+  return colorForPerson(assignedTo, people.people)
 }
 
 const unplacedTickets = computed(() => {
