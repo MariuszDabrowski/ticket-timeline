@@ -1,6 +1,6 @@
 import type { useTicketsStore } from '../stores/tickets'
 import type { useVacationsStore } from '../stores/vacations'
-import { findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
+import { findFreeRowForRange } from './layout'
 import type { IncomingPerson } from './peopleMatch'
 
 function parseCSV(text: string): string[][] {
@@ -134,11 +134,7 @@ export function parseEpicCSV(
       // past work look like it took way longer than it actually did.
       const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
       if (startedDate) {
-        const placementRow = findFirstFreeRow(
-          combineRowOccupants(ticketsStore.placements, vacationsStore.entries),
-          startedDate,
-          startedDate,
-        )
+        const placementRow = findFreeRowForRange(ticketsStore, vacationsStore, startedDate, startedDate)
         ticketsStore.placeTicket(ticketId, startedDate, placementRow)
       }
     }

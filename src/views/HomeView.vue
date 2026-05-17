@@ -11,6 +11,7 @@ import AddUserModal from '../components/AddUserModal.vue'
 import AppLogo from '../components/AppLogo.vue'
 import { usePeopleStore } from '../stores/people'
 import { useTicketsStore, findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
+import { findFreeRowForRange } from '../utils/layout'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import EditTicketModal from '../components/EditTicketModal.vue'
 import UploadEpicModal from '../components/UploadEpicModal.vue'
@@ -94,7 +95,7 @@ function handleAddLabel(text: string, color: string, startDate: CalendarDate | n
   const id = tickets.addTicket({ number: '', title: text, assignedTo: null, link: '', isLabel: true, labelColor: color })
   if (startDate) {
     const end = endDate ?? startDate
-    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+    const row = findFreeRowForRange(tickets, vacations, startDate, end)
     tickets.placeTicket(id, startDate, row)
     tickets.moveTicket(id, startDate, end)
   }
@@ -120,7 +121,7 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
   const id = tickets.addTicket(ticketData)
   if (startDate) {
     const end = endDate ?? startDate
-    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+    const row = findFreeRowForRange(tickets, vacations, startDate, end)
     tickets.placeTicket(id, startDate, row)
     tickets.moveTicket(id, startDate, end)
   }
@@ -216,7 +217,7 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
   if (startDate) {
     const end = endDate ?? startDate
     if (!tickets.placements.find((p) => p.ticketId === id)) {
-      const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+      const row = findFreeRowForRange(tickets, vacations, startDate, end)
       tickets.placeTicket(id, startDate, row)
     }
     tickets.moveTicket(id, startDate, end)

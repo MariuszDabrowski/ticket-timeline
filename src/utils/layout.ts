@@ -1,6 +1,26 @@
-import type { useTicketsStore } from '../stores/tickets'
+import type { useTicketsStore, CalendarDate } from '../stores/tickets'
 import type { useVacationsStore } from '../stores/vacations'
+import { findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
 import { shrinkRows, type CascadeItem } from './cascade'
+
+// Convenience over findFirstFreeRow + combineRowOccupants: takes the two
+// stores and a date range, returns the lowest row index that doesn't
+// collide with any current ticket or placed vacation. Used at every
+// first-placement site (CSV import, HiBob import, sample seed, Add modals)
+// so the wiring stays consistent if combineRowOccupants ever grows a third
+// occupant source.
+export function findFreeRowForRange(
+  ticketsStore: ReturnType<typeof useTicketsStore>,
+  vacationsStore: ReturnType<typeof useVacationsStore>,
+  startDate: CalendarDate,
+  endDate: CalendarDate,
+): number {
+  return findFirstFreeRow(
+    combineRowOccupants(ticketsStore.placements, vacationsStore.entries),
+    startDate,
+    endDate,
+  )
+}
 
 // Compacts the calendar after a removal so empty rows close up. The drag
 // preview already shrinks (via previewItems) but those changes are scoped

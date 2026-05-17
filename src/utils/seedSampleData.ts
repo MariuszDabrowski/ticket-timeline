@@ -2,7 +2,7 @@ import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
 import type { useVacationsStore } from '../stores/vacations'
 import type { CalendarDate } from '../stores/tickets'
-import { findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
+import { findFreeRowForRange } from './layout'
 
 function toCalDate(d: Date): CalendarDate {
   return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
@@ -36,7 +36,7 @@ export function seedSampleData(
   function placeFor(weekStart: Date, ticketId: number, startOffset: number, endOffset: number) {
     const start = toCalDate(calAddDays(weekStart, startOffset))
     const end = toCalDate(calAddDays(weekStart, endOffset))
-    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), start, end)
+    const row = findFreeRowForRange(tickets, vacations, start, end)
     tickets.placeTicket(ticketId, start, row)
     tickets.moveTicket(ticketId, start, end)
   }
@@ -67,11 +67,7 @@ export function seedSampleData(
   // lands at the lowest free row (and doesn't collide with PROJ-156 on Wed).
   const vacStart = toCalDate(calAddDays(monday2, 2))
   const vacEnd = toCalDate(calAddDays(monday2, 4))
-  const vacRow = findFirstFreeRow(
-    combineRowOccupants(tickets.placements, vacations.entries),
-    vacStart,
-    vacEnd,
-  )
+  const vacRow = findFreeRowForRange(tickets, vacations, vacStart, vacEnd)
   const vacId = vacations.addVacation(myraId)
   vacations.placeVacation(vacId, vacStart, vacEnd, vacRow)
 
