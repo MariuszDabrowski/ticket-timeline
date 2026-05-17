@@ -22,10 +22,12 @@ Every incoming person is classified into one of these tiers. The tier decides wh
 | Tier | Definition | Default action |
 |---|---|---|
 | **Email-known** | The incoming email is already stored on a Person record | Auto-merge, silent (no modal row) |
+| **No match** | Nothing similar exists | Auto-create, silent (no modal row). No conflict — no decision to make. |
 | **Exact name** | Case-insensitive name equality, but the email is new (or no email comes in, like HiBob) | **Confirm** with merge pre-selected. Two "Jonathan"s could legitimately be two different people. |
 | **Fuzzy** | One name is a substring of the other after normalization | **Confirm** with merge pre-selected |
 | **Ambiguous** | Multiple people could be a fuzzy/exact-name match | **Confirm** with no pre-selection — user must pick |
-| **No match** | Nothing similar exists | **Confirm** with "Create new" pre-selected |
+
+Only tiers where the matcher could be wrong (exact-name, fuzzy, ambiguous) interrupt the user. Clearly safe cases — already-known emails and entirely-new names — proceed silently.
 
 There is no "Skip" action. Every incoming person is either merged into an existing one or created new. (If the user genuinely doesn't want them, they can delete the person afterward.)
 
@@ -77,16 +79,20 @@ Existing Person records have no `emails` field. On load, treat missing/undefined
 ### HiBob ICS
 
 1. `HiBobModal` parses the file (existing).
-2. `HiBobConfirmModal` becomes a simple **people picker** — checkbox list, no match info. The user picks which people to sync.
-3. For each picked person, classify the match tier. If any row needs confirmation (which for HiBob will be all of them, since ICS carries no email), open `PeopleConfirmModal`.
+2. `HiBobConfirmModal` is a **people picker** — checkbox list. Default selection is "matches existing roster" (email-known / exact-name / fuzzy). Names that don't match anyone in the calendar start **unchecked** so importing into an empty project doesn't accidentally add 50 strangers.
+3. For each picked person, classify the match tier. Auto-create silently for `none`; open `PeopleConfirmModal` for exact-name / fuzzy / ambiguous.
 4. On confirm, create/merge people and import vacations.
 
 ### CSV epic
 
 1. `UploadEpicModal` collects the file (existing).
 2. Parse owners → unique emails. Classify each.
-3. If any row needs confirmation, open `PeopleConfirmModal`. Otherwise (all email-known) skip straight to import.
+3. Auto-merge email-known, auto-create `none`. If any rows are exact-name / fuzzy / ambiguous, open `PeopleConfirmModal`. Otherwise skip straight to import.
 4. On confirm, create/merge people and import tickets/placements.
+
+### Sample data
+
+If the user has sample data loaded when they start an import, prompt them: **Replace** the sample data, or **Merge** the import into it. Cancel discards the import. This avoids the prior behavior of silently wiping the demo state.
 
 ## Non-goals
 

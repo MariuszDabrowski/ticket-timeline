@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { ICSPersonGroup } from '../utils/icsParser'
+import type { Person } from '../stores/people'
+import { classifyIncoming } from '../utils/peopleMatch'
 import { useFocusTrap } from '../composables/useFocusTrap'
 
 // Picker step for HiBob ICS sync. Lets the user choose which people from the
@@ -9,6 +11,11 @@ import { useFocusTrap } from '../composables/useFocusTrap'
 // at a time (pick → confirm matches), not both at once.
 const props = defineProps<{
   groups: ICSPersonGroup[]
+  // Existing roster, used only to decide which rows start checked: names that
+  // appear to match someone already in the calendar are pre-selected; new
+  // strangers start unchecked so importing into an empty project doesn't
+  // accidentally pull in 50 people.
+  people: Person[]
 }>()
 
 const emit = defineEmits<{
@@ -25,7 +32,17 @@ interface Row {
   selected: boolean
 }
 
-const rows = ref<Row[]>(props.groups.map((g) => ({ group: g, selected: true })))
+// Pre-select only the rows whose name matches an existing person. HiBob ICS
+// carries no email, so we run name-only classification: email-known is
+// unreachable, none → unchecked, anything else → checked.
+function looksLikeMatch(name: string): boolean {
+  const tier = classifyIncoming({ name, email: null }, props.people).tier
+  return tier !== 'none'
+}
+
+const rows = ref<Row[]>(
+  props.groups.map((g) => ({ group: g, selected: looksLikeMatch(g.personName) })),
+)
 
 const searchQuery = ref('')
 const filteredRows = computed(() => {

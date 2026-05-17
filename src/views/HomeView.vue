@@ -146,31 +146,45 @@ function expandSelectedMonthsForPlacements() {
   if (minAbs !== Infinity) sidebarRef.value?.expandVisibleRange(minAbs, maxAbs)
 }
 
-// Walks incoming people, runs them through classifyIncoming, and splits into
-// (a) email-known auto-merges (resolved immediately) and (b) rows that need
-// user confirmation.
+// Walks incoming people and splits into three groups:
+//   - resolved: email-known matches (auto-merge silently)
+//   - autoCreate: no match anywhere (silent create — no decision to make)
+//   - needsConfirm: exact-name / fuzzy / ambiguous (user must decide)
+// Only side effects happen at commit time, not here.
 function resolveIncomingPeople(
   incoming: IncomingPerson[],
-): { resolved: Map<IncomingPerson, number>; needsConfirm: Classification[] } {
+): {
+  resolved: Map<IncomingPerson, number>
+  autoCreate: Classification[]
+  needsConfirm: Classification[]
+} {
   const resolved = new Map<IncomingPerson, number>()
+  const autoCreate: Classification[] = []
   const needsConfirm: Classification[] = []
   for (const p of incoming) {
     const c = classifyIncoming(p, people.people)
     if (c.tier === 'email-known' && c.suggestedPersonId !== undefined) {
       resolved.set(p, c.suggestedPersonId)
+    } else if (c.tier === 'none') {
+      autoCreate.push(c)
     } else {
       needsConfirm.push(c)
     }
   }
-  return { resolved, needsConfirm }
+  return { resolved, autoCreate, needsConfirm }
 }
 
-// Materialize decisions onto the roster: merges record the incoming email
-// (if any) on the matched person; creates spin up a new Person with
-// uniquifyName so two real Jonathans don't collapse. Resolves each Decision
-// back into the shared resolved map keyed by IncomingPerson ref. Returns
-// the count of newly-created people so the caller can decide whether to
-// open the sidebar's people section.
+// Spin up a new Person for one incoming person and record its email if any.
+function createPersonFor(c: Classification): number {
+  const id = people.addPerson(uniquifyName(c.incoming.name, people.people))
+  if (c.incoming.email) people.addEmail(id, c.incoming.email)
+  return id
+}
+
+// Materialize user decisions: merges record the incoming email on the matched
+// person; creates spin up a new Person with uniquifyName so two real Jonathans
+// don't collapse. Resolves each Decision back into the shared map keyed by
+// IncomingPerson ref. Returns the count of newly-created people.
 function applyDecisions(resolved: Map<IncomingPerson, number>, decisions: Decision[]): number {
   let created = 0
   for (const d of decisions) {
@@ -187,25 +201,33 @@ function applyDecisions(resolved: Map<IncomingPerson, number>, decisions: Decisi
   return created
 }
 
-// Common entry for any import source: given the list of unique incoming
-// people and a follow-up action that consumes the resolved
-// IncomingPerson → personId map and the count of newly-created people,
-// either run the action immediately (all email-known) or open
-// PeopleConfirmModal first.
+// Common entry for any import source. Given the unique incoming people list
+// and a doImport callback (consumes resolved map + count of newly-created
+// people), either runs immediately if there's nothing to confirm, or opens
+// PeopleConfirmModal first. All side effects happen at commit time so a
+// cancel leaves no trace.
 function startImport(
   incoming: IncomingPerson[],
   doImport: (resolved: Map<IncomingPerson, number>, createdCount: number) => void,
 ) {
-  const { resolved, needsConfirm } = resolveIncomingPeople(incoming)
+  const { resolved, autoCreate, needsConfirm } = resolveIncomingPeople(incoming)
+
+  const commit = (decisions: Decision[]) => {
+    let created = 0
+    for (const c of autoCreate) {
+      resolved.set(c.incoming, createPersonFor(c))
+      created++
+    }
+    created += applyDecisions(resolved, decisions)
+    doImport(resolved, created)
+  }
+
   if (needsConfirm.length === 0) {
-    doImport(resolved, 0)
+    commit([])
     return
   }
   peopleConfirmRows.value = needsConfirm
-  pendingPeopleConfirm.value = (decisions) => {
-    const created = applyDecisions(resolved, decisions)
-    doImport(resolved, created)
-  }
+  pendingPeopleConfirm.value = commit
 }
 
 function handlePeopleConfirm(decisions: Decision[]) {
@@ -229,22 +251,60 @@ function clearSampleData() {
   isSampleData.value = false
 }
 
+// Sample-data import gate: if the project is on the seeded sample data when
+// an import starts, ask up front whether to replace the sample or merge the
+// import into it. The clear happens immediately on Replace (NOT deferred):
+// classification needs to see the right roster, and a deferred clear could
+// wipe a Person whose id we'd already resolved against. Cancelling here
+// aborts the import entirely; cancelling later in PeopleConfirmModal leaves
+// whatever state the gate decision produced.
+const showSampleDataPrompt = ref(false)
+const pendingImportRun = ref<(() => void) | null>(null)
+
+function withSampleDataGate(run: () => void) {
+  if (!isSampleData.value) {
+    run()
+    return
+  }
+  pendingImportRun.value = run
+  showSampleDataPrompt.value = true
+}
+
+function onSampleReplace() {
+  showSampleDataPrompt.value = false
+  clearSampleData()
+  const run = pendingImportRun.value
+  pendingImportRun.value = null
+  run?.()
+}
+
+function onSampleMerge() {
+  showSampleDataPrompt.value = false
+  const run = pendingImportRun.value
+  pendingImportRun.value = null
+  run?.()
+}
+
+function onSampleCancel() {
+  showSampleDataPrompt.value = false
+  pendingImportRun.value = null
+}
+
 function handleEpicImport(csvText: string, workspaceSlug: string) {
   const parsed: EpicCsvImport | null = parseEpicCSV(csvText, tickets, vacations, workspaceSlug)
   showUploadEpic.value = false
   if (!parsed) return
 
-  // Defer sample-data clearing until the user actually commits the import,
-  // so cancelling the confirm modal doesn't wipe their starting state.
-  startImport(parsed.incomingPeople, (resolved, createdCount) => {
-    clearSampleData()
-    const emailMap = new Map<string, number>()
-    for (const [incoming, id] of resolved) {
-      if (incoming.email) emailMap.set(incoming.email.toLowerCase(), id)
-    }
-    parsed.apply(emailMap)
-    expandSelectedMonthsForPlacements()
-    if (createdCount > 0) sidebarRef.value?.openPeopleSection()
+  withSampleDataGate(() => {
+    startImport(parsed.incomingPeople, (resolved, createdCount) => {
+      const emailMap = new Map<string, number>()
+      for (const [incoming, id] of resolved) {
+        if (incoming.email) emailMap.set(incoming.email.toLowerCase(), id)
+      }
+      parsed.apply(emailMap)
+      expandSelectedMonthsForPlacements()
+      if (createdCount > 0) sidebarRef.value?.openPeopleSection()
+    })
   })
 }
 
@@ -406,7 +466,7 @@ const anyModalOpen = computed(() =>
   showSave.value || showLoad.value || showReset.value ||
   showAddPerson.value || editingPerson.value !== null ||
   showHiBob.value || hibobGroups.value.length > 0 ||
-  peopleConfirmRows.value.length > 0 ||
+  peopleConfirmRows.value.length > 0 || showSampleDataPrompt.value ||
   showShareInfo.value || editingVacationId.value !== null ||
   showAddVacation.value || showAddLabel.value ||
   editingLabel.value !== null || editingTicket.value !== null
@@ -529,25 +589,26 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
     email: null,
   }))
 
-  startImport(incoming, (resolved, createdCount) => {
-    clearSampleData()
-    const occupants = combineRowOccupants(tickets.placements, vacations.entries)
-    const newVacations = selectedGroups.flatMap((group, i) => {
-      const personId = resolved.get(incoming[i]!)
-      if (personId === undefined) return []
-      return group.events.map((ev) => {
-        const row = findFirstFreeRow(occupants, ev.startDate, ev.endDate)
-        occupants.push({ startDate: ev.startDate, endDate: ev.endDate, row })
-        return {
-          personId,
-          startDate: ev.startDate,
-          endDate: ev.endDate,
-          row,
-        }
+  withSampleDataGate(() => {
+    startImport(incoming, (resolved, createdCount) => {
+      const occupants = combineRowOccupants(tickets.placements, vacations.entries)
+      const newVacations = selectedGroups.flatMap((group, i) => {
+        const personId = resolved.get(incoming[i]!)
+        if (personId === undefined) return []
+        return group.events.map((ev) => {
+          const row = findFirstFreeRow(occupants, ev.startDate, ev.endDate)
+          occupants.push({ startDate: ev.startDate, endDate: ev.endDate, row })
+          return {
+            personId,
+            startDate: ev.startDate,
+            endDate: ev.endDate,
+            row,
+          }
+        })
       })
+      vacations.addVacations(newVacations)
+      if (createdCount > 0) sidebarRef.value?.openPeopleSection()
     })
-    vacations.addVacations(newVacations)
-    if (createdCount > 0) sidebarRef.value?.openPeopleSection()
   })
 }
 
@@ -775,6 +836,7 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
     <HiBobConfirmModal
       v-if="hibobGroups.length > 0"
       :groups="hibobGroups"
+      :people="people.people"
       @confirm="handleHiBobConfirm"
       @cancel="hibobGroups = []"
     />
@@ -815,6 +877,22 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
         <div class="reset-actions">
           <button class="btn" @click="showReset = false">Cancel</button>
           <button class="btn reset-confirm-btn" @click="resetAll">Clear Everything</button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <Transition name="modal">
+    <div v-if="showSampleDataPrompt" class="reset-backdrop" @click.self="onSampleCancel">
+      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="sample-prompt-title" @keydown.escape.prevent="onSampleCancel">
+        <h3 id="sample-prompt-title"><span class="shine-text">Sample Data Loaded</span></h3>
+        <div class="reset-body">
+          <p>You have sample data in the calendar. What would you like to do with the import?</p>
+        </div>
+        <div class="reset-actions">
+          <button class="btn" @click="onSampleCancel">Cancel</button>
+          <button class="btn" @click="onSampleMerge">Merge</button>
+          <button class="btn reset-confirm-btn" @click="onSampleReplace">Replace</button>
         </div>
       </div>
     </div>
