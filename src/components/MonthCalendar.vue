@@ -112,13 +112,7 @@ function handleEditSubmit(data: { number: string; title: string; assignedTo: num
 
   if (data.assignedTo !== null && data.startDate) {
     const end = data.endDate ?? data.startDate
-    const hasConflict = vacationsStore.entries.some((v) =>
-      v.personId === data.assignedTo &&
-      v.startDate !== null && v.endDate !== null &&
-      compareCalendarDates(v.startDate, end) <= 0 &&
-      compareCalendarDates(data.startDate!, v.endDate) <= 0
-    )
-    if (hasConflict) {
+    if (vacationsStore.isPersonOnVacation(data.assignedTo, data.startDate, end)) {
       const person = peopleStore.people.find((p) => p.id === data.assignedTo)
       showRejection(`Can't assign to ${person?.name ?? 'this person'} — they're on vacation during those dates.`)
       return
@@ -176,13 +170,7 @@ function durationDays(start: CalendarDate, end: CalendarDate, personId?: number 
     if (dow !== 0 && dow !== 6) {
       if (personId != null) {
         const cd: CalendarDate = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
-        const onVacation = vacationsStore.entries.some(
-          (v) => v.personId === personId &&
-            v.startDate !== null && v.endDate !== null &&
-            compareCalendarDates(v.startDate, cd) <= 0 &&
-            compareCalendarDates(cd, v.endDate) <= 0
-        )
-        if (!onVacation) count++
+        if (!vacationsStore.isPersonOnVacation(personId, cd, cd)) count++
       } else {
         count++
       }

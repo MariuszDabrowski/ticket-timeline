@@ -354,13 +354,7 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
 
   if (ticketData.assignedTo !== null && startDate) {
     const end = endDate ?? startDate
-    const hasConflict = vacations.entries.some((v) =>
-      v.personId === ticketData.assignedTo &&
-      v.startDate !== null && v.endDate !== null &&
-      compareCalendarDates(v.startDate, end) <= 0 &&
-      compareCalendarDates(startDate, v.endDate) <= 0
-    )
-    if (hasConflict) {
+    if (vacations.isPersonOnVacation(ticketData.assignedTo, startDate, end)) {
       const personName = people.people.find((p) => p.id === ticketData.assignedTo)?.name ?? 'This person'
       showConflictToast(`Can't assign to ${personName} — they're on vacation during those dates and the ticket would be hidden.`)
       return

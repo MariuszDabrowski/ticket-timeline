@@ -53,6 +53,20 @@ export const useVacationsStore = defineStore('vacations', () => {
     entries.value = []
   }
 
+  // True if `personId` has any placed vacation overlapping [startDate, endDate]
+  // (inclusive on both ends). Used by the edit-ticket / add-ticket flows
+  // (block reassigning to someone on vacation) and by the ticket renderer
+  // (skip vacation days when counting active workdays).
+  function isPersonOnVacation(personId: number, startDate: CalendarDate, endDate: CalendarDate): boolean {
+    return entries.value.some(
+      (v) =>
+        v.personId === personId &&
+        v.startDate !== null && v.endDate !== null &&
+        compareCalendarDates(v.startDate, endDate) <= 0 &&
+        compareCalendarDates(startDate, v.endDate) <= 0,
+    )
+  }
+
   function getVacationsForMonth(year: number, month: number): VacationEntry[] {
     const monthStart: CalendarDate = { year, month, day: 1 }
     const monthEnd: CalendarDate = { year, month, day: new Date(year, month + 1, 0).getDate() }
@@ -85,7 +99,7 @@ export const useVacationsStore = defineStore('vacations', () => {
   return {
     entries, unplacedVacations,
     addVacation, placeVacation, moveVacation, removeVacation,
-    setVacations, clearVacations, getVacationsForMonth,
+    setVacations, clearVacations, getVacationsForMonth, isPersonOnVacation,
     removeVacationsForPerson, addVacations, loadData,
   }
 })
