@@ -8,6 +8,7 @@ import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import { useUndoStack } from '../composables/useUndoStack'
+import { useRejectionToast } from '../composables/useRejectionToast'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
@@ -102,14 +103,7 @@ const holidayMap = computed(() => {
 const dragOverDay = ref<number | null>(null)
 const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
-const rejectedMessage = ref<string | null>(null)
-let rejectedTimer: ReturnType<typeof setTimeout> | null = null
-
-function showRejection(message: string) {
-  rejectedMessage.value = message
-  if (rejectedTimer) clearTimeout(rejectedTimer)
-  rejectedTimer = setTimeout(() => { rejectedMessage.value = null }, 2500)
-}
+const { showRejection } = useRejectionToast()
 
 function hasTicketEndpointInRange(personId: number, start: CalendarDate, end: CalendarDate): boolean {
   return ticketsStore.placements.some((p) => {
@@ -893,11 +887,6 @@ function onDrop(event: DragEvent, day: number) {
 </script>
 
 <template>
-  <Transition name="toast">
-    <div v-if="rejectedMessage" class="vacation-toast">
-      {{ rejectedMessage }}
-    </div>
-  </Transition>
   <div class="month-calendar">
     <h2><span class="month-name shine-text">{{ monthName }}</span> <sup class="year-sup">{{ year }}</sup></h2>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(125px, 1fr))` }">
@@ -1620,36 +1609,5 @@ h2 {
 
 .right-handle {
   margin-left: auto;
-}
-
-.vacation-toast {
-  position: fixed;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.toast-enter-active {
-  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.toast-leave-active {
-  transition: opacity 0.3s ease;
-}
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-6px);
-}
-.toast-leave-to {
-  opacity: 0;
 }
 </style>

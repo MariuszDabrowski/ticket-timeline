@@ -5,6 +5,7 @@ import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
+import { useRejectionToast } from '../composables/useRejectionToast'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -29,9 +30,23 @@ const emit = defineEmits<{
   'vacation-person-clicked': [personId: number]
 }>()
 
+const { showRejection } = useRejectionToast()
+
 const selectedMonthsProxy = computed<number[]>({
   get: () => props.selectedMonths,
-  set: (value) => emit('update:selectedMonths', value),
+  set: (value) => {
+    if (value.length === 0) {
+      showRejection('At least one month must be selected')
+      // Re-emit the existing selection as a new array reference. Vue's checkbox
+      // v-model lets the browser flip the DOM before the setter runs; if we just
+      // bail without emitting, the source value never "changes" so Vue doesn't
+      // re-render, and the checkbox stays visually unchecked. Emitting a new
+      // array reference forces a re-render and snaps it back to checked.
+      emit('update:selectedMonths', [...props.selectedMonths])
+      return
+    }
+    emit('update:selectedMonths', value)
+  },
 })
 
 const people = usePeopleStore()

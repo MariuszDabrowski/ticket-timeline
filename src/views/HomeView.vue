@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
 import { useUndoStack } from '../composables/useUndoStack'
+import { useRejectionToast } from '../composables/useRejectionToast'
 import { seedSampleData } from '../utils/seedSampleData'
 
 import MonthCalendar from '../components/MonthCalendar.vue'
@@ -193,6 +194,7 @@ function handleDeleteTicket() {
 
 const vacations = useVacationsStore()
 const undoStack = useUndoStack()
+const { message: rejectionMessage } = useRejectionToast()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const editingVacationId = ref<number | null>(null)
@@ -422,6 +424,11 @@ function handleHiBobConfirm(
 </script>
 
 <template>
+  <Transition name="drop-toast">
+    <div v-if="rejectionMessage" class="rejection-toast">
+      {{ rejectionMessage }}
+    </div>
+  </Transition>
   <div class="layout" ref="layoutRef">
     <header class="app-header">
       <span class="app-logo">
@@ -1125,6 +1132,28 @@ function handleHiBobConfirm(
   cursor: pointer;
   white-space: nowrap;
 }
+
+.rejection-toast {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.drop-toast-enter-active { transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.drop-toast-leave-active { transition: opacity 0.3s ease; }
+.drop-toast-enter-from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+.drop-toast-leave-to { opacity: 0; }
 
 :global(.toast-enter-active) { transition: opacity 0.2s ease, transform 0.2s ease; }
 :global(.toast-leave-active) { transition: opacity 0.3s ease, transform 0.3s ease; }
