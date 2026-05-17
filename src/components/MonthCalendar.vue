@@ -1601,11 +1601,13 @@ h2 {
   inset: 0;
   /* Just the error icon, centered. drop-shadow filter tracks the icon's
      actual shape (background is transparent everywhere else) so the badge
-     reads as floating above the pill underneath. */
+     reads as floating above the pill underneath. z-index lifts it above
+     the pill's title text so a long title can't slide under it. */
   background: url("../assets/icons/error.svg") no-repeat center / 20px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
   pointer-events: none;
   border-radius: inherit;
+  z-index: 1;
 }
 
 
