@@ -6,7 +6,6 @@ const { trapRef, onKeydown } = useFocusTrap()
 </script>
 
 <template>
-  <Teleport to="body">
   <div class="backdrop" @click.self="emit('close')">
     <div class="modal" ref="trapRef" role="dialog" aria-modal="true" aria-labelledby="share-info-modal-title" @keydown="onKeydown" @keydown.escape.prevent="emit('close')">
       <h3 id="share-info-modal-title"><span class="shine-text">Share Link</span></h3>
@@ -22,7 +21,6 @@ const { trapRef, onKeydown } = useFocusTrap()
       </div>
     </div>
   </div>
-  </Teleport>
 </template>
 
 <style scoped>

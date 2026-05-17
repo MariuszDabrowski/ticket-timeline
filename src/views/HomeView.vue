@@ -675,7 +675,11 @@ function handleHiBobConfirm(
     />
   </Transition>
 
-  <ShareInfoModal v-if="showShareInfo" @close="showShareInfo = false" />
+  <Teleport to="body">
+    <Transition name="modal">
+      <ShareInfoModal v-if="showShareInfo" @close="showShareInfo = false" />
+    </Transition>
+  </Teleport>
 
   <Teleport to="body">
     <Transition name="toast">

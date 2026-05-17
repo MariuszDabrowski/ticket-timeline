@@ -67,27 +67,17 @@ button:hover:not(:disabled)::after {
   height: 6px;
 }
 
+/* Shared modal transition — opacity-only fade for both backdrop and contents.
+   Apply to any modal by wrapping with <Transition name="modal">. */
 .modal-enter-active {
   transition: opacity 0.35s ease;
-}
-.modal-enter-active > .modal {
-  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .modal-leave-active {
   transition: opacity 0.25s ease;
 }
-.modal-leave-active > .modal {
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 1, 1);
-}
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
-}
-.modal-enter-from > .modal {
-  transform: translateY(28px);
-}
-.modal-leave-to > .modal {
-  transform: translateY(12px);
 }
 
 @media (prefers-reduced-motion: reduce) {
