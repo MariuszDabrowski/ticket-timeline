@@ -1193,7 +1193,7 @@ function onDrop(event: DragEvent, day: number) {
       v-if="editingLabel"
       :existing="editingLabel"
       @save="(text, color) => { ticketsStore.updateTicket(editingLabel!.id, { title: text, labelColor: color }); editingLabel = null }"
-      @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); editingLabel = null }"
+      @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); compactCalendarLayout(ticketsStore, vacationsStore); editingLabel = null }"
       @cancel="editingLabel = null"
     />
   </Transition>

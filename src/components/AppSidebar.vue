@@ -3,6 +3,7 @@ import { ref, computed, useTemplateRef } from 'vue'
 import { usePeopleStore, type Person } from '../stores/people'
 import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
+import { compactCalendarLayout } from '../utils/layout'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
@@ -182,6 +183,7 @@ function onTicketListDrop(event: DragEvent) {
   event.preventDefault()
   const prev = tickets.placements.find((p) => p.ticketId === Number(id))
   tickets.removePlacement(Number(id))
+  compactCalendarLayout(tickets, vacations)
   if (prev) {
     const oldStart = prev.startDate
     const oldEnd = prev.endDate
@@ -212,6 +214,7 @@ function onEventListDrop(event: DragEvent) {
   event.preventDefault()
   const prev = tickets.placements.find((p) => p.ticketId === Number(id))
   tickets.removePlacement(Number(id))
+  compactCalendarLayout(tickets, vacations)
   if (prev) {
     const oldStart = prev.startDate
     const oldEnd = prev.endDate
@@ -240,6 +243,7 @@ function onVacationListDrop(event: DragEvent) {
   event.preventDefault()
   const prev: VacationEntry | undefined = vacations.entries.find((v) => v.id === Number(id))
   vacations.removeVacation(Number(id))
+  compactCalendarLayout(tickets, vacations)
   if (prev && prev.startDate && prev.endDate) {
     const personId = prev.personId
     const oldStart = prev.startDate
