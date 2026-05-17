@@ -249,8 +249,7 @@ function handlePeopleCancel() {
   peopleConfirmRows.value = []
 }
 
-function clearSampleData() {
-  if (!isSampleData.value) return
+function clearAllProjectData() {
   people.loadData([])
   tickets.loadData({ tickets: [], placements: [] })
   vacations.loadData([])
@@ -258,42 +257,48 @@ function clearSampleData() {
   isSampleData.value = false
 }
 
-// Sample-data import gate: if the project is on the seeded sample data when
-// an import starts, ask up front whether to replace the sample or merge the
-// import into it. The clear happens immediately on Replace (NOT deferred):
+const hasAnyCalendarData = computed(() =>
+  people.people.length > 0 ||
+  tickets.tickets.length > 0 ||
+  vacations.entries.length > 0,
+)
+
+// Import gate: if the calendar has any existing data (seeded sample OR the
+// user's real work), ask up front whether to replace it or merge the import
+// alongside. The clear happens immediately on Replace (NOT deferred):
 // classification needs to see the right roster, and a deferred clear could
 // wipe a Person whose id we'd already resolved against. Cancelling here
 // aborts the import entirely; cancelling later in PeopleConfirmModal leaves
 // whatever state the gate decision produced.
-const showSampleDataPrompt = ref(false)
+const showImportPrompt = ref(false)
 const pendingImportRun = ref<(() => void) | null>(null)
 
-function withSampleDataGate(run: () => void) {
-  if (!isSampleData.value) {
+function withImportGate(run: () => void) {
+  if (!hasAnyCalendarData.value) {
     run()
     return
   }
   pendingImportRun.value = run
-  showSampleDataPrompt.value = true
+  showImportPrompt.value = true
 }
 
-function onSampleReplace() {
-  showSampleDataPrompt.value = false
-  clearSampleData()
+function onImportReplace() {
+  showImportPrompt.value = false
+  clearAllProjectData()
   const run = pendingImportRun.value
   pendingImportRun.value = null
   run?.()
 }
 
-function onSampleMerge() {
-  showSampleDataPrompt.value = false
+function onImportMerge() {
+  showImportPrompt.value = false
   const run = pendingImportRun.value
   pendingImportRun.value = null
   run?.()
 }
 
-function onSampleCancel() {
-  showSampleDataPrompt.value = false
+function onImportCancel() {
+  showImportPrompt.value = false
   pendingImportRun.value = null
 }
 
@@ -302,7 +307,7 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
   showUploadEpic.value = false
   if (!parsed) return
 
-  withSampleDataGate(() => {
+  withImportGate(() => {
     startImport(parsed.incomingPeople, (resolved, createdCount) => {
       const emailMap = new Map<string, number>()
       for (const [incoming, id] of resolved) {
@@ -473,7 +478,7 @@ const anyModalOpen = computed(() =>
   showSave.value || showLoad.value || showReset.value ||
   showAddPerson.value || editingPerson.value !== null ||
   showHiBob.value || hibobGroups.value.length > 0 ||
-  peopleConfirmRows.value.length > 0 || showSampleDataPrompt.value ||
+  peopleConfirmRows.value.length > 0 || showImportPrompt.value ||
   showShareInfo.value || editingVacationId.value !== null ||
   showAddVacation.value || showAddLabel.value ||
   editingLabel.value !== null || editingTicket.value !== null
@@ -596,7 +601,7 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
     email: null,
   }))
 
-  withSampleDataGate(() => {
+  withImportGate(() => {
     startImport(incoming, (resolved, createdCount) => {
       const occupants = combineRowOccupants(tickets.placements, vacations.entries)
       const newVacations = selectedGroups.flatMap((group, i) => {
@@ -890,16 +895,17 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   </Transition>
 
   <Transition name="modal">
-    <div v-if="showSampleDataPrompt" class="reset-backdrop" @click.self="onSampleCancel">
-      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="sample-prompt-title" @keydown.escape.prevent="onSampleCancel">
-        <h3 id="sample-prompt-title"><span class="shine-text">Sample Data Loaded</span></h3>
+    <div v-if="showImportPrompt" class="reset-backdrop" @click.self="onImportCancel">
+      <div class="reset-modal" role="dialog" aria-modal="true" aria-labelledby="import-prompt-title" @keydown.escape.prevent="onImportCancel">
+        <h3 id="import-prompt-title"><span class="shine-text">Calendar Has Data</span></h3>
         <div class="reset-body">
-          <p>You have sample data in the calendar. What would you like to do with the import?</p>
+          <p>Your calendar already has data. Would you like to merge the import in alongside it, or replace it?</p>
+          <p class="reset-warning">Replace will permanently clear all current people, tickets, events, and vacations. This cannot be undone.</p>
         </div>
         <div class="reset-actions">
-          <button class="btn" @click="onSampleCancel">Cancel</button>
-          <button class="btn" @click="onSampleMerge">Merge</button>
-          <button class="btn reset-confirm-btn" @click="onSampleReplace">Replace</button>
+          <button class="btn" @click="onImportCancel">Cancel</button>
+          <button class="btn" @click="onImportMerge">Merge</button>
+          <button class="btn reset-confirm-btn" @click="onImportReplace">Replace</button>
         </div>
       </div>
     </div>

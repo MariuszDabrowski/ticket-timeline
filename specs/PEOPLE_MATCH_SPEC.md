@@ -90,9 +90,9 @@ Existing Person records have no `emails` field. On load, treat missing/undefined
 3. Auto-merge email-known, auto-create `none`. If any rows are exact-name / fuzzy / ambiguous, open `PeopleConfirmModal`. Otherwise skip straight to import.
 4. On confirm, create/merge people and import tickets/placements.
 
-### Sample data
+### Existing calendar data
 
-If the user has sample data loaded when they start an import, prompt them: **Replace** the sample data, or **Merge** the import into it. Cancel discards the import. This avoids the prior behavior of silently wiping the demo state.
+If the calendar already has anything on it (seeded sample data OR the user's real work) when an import starts, prompt them: **Replace** the current calendar, or **Merge** the import alongside it. Cancel discards the import. Replace runs the clear immediately (not deferred) so classification sees the right roster — a deferred clear could wipe a Person whose id was already resolved against. Empty calendars skip the prompt and import silently.
 
 ## Non-goals
 

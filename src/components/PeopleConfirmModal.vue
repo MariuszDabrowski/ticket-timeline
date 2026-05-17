@@ -247,7 +247,7 @@ h3 span {
 .person-select {
   font-family: inherit;
   font-size: 0.8rem;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 1.5rem 0.3rem 0.55rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
