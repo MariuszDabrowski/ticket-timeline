@@ -108,14 +108,6 @@ function onFileInput(e: Event) {
 </template>
 
 <style scoped>
-.wide-body {
-  padding: 0 1.5rem;
-  gap: 1rem;
-}
-.wide-body :deep(.simplebar-content) {
-  gap: 1rem;
-}
-
 .section {
   display: flex;
   flex-direction: column;

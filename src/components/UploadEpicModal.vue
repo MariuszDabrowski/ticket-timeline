@@ -103,14 +103,6 @@ function handleImport() {
 </template>
 
 <style scoped>
-.wide-body {
-  padding: 0 1.5rem;
-  gap: 1.25rem;
-}
-.wide-body :deep(.simplebar-content) {
-  gap: 1.25rem;
-}
-
 .instructions {
   margin: 0;
   padding-left: 1.25rem;

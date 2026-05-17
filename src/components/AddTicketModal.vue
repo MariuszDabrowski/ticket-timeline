@@ -92,15 +92,6 @@ function handleSubmit() {
 </template>
 
 <style scoped>
-/* Field-form body — wider side padding + larger gap than default. */
-.form-body {
-  padding: 0 1.5rem;
-  gap: 1rem;
-}
-.form-body :deep(.simplebar-content) {
-  gap: 1rem;
-}
-
 .date-row {
   display: flex;
   align-items: center;

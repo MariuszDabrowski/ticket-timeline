@@ -82,14 +82,6 @@ function onFileInput(e: Event) {
 </template>
 
 <style scoped>
-.wide-body {
-  padding: 0 1.5rem;
-  gap: 1.25rem;
-}
-.wide-body :deep(.simplebar-content) {
-  gap: 1.25rem;
-}
-
 .instructions {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);

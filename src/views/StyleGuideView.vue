@@ -90,7 +90,7 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
     <!-- Modals -->
     <section class="sg-section">
       <h2>Modals</h2>
-      <p class="sg-section-desc">All modals use <code>&lt;BaseModal&gt;</code> with two size tiers. Click to open a sample.</p>
+      <p class="sg-section-desc">All modals use <code>&lt;BaseModal&gt;</code> with two size tiers. The body container is <code>.modal-body</code> (default density), with <code>.form-body</code> and <code>.wide-body</code> as denser/looser tier classes — each has matched padding-y and gap so the vertical rhythm is one value. Click to open a sample.</p>
       <div class="sg-row">
         <button class="btn" @click="modalSize = 'compact'">Open compact (420px)</button>
         <button class="btn" @click="modalSize = 'wide'">Open wide (560px)</button>

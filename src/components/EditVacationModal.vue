@@ -36,13 +36,3 @@ const selectedPersonId = ref(props.currentPersonId)
   </BaseModal>
 </template>
 
-<style scoped>
-.form-body {
-  padding: 0 1.5rem;
-  gap: 1rem;
-}
-.form-body :deep(.simplebar-content) {
-  gap: 1rem;
-}
-
-</style>

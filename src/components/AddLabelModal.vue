@@ -86,14 +86,6 @@ const datesValid = computed(() => {
 </template>
 
 <style scoped>
-.form-body {
-  padding: 0 1.5rem;
-  gap: 1.25rem;
-}
-.form-body :deep(.simplebar-content) {
-  gap: 1.25rem;
-}
-
 .swatches {
   display: flex;
   flex-wrap: wrap;
