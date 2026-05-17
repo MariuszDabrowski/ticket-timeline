@@ -1599,7 +1599,19 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(220, 38, 38, 0.45);
+  /* Red base with dark diagonal stripes running top-right → bottom-left
+     (opposite the 45deg `\\` stripes on vacation pills, so a conflicted
+     vacation reads as a crosshatch and stands out from the surrounding
+     vacation hatching). */
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0,
+      transparent 4px,
+      rgba(0, 0, 0, 0.4) 4px,
+      rgba(0, 0, 0, 0.4) 7px
+    ),
+    rgba(220, 38, 38, 0.5);
   pointer-events: none;
   border-radius: inherit;
 }
