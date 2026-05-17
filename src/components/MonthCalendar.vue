@@ -1045,23 +1045,27 @@ function onDrop(event: DragEvent, day: number) {
     </div>
   </div>
 
-  <EditTicketModal
-    v-if="editingTicket"
-    :ticket="editingTicket"
-    :people="peopleStore.people"
-    :placement="ticketsStore.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
-    @submit="handleEditSubmit"
-    @delete="handleDeleteTicket"
-    @cancel="editingTicket = null"
-  />
+  <Transition name="modal">
+    <EditTicketModal
+      v-if="editingTicket"
+      :ticket="editingTicket"
+      :people="peopleStore.people"
+      :placement="ticketsStore.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
+      @submit="handleEditSubmit"
+      @delete="handleDeleteTicket"
+      @cancel="editingTicket = null"
+    />
+  </Transition>
 
-  <AddLabelModal
-    v-if="editingLabel"
-    :existing="editingLabel"
-    @save="(text, color) => { ticketsStore.updateTicket(editingLabel!.id, { title: text, labelColor: color }); editingLabel = null }"
-    @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); editingLabel = null }"
-    @cancel="editingLabel = null"
-  />
+  <Transition name="modal">
+    <AddLabelModal
+      v-if="editingLabel"
+      :existing="editingLabel"
+      @save="(text, color) => { ticketsStore.updateTicket(editingLabel!.id, { title: text, labelColor: color }); editingLabel = null }"
+      @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); editingLabel = null }"
+      @cancel="editingLabel = null"
+    />
+  </Transition>
 
   <Teleport to="body">
     <Transition name="tooltip">
