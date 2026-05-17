@@ -1599,13 +1599,12 @@ h2 {
   content: '';
   position: absolute;
   inset: 0;
-  /* Translucent red wash over the segment, with a solid red badge in the
-     center carrying the emergency_home icon. The circle gives the icon a
-     guaranteed contrast surface in case the ticket title sits underneath. */
+  /* Just a black badge with a red error icon at the center — no overlay
+     wash. The dark circle guarantees the icon stays legible even when a
+     ticket title sits underneath. */
   background:
-    url("../assets/icons/emergency_home.svg") no-repeat center / 12px,
-    radial-gradient(circle at center, #dc2626 0, #dc2626 9px, transparent 9.5px),
-    rgba(220, 38, 38, 0.45);
+    url("../assets/icons/error.svg") no-repeat center / 12px,
+    radial-gradient(circle at center, rgba(0, 0, 0, 0.9) 0, rgba(0, 0, 0, 0.9) 9px, transparent 9.5px);
   pointer-events: none;
   border-radius: inherit;
 }
