@@ -284,7 +284,7 @@ function onVacationPersonClick(personId: number) {
               <template v-for="group in monthsByYear" :key="group.year">
                 <span class="year-label">{{ group.year }}</span>
                 <label v-for="abs in group.months" :key="abs" class="month-option">
-                  <input type="checkbox" :value="abs" v-model="selectedMonthsProxy" />
+                  <input type="checkbox" class="app-checkbox" :value="abs" v-model="selectedMonthsProxy" />
                   {{ MONTH_NAMES[absToYearMonth(abs).month] }}
                 </label>
               </template>
@@ -712,57 +712,6 @@ section:not(.drawer-open):not(.drawer-closing) .section-header:hover {
 .month-option:hover {
   color: rgba(255, 255, 255, 0.9);
   text-decoration-color: rgba(255, 255, 255, 0.4);
-}
-
-.month-option input[type='checkbox'] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-  position: relative;
-  overflow: visible;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.month-option input[type='checkbox']:checked {
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
-  background-size: 200% auto;
-  animation: checkboxGradient 2.5s ease-in-out infinite alternate;
-  border-color: rgba(167, 139, 250, 0.6);
-}
-
-@keyframes checkboxGradient {
-  0%   { background-position: 0% center; }
-  100% { background-position: 100% center; }
-}
-
-@keyframes checkDraw {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
-}
-
-.month-option input[type='checkbox']:checked::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: -3px;
-  width: 6px;
-  height: 12px;
-  border: 2px solid rgba(200, 180, 255, 0.9);
-  border-top: none;
-  border-left: none;
-  border-radius: 0 2px 2px 0;
-  transform: rotate(45deg);
-  animation: checkDraw 0.2s ease-out forwards;
-}
-
-.month-option input[type='checkbox']:hover {
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .people-blurb {

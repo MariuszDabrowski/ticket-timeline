@@ -231,6 +231,7 @@ const headline = computed(() => {
                 <input
                   v-if="stat.id !== null"
                   type="checkbox"
+                  class="app-checkbox"
                   :aria-label="`Show ${stat.name}'s tickets on the calendar`"
                   :checked="!!calendarCountByPerson.get(stat.id) && !optionsStore.hiddenPersonIds.has(stat.id)"
                   :disabled="!calendarCountByPerson.get(stat.id)"
@@ -484,57 +485,6 @@ const headline = computed(() => {
   opacity: 0;
   cursor: default;
   pointer-events: none;
-}
-
-.team-visibility input[type='checkbox'] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-  position: relative;
-  overflow: visible;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.team-visibility input[type='checkbox']:checked {
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(56, 189, 248, 0.35) 50%, rgba(129, 140, 248, 0.45) 100%);
-  background-size: 200% auto;
-  animation: checkboxGradient 2.5s ease-in-out infinite alternate;
-  border-color: rgba(167, 139, 250, 0.6);
-}
-
-@keyframes checkboxGradient {
-  0%   { background-position: 0% center; }
-  100% { background-position: 100% center; }
-}
-
-@keyframes checkDraw {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
-}
-
-.team-visibility input[type='checkbox']:checked::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: -3px;
-  width: 6px;
-  height: 12px;
-  border: 2px solid rgba(200, 180, 255, 0.9);
-  border-top: none;
-  border-left: none;
-  border-radius: 0 2px 2px 0;
-  transform: rotate(45deg);
-  animation: checkDraw 0.2s ease-out forwards;
-}
-
-.team-visibility input[type='checkbox']:hover {
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 
