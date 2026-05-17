@@ -21,5 +21,17 @@ function getTransparentDragImage(): HTMLCanvasElement {
 }
 
 export function suppressNativeDragImage(event: DragEvent): void {
-  event.dataTransfer?.setDragImage(getTransparentDragImage(), 0, 0)
+  if (!event.dataTransfer) return
+  event.dataTransfer.setDragImage(getTransparentDragImage(), 0, 0)
+  // Without effectAllowed Chrome guesses the drop effect from heuristics and
+  // can land on "link" — which paints a globe icon next to the cursor until
+  // the first dragover sets dropEffect. Lock it to move from the start.
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+// Pair with suppressNativeDragImage on every drop target's dragover so the
+// cursor stays on the "move" indicator throughout the drag.
+export function setMoveDropEffect(event: DragEvent): void {
+  if (!event.dataTransfer) return
+  event.dataTransfer.dropEffect = 'move'
 }

@@ -7,7 +7,7 @@ import { useOptionsStore } from '../stores/options'
 import { useUndoStack } from './useUndoStack'
 import { workingDaysBetween } from '../utils/dates'
 import { spanInDays } from '../utils/dates'
-import { suppressNativeDragImage } from '../utils/drag'
+import { suppressNativeDragImage, setMoveDropEffect } from '../utils/drag'
 import type { CascadeItem } from '../utils/cascade'
 
 // Drop-target info the drag handlers report up to the renderer (typed loosely
@@ -104,6 +104,7 @@ export function useCalendarDrag(opts: {
 
   function onDragOver(event: DragEvent, day: number) {
     event.preventDefault()
+    setMoveDropEffect(event)
 
     // For any active move (calendar ticket, calendar vacation, sidebar new
     // ticket [a moveDrag with no existing placement], sidebar new vacation),

@@ -5,7 +5,7 @@ import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { compactCalendarLayout } from '../utils/layout'
 import { colorForPerson, pillGradient } from '../utils/colors'
-import { suppressNativeDragImage } from '../utils/drag'
+import { suppressNativeDragImage, setMoveDropEffect } from '../utils/drag'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
@@ -157,6 +157,7 @@ function onTicketListDragOver(event: DragEvent) {
   const id = dragState.moveDrag?.ticketId
   if (id != null && tickets.tickets.find((t) => t.id === id)?.isLabel) return
   event.preventDefault()
+  setMoveDropEffect(event)
   ticketListIsOver.value = true
 }
 
@@ -188,6 +189,7 @@ function onEventListDragOver(event: DragEvent) {
   const id = dragState.moveDrag?.ticketId
   if (id != null && !tickets.tickets.find((t) => t.id === id)?.isLabel) return
   event.preventDefault()
+  setMoveDropEffect(event)
   eventListIsOver.value = true
 }
 
@@ -217,6 +219,7 @@ function onEventListDrop(event: DragEvent) {
 function onVacationListDragOver(event: DragEvent) {
   if (!event.dataTransfer?.types.includes('movecalendarvacation')) return
   event.preventDefault()
+  setMoveDropEffect(event)
   vacationListIsOver.value = true
 }
 
