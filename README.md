@@ -52,7 +52,7 @@ Five hundred-plus commits later, here it is. A lot of those were me being a perf
 ### Quality
 
 - **Lighthouse:** Performance 95 · Accessibility 100 · Best Practices 100 · SEO 100
-- **Tests:** 55 unit + 5 E2E (Vitest + Playwright), enforced by CI on every PR
+- **Tests:** 117 unit + 8 E2E (Vitest + Playwright), enforced by CI on every PR
 - **Bundle:** 216 KB raw / 69 KB gzip (image-export library lazy-loaded)
 - **Accessibility:** Keyboard-navigable, screen-reader friendly, `prefers-reduced-motion` honored, print stylesheet included
 

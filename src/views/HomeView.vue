@@ -217,20 +217,14 @@ function handleEditVacation(vacationId: number, personId: number) {
   // otherwise the swap would silently clip those tickets on the vacation days.
   // Skip the check when the person isn't actually changing or when the vacation
   // hasn't been placed yet (no dates).
-  if (entry.personId !== personId && entry.startDate && entry.endDate) {
-    const vStart = entry.startDate
-    const vEnd = entry.endDate
-    const conflict = tickets.placements.some((p) => {
-      const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
-      if (!ticket || ticket.isLabel || ticket.assignedTo !== personId) return false
-      return compareCalendarDates(p.startDate, vEnd) <= 0 &&
-             compareCalendarDates(p.endDate, vStart) >= 0
-    })
-    if (conflict) {
-      const person = people.people.find((p) => p.id === personId)
-      showRejection(`Can't assign vacation to ${person?.name ?? 'this person'} — they have a ticket during these dates.`)
-      return
-    }
+  if (
+    entry.personId !== personId &&
+    entry.startDate && entry.endDate &&
+    tickets.hasTicketOverlappingRange(personId, entry.startDate, entry.endDate)
+  ) {
+    const person = people.people.find((p) => p.id === personId)
+    showRejection(`Can't assign vacation to ${person?.name ?? 'this person'} — they have a ticket during these dates.`)
+    return
   }
 
   entry.personId = personId

@@ -45,6 +45,47 @@ describe('importEpicCSV', () => {
     expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
   })
 
+  // Regression: importing HiBob vacations first ("Mariusz Dabrowski") then
+  // importing a CSV (email "mariusz@...") used to create a duplicate "Mariusz".
+  // The fuzzy match now collapses them onto the existing person.
+  it('fuzzy-matches CSV name as a substring of an existing full name', () => {
+    const people = usePeopleStore()
+    const tickets = useTicketsStore()
+    const existingId = people.addPerson('Mariusz Dabrowski')
+
+    // email's local part becomes just "Mariusz" — substring of "Mariusz Dabrowski"
+    const csv = `${HEADER}\n100,T1,mariusz@example.com,,false`
+    importEpicCSV(csv, people, tickets)
+
+    expect(people.people).toHaveLength(1)
+    expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
+  })
+
+  it('fuzzy-matches existing first-name when CSV provides full name', () => {
+    const people = usePeopleStore()
+    const tickets = useTicketsStore()
+    const existingId = people.addPerson('Mariusz')
+
+    // CSV email yields "Mariusz Dabrowski" — should collapse onto existing "Mariusz"
+    const csv = `${HEADER}\n100,T1,mariusz.dabrowski@example.com,,false`
+    importEpicCSV(csv, people, tickets)
+
+    expect(people.people).toHaveLength(1)
+    expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
+  })
+
+  it('creates separate people when names share no substring', () => {
+    const people = usePeopleStore()
+    const tickets = useTicketsStore()
+    people.addPerson('Alice Smith')
+
+    const csv = `${HEADER}\n100,T1,bob.jones@example.com,,false`
+    importEpicCSV(csv, people, tickets)
+
+    expect(people.people).toHaveLength(2)
+    expect(people.people.map((p) => p.name).sort()).toEqual(['Alice Smith', 'Bob Jones'])
+  })
+
   it('filters out emails containing "+" (team aliases)', () => {
     const csv = `${HEADER}\n100,T1,team+alpha@example.com,,false`
     const people = usePeopleStore()

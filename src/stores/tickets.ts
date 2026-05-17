@@ -91,11 +91,23 @@ export const useTicketsStore = defineStore('tickets', () => {
     )
   }
 
+  // True overlap (not just endpoint hits): catches multi-day tickets that span
+  // the given range even when neither endpoint falls inside it (e.g. a Mon–Fri
+  // ticket vs a Wed–Thu vacation). Used by vacation conflict validation.
+  function hasTicketOverlappingRange(personId: number, start: CalendarDate, end: CalendarDate): boolean {
+    return placements.value.some((p) => {
+      const ticket = tickets.value.find((t) => t.id === p.ticketId)
+      if (!ticket || ticket.isLabel || ticket.assignedTo !== personId) return false
+      return compareCalendarDates(p.startDate, end) <= 0 &&
+             compareCalendarDates(p.endDate, start) >= 0
+    })
+  }
+
   function loadData(data: { tickets: Ticket[]; placements: Placement[] }) {
     tickets.value = data.tickets
     placements.value = data.placements
     nextId = data.tickets.length > 0 ? Math.max(...data.tickets.map((t) => t.id)) + 1 : 0
   }
 
-  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth, loadData }
+  return { tickets, placements, addTicket, updateTicket, deleteTicket, placeTicket, moveTicket, removePlacement, resizePlacement, getPlacementsForMonth, hasTicketOverlappingRange, loadData }
 })

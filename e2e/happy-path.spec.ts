@@ -110,3 +110,121 @@ test('share link encodes and decodes the project', async ({ page, context }) => 
 
   await expect(fresh.getByRole('main').getByText('Alex', { exact: true })).toBeVisible()
 })
+
+// Regression: previously, Reset didn't clear the isSampleData flag, so the
+// next ICS import triggered a "clear sample data" cleanup that wiped the
+// freshly imported CSV tickets. This test exercises Reset → CSV → ICS and
+// verifies the CSV tickets survive.
+test('Reset → CSV import → ICS import does not wipe the CSV tickets', async ({ page }) => {
+  await page.goto('/')
+
+  // Clear the sample data
+  await page.getByRole('button', { name: 'Reset' }).click()
+  const resetDialog = page.getByRole('dialog', { name: 'Reset Calendar' })
+  await resetDialog.getByRole('button', { name: 'Clear Everything' }).click()
+
+  // Import a small CSV — one ticket assigned to "Test User"
+  await expandSection(page, 'Tickets')
+  await page.getByRole('button', { name: 'Shortcut Epic CSV' }).click()
+  const csvDialog = page.getByRole('dialog', { name: 'Import Epic from Shortcut' })
+  await expect(csvDialog).toBeVisible()
+
+  const csvContent =
+    'id,name,owners,started_at,is_archived\n' +
+    'TT-500,CSV survivor ticket,test.user@example.com,,false'
+  await csvDialog.locator('input[type="file"]').setInputFiles({
+    name: 'epic.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(csvContent),
+  })
+  // "Create Stories" button is disabled until both CSV and workspace slug are set
+  await csvDialog.getByPlaceholder('e.g. clearbanc').fill('e2e-workspace')
+  await csvDialog.getByRole('button', { name: 'Create Stories' }).click()
+
+  // CSV ticket should be in the sidebar
+  await expandSection(page, 'Tickets')
+  await expect(page.locator('.ticket-list')).toContainText('TT-500')
+
+  // Import an ICS with a vacation for an unrelated person — should NOT touch tickets
+  await expandSection(page, 'Vacations')
+  await page.getByRole('button', { name: 'HiBob Vacation Days' }).click()
+  const icsDialog = page.getByRole('dialog', { name: 'Sync HiBob Vacation Days' })
+  await expect(icsDialog).toBeVisible()
+
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    'SUMMARY:Vacation Person - Out of Office',
+    'DTSTART;VALUE=DATE:20260601',
+    'DTEND;VALUE=DATE:20260603',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n')
+  await icsDialog.locator('input[type="file"]').setInputFiles({
+    name: 'vacations.ics',
+    mimeType: 'text/calendar',
+    buffer: Buffer.from(icsContent),
+  })
+
+  // Confirm modal opens — accept the default match (creates "Vacation Person")
+  const confirmDialog = page.getByRole('dialog', { name: 'Confirm Sync' })
+  await expect(confirmDialog).toBeVisible()
+  await confirmDialog.getByRole('button', { name: 'Complete Sync' }).click()
+
+  // CSV ticket must STILL be there
+  await expandSection(page, 'Tickets')
+  await expect(page.locator('.ticket-list')).toContainText('TT-500')
+})
+
+// Regression: swapping a vacation's person to someone who already has a ticket
+// during the same dates used to succeed silently and visually hide the ticket
+// on the vacation days. handleEditVacation now rejects with a toast.
+test('vacation person swap is rejected when the new person has an overlapping ticket', async ({ page }) => {
+  await page.goto('/')
+
+  // Sample data: Myra's vacation covers Wed–Fri of week 2; Alex has PROJ-156
+  // on Mon–Wed of week 2. So Wed overlaps. Swapping the vacation to Alex
+  // should be rejected.
+  const vacationPill = page.locator('.vacation-pill', { hasText: 'Myra Vacation' }).first()
+  await expect(vacationPill).toBeVisible()
+  await vacationPill.click()
+
+  const editDialog = page.getByRole('dialog', { name: 'Edit Vacation' })
+  await expect(editDialog).toBeVisible()
+
+  // Pick Alex (who has the overlapping ticket) and try to save
+  await editDialog.getByRole('button', { name: 'Alex' }).click()
+  await editDialog.getByRole('button', { name: 'Save' }).click()
+
+  // Rejection toast appears with the conflict message
+  await expect(page.locator('.rejection-toast')).toContainText(/Alex.*ticket/)
+
+  // The vacation pill should still read "Myra Vacation" (the swap was rejected)
+  await expect(page.locator('.vacation-pill', { hasText: 'Myra Vacation' }).first()).toBeVisible()
+})
+
+// Regression: unchecking the last selected month used to leave the calendar
+// in a confusing "Select a month from the sidebar" dead-end. Now it's blocked
+// with a toast and the checkbox snaps back to checked.
+test('cannot uncheck the last selected month', async ({ page }) => {
+  await page.goto('/')
+  await expandSection(page, 'Months')
+
+  // Sample data selects 4 months by default. Uncheck them until one remains.
+  const checked = page.locator('.month-option input[type="checkbox"]:checked')
+  while ((await checked.count()) > 1) {
+    await checked.first().uncheck()
+  }
+
+  // Exactly one left — try to uncheck it
+  await expect(checked).toHaveCount(1)
+  const lastBox = checked.first()
+  await lastBox.click() // click attempts to toggle off
+
+  // Rejection toast appears
+  await expect(page.locator('.rejection-toast')).toContainText('At least one month')
+
+  // Checkbox snaps back to checked, count is still 1
+  await expect(page.locator('.month-option input[type="checkbox"]:checked')).toHaveCount(1)
+})
