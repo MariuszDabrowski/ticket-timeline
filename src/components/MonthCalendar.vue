@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useTicketsStore, compareCalendarDates, findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
+import { useTicketsStore, compareCalendarDates } from '../stores/tickets'
 import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
@@ -221,7 +221,8 @@ function showTicketTooltip(e: MouseEvent | FocusEvent, info: DayTicketInfo) {
   // pills the user wasn't actually hovering.
   if (
     dragState.moveDrag || dragState.vacationMoveDrag ||
-    dragState.resizeDrag || dragState.vacationResizeDrag
+    dragState.resizeDrag || dragState.vacationResizeDrag ||
+    dragState.newVacationDrag
   ) return
   if (hideTooltipTimer) { clearTimeout(hideTooltipTimer); hideTooltipTimer = null }
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -250,7 +251,8 @@ function setVacationHover(vacationId: number | null) {
   // under the cursor.
   if (
     dragState.moveDrag || dragState.vacationMoveDrag ||
-    dragState.resizeDrag || dragState.vacationResizeDrag
+    dragState.resizeDrag || dragState.vacationResizeDrag ||
+    dragState.newVacationDrag
   ) return
   dragState.hoveredVacationId = vacationId
 }
@@ -408,42 +410,71 @@ const previewItems = computed<CascadeItem[]>(() => {
     })
   }
 
+  // Ticket move (calendar OR sidebar). For calendar drags the ticket is already
+  // in `items`; cascadePush replaces it. For sidebar drags the ticket has no
+  // placement yet — cascadePush still works (target just gets added to the
+  // result), so the preview shows the new ticket landing in real time.
   if (dragState.moveDrag && dragState.movePreviewDate && dragState.movePreviewRow !== null) {
     const draggedKey = `ticket:${dragState.moveDrag.ticketId}`
-    const dragged = items.find((i) => i.key === draggedKey)
-    if (dragged) {
-      const newStart = dragState.movePreviewDate
-      const newEnd = options.hideWeekends
-        ? addWorkingDays(newStart, dragState.moveDrag.span)
-        : addDays(newStart, dragState.moveDrag.span)
-      const pushed = cascadePush(items, {
-        key: draggedKey,
-        startDate: newStart,
-        endDate: newEnd,
-        row: dragState.movePreviewRow,
-      })
-      // Shrink in the preview so what the user sees mid-drag matches what
-      // they'll get on release. Without this, a downward drag briefly shows
-      // an empty row at the top (cascade pushed everything down, hasn't
-      // compacted yet).
-      return shrinkRows(pushed, weeksFromItems(pushed))
-    }
+    const newStart = dragState.movePreviewDate
+    const newEnd = options.hideWeekends
+      ? addWorkingDays(newStart, dragState.moveDrag.span)
+      : addDays(newStart, dragState.moveDrag.span)
+    const pushed = cascadePush(items, {
+      key: draggedKey,
+      startDate: newStart,
+      endDate: newEnd,
+      row: dragState.movePreviewRow,
+    })
+    // Shrink in the preview so what the user sees mid-drag matches what
+    // they'll get on release. Without this, a downward drag briefly shows
+    // an empty row at the top (cascade pushed everything down, hasn't
+    // compacted yet).
+    return shrinkRows(pushed, weeksFromItems(pushed))
   }
 
   if (dragState.vacationMoveDrag && dragState.vacationMovePreviewDate && dragState.movePreviewRow !== null) {
     const draggedKey = `vacation:${dragState.vacationMoveDrag.vacationId}`
-    const dragged = items.find((i) => i.key === draggedKey)
+    const newStart = dragState.vacationMovePreviewDate
+    const newEnd = options.hideWeekends
+      ? addWorkingDays(newStart, dragState.vacationMoveDrag.span)
+      : addDays(newStart, dragState.vacationMoveDrag.span)
+    const pushed = cascadePush(items, {
+      key: draggedKey,
+      startDate: newStart,
+      endDate: newEnd,
+      row: dragState.movePreviewRow,
+    })
+    return shrinkRows(pushed, weeksFromItems(pushed))
+  }
+
+  // Sidebar new-vacation drag: not tied to an existing vacation id. We use
+  // the sentinel key 'new-vacation' so the drop handler can fish out the
+  // landed row from the cascaded preview.
+  if (dragState.newVacationDrag && dragState.newVacationPreviewDate && dragState.movePreviewRow !== null) {
+    const date = dragState.newVacationPreviewDate
+    const pushed = cascadePush(items, {
+      key: 'new-vacation',
+      startDate: date,
+      endDate: date,
+      row: dragState.movePreviewRow,
+    })
+    return shrinkRows(pushed, weeksFromItems(pushed))
+  }
+
+  // Ticket or vacation resize: the dragged item's `items` entry already has
+  // the previewed dates (effectivePlacement/effectiveVacation applies them),
+  // so cascadePush at its same row pushes anything the new footprint overlaps
+  // and shrinkRows keeps the layout compact. Without this the resized pill
+  // just renders on top of its neighbor.
+  const resizedKey =
+    dragState.resizeDrag ? `ticket:${dragState.resizeDrag.ticketId}` :
+    dragState.vacationResizeDrag ? `vacation:${dragState.vacationResizeDrag.vacationId}` :
+    null
+  if (resizedKey) {
+    const dragged = items.find((i) => i.key === resizedKey)
     if (dragged) {
-      const newStart = dragState.vacationMovePreviewDate
-      const newEnd = options.hideWeekends
-        ? addWorkingDays(newStart, dragState.vacationMoveDrag.span)
-        : addDays(newStart, dragState.vacationMoveDrag.span)
-      const pushed = cascadePush(items, {
-        key: draggedKey,
-        startDate: newStart,
-        endDate: newEnd,
-        row: dragState.movePreviewRow,
-      })
+      const pushed = cascadePush(items, dragged)
       return shrinkRows(pushed, weeksFromItems(pushed))
     }
   }
@@ -587,7 +618,16 @@ function commitLayout(layout: CascadeItem[]) {
     if (item.key.startsWith('ticket:')) {
       const id = Number(item.key.slice('ticket:'.length))
       const existing = ticketsStore.placements.find((p) => p.ticketId === id)
-      if (!existing) continue
+      if (!existing) {
+        // New placement — sidebar drag landed here. placeTicket creates the
+        // single-day placement; if the dragged span covers multiple days
+        // moveTicket extends it to the cascaded end date.
+        ticketsStore.placeTicket(id, item.startDate, item.row)
+        if (compareCalendarDates(item.startDate, item.endDate) !== 0) {
+          ticketsStore.moveTicket(id, item.startDate, item.endDate, item.row)
+        }
+        continue
+      }
       const dateChanged =
         compareCalendarDates(existing.startDate, item.startDate) !== 0 ||
         compareCalendarDates(existing.endDate, item.endDate) !== 0
@@ -605,6 +645,8 @@ function commitLayout(layout: CascadeItem[]) {
         vacationsStore.placeVacation(id, item.startDate, item.endDate, item.row)
       }
     }
+    // 'new-vacation' items are intentionally skipped here — the drop handler
+    // creates the real vacation first, then commits a re-keyed layout.
   }
 }
 
@@ -640,7 +682,8 @@ const isDragging = computed(
   () => dragState.moveDrag !== null ||
     dragState.vacationMoveDrag !== null ||
     dragState.resizeDrag !== null ||
-    dragState.vacationResizeDrag !== null,
+    dragState.vacationResizeDrag !== null ||
+    dragState.newVacationDrag !== null,
 )
 const dragOverWeek = computed<number | null>(() => {
   if (dragOverDay.value === null) return null
@@ -754,19 +797,24 @@ function maxRowInWeek(weekIdx: number, excludeKey?: string): number {
 function onDragOver(event: DragEvent, day: number) {
   event.preventDefault()
 
-  // For ticket or vacation moves, compute the would-be (day, row) from the
-  // cursor and stash them in dragState so previewItems can run cascade and
-  // every visible month re-renders the would-be layout in real time.
+  // For any active move (calendar ticket, calendar vacation, sidebar new
+  // ticket [a moveDrag with no existing placement], sidebar new vacation),
+  // compute the would-be (day, row) from the cursor and stash them in
+  // dragState so previewItems can run cascade and every visible month
+  // re-renders the would-be layout in real time.
   const activeMove =
     dragState.moveDrag
       ? { kind: 'ticket' as const, key: `ticket:${dragState.moveDrag.ticketId}` }
       : dragState.vacationMoveDrag
       ? { kind: 'vacation' as const, key: `vacation:${dragState.vacationMoveDrag.vacationId}` }
+      : dragState.newVacationDrag
+      ? { kind: 'new-vacation' as const, key: 'new-vacation' }
       : null
 
   if (activeMove) {
     if (activeMove.kind === 'ticket') dragState.updateMovePreview(calDate(day))
-    else dragState.updateVacationMovePreview(calDate(day))
+    else if (activeMove.kind === 'vacation') dragState.updateVacationMovePreview(calDate(day))
+    else dragState.updateNewVacationPreview(calDate(day))
 
     const cellEl = event.currentTarget as HTMLElement | null
     if (cellEl) {
@@ -775,11 +823,15 @@ function onDragOver(event: DragEvent, day: number) {
         const weekIdx = dayRowIndex(visibleIdx)
         // Look up the dragged item's original (stored) row so rowFromY can
         // apply sticky-origin — cursor inside that row's vertical band keeps
-        // the row unchanged, no premature push.
+        // the row unchanged, no premature push. New items (sidebar drags)
+        // have no origin row; use 0 so the first row of every week becomes
+        // the natural landing target.
         const originRow =
           activeMove.kind === 'ticket'
             ? ticketsStore.placements.find((p) => p.ticketId === dragState.moveDrag!.ticketId)?.row ?? 0
-            : vacationsStore.entries.find((v) => v.id === dragState.vacationMoveDrag!.vacationId)?.row ?? 0
+            : activeMove.kind === 'vacation'
+            ? vacationsStore.entries.find((v) => v.id === dragState.vacationMoveDrag!.vacationId)?.row ?? 0
+            : 0
         const rawRow = rowFromY(cellEl, event.clientY, originRow)
         const maxOther = maxRowInWeek(weekIdx, activeMove.key)
         const cappedRow = Math.min(rawRow, maxOther + 1)
@@ -837,14 +889,24 @@ function onDrop(event: DragEvent, day: number) {
 
   const resizeHandle = event.dataTransfer?.getData('resizeHandle')
   if (resizeHandle) {
-    const [side, id] = resizeHandle.split(':')
-    const prev = ticketsStore.placements.find((p) => p.ticketId === Number(id))
-    const oldStart = prev?.startDate
-    const oldEnd = prev?.endDate
-    ticketsStore.resizePlacement(Number(id), side as 'start' | 'end', calDate(day))
-    if (oldStart && oldEnd) {
-      undoStack.push(() => ticketsStore.moveTicket(Number(id), oldStart, oldEnd))
-    }
+    // Commit the cascaded preview so a resize that overlaps a neighbor pushes
+    // it down instead of rendering on top. Snapshot for undo since the cascade
+    // can move several placements.
+    const ticketSnapshot = ticketsStore.placements.map((p) => ({ ...p }))
+    const vacationSnapshot = vacationsStore.entries.map((v) => ({ ...v }))
+
+    commitLayout(previewItems.value)
+
+    undoStack.push(() => {
+      for (const snap of ticketSnapshot) {
+        ticketsStore.moveTicket(snap.ticketId, snap.startDate, snap.endDate, snap.row)
+      }
+      for (const snap of vacationSnapshot) {
+        if (snap.startDate && snap.endDate) {
+          vacationsStore.placeVacation(snap.id, snap.startDate, snap.endDate, snap.row)
+        }
+      }
+    })
     dragState.clearResizeDrag()
     return
   }
@@ -878,33 +940,46 @@ function onDrop(event: DragEvent, day: number) {
 
   const ticketId = event.dataTransfer?.getData('ticketId')
   if (ticketId) {
-    const dropDate = calDate(day)
-    const dropRow = findFirstFreeRow(
-      combineRowOccupants(ticketsStore.placements, vacationsStore.entries),
-      dropDate,
-      dropDate,
-    )
-    ticketsStore.placeTicket(Number(ticketId), dropDate, dropRow)
-    undoStack.push(() => ticketsStore.removePlacement(Number(ticketId)))
+    // Sidebar ticket/label drag — commit the cascaded preview so cursor row
+    // pick + push behave the same as a calendar-to-calendar drag. Snapshot
+    // first so undo restores any pushed neighbors too.
+    const ticketSnapshot = ticketsStore.placements.map((p) => ({ ...p }))
+    const vacationSnapshot = vacationsStore.entries.map((v) => ({ ...v }))
+
+    commitLayout(previewItems.value)
+
+    undoStack.push(() => {
+      ticketsStore.removePlacement(Number(ticketId))
+      for (const snap of ticketSnapshot) {
+        ticketsStore.moveTicket(snap.ticketId, snap.startDate, snap.endDate, snap.row)
+      }
+      for (const snap of vacationSnapshot) {
+        if (snap.startDate && snap.endDate) {
+          vacationsStore.placeVacation(snap.id, snap.startDate, snap.endDate, snap.row)
+        }
+      }
+    })
     dragState.clearMoveDrag()
     return
   }
 
   const vacationResizeHandle = event.dataTransfer?.getData('vacationResizeHandle')
   if (vacationResizeHandle) {
-    const [side, idStr] = vacationResizeHandle.split(':')
-    const id = Number(idStr)
-    const entry = vacationsStore.entries.find((v) => v.id === id)
-    if (entry && entry.startDate && entry.endDate) {
-      const oldStart = entry.startDate
-      const oldEnd = entry.endDate
-      let newStart = entry.startDate
-      let newEnd = entry.endDate
-      if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0) newStart = calDate(day)
-      else if (side === 'end' && compareCalendarDates(calDate(day), entry.startDate) >= 0) newEnd = calDate(day)
-      vacationsStore.moveVacation(id, newStart, newEnd)
-      undoStack.push(() => vacationsStore.moveVacation(id, oldStart, oldEnd))
-    }
+    const ticketSnapshot = ticketsStore.placements.map((p) => ({ ...p }))
+    const vacationSnapshot = vacationsStore.entries.map((v) => ({ ...v }))
+
+    commitLayout(previewItems.value)
+
+    undoStack.push(() => {
+      for (const snap of ticketSnapshot) {
+        ticketsStore.moveTicket(snap.ticketId, snap.startDate, snap.endDate, snap.row)
+      }
+      for (const snap of vacationSnapshot) {
+        if (snap.startDate && snap.endDate) {
+          vacationsStore.placeVacation(snap.id, snap.startDate, snap.endDate, snap.row)
+        }
+      }
+    })
     dragState.clearVacationResizeDrag()
     return
   }
@@ -925,9 +1000,33 @@ function onDrop(event: DragEvent, day: number) {
   const newVacationPersonId = event.dataTransfer?.getData('newVacationPersonId')
   if (newVacationPersonId) {
     const personId = Number(newVacationPersonId)
+    const ticketSnapshot = ticketsStore.placements.map((p) => ({ ...p }))
+    const vacationSnapshot = vacationsStore.entries.map((v) => ({ ...v }))
+
+    // Pull the cascaded layout the user is seeing right now. The new vacation
+    // appears under the sentinel key 'new-vacation'; re-key it to the real id
+    // before commitLayout so the row + cascade actually applies.
+    const layout = previewItems.value
     const id = vacationsStore.addVacation(personId)
-    vacationsStore.placeVacation(id, calDate(day), calDate(day))
-    undoStack.push(() => vacationsStore.removeVacation(id))
+    const previewedRow = layout.find((i) => i.key === 'new-vacation')?.row ?? 0
+    vacationsStore.placeVacation(id, calDate(day), calDate(day), previewedRow)
+    const rekeyed = layout.map((i) =>
+      i.key === 'new-vacation' ? { ...i, key: `vacation:${id}` } : i,
+    )
+    commitLayout(rekeyed)
+
+    undoStack.push(() => {
+      vacationsStore.removeVacation(id)
+      for (const snap of ticketSnapshot) {
+        ticketsStore.moveTicket(snap.ticketId, snap.startDate, snap.endDate, snap.row)
+      }
+      for (const snap of vacationSnapshot) {
+        if (snap.startDate && snap.endDate) {
+          vacationsStore.placeVacation(snap.id, snap.startDate, snap.endDate, snap.row)
+        }
+      }
+    })
+    dragState.clearNewVacationDrag()
     return
   }
 

@@ -441,8 +441,8 @@ function onVacationPersonClick(personId: number) {
                   @click="onVacationPersonClick(person.id)"
                   @keydown.enter.stop="onVacationPersonClick(person.id)"
                   @keydown.space.prevent.stop="onVacationPersonClick(person.id)"
-                  @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id }"
-                  @dragend="draggingPersonId = null"
+                  @dragstart="(e) => { e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id; dragState.startNewVacationDrag(person.id) }"
+                  @dragend="draggingPersonId = null; dragState.clearNewVacationDrag()"
                 >
                   <span class="vac-pill-dot" :style="{ background: person.color }" />
                   {{ person.name }}

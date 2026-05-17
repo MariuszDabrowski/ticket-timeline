@@ -27,9 +27,10 @@ export const useDragStateStore = defineStore('dragState', () => {
   }
 
   function updateMovePreviewRow(row: number) {
-    // Set the preview row for whichever move drag is active (ticket OR
-    // vacation) — both kinds run the same cascade preview off this value.
-    if (!moveDrag.value && !vacationMoveDrag.value) return
+    // Set the preview row for whichever move drag is active (ticket move,
+    // vacation move, or sidebar new-vacation drag) — all three run the same
+    // cascade preview off this value.
+    if (!moveDrag.value && !vacationMoveDrag.value && !newVacationDrag.value) return
     if (movePreviewRow.value === row) return
     movePreviewRow.value = row
   }
@@ -110,6 +111,33 @@ export const useDragStateStore = defineStore('dragState', () => {
     hoveredVacationId.value = null
   }
 
+  // Sidebar drag for a brand-new vacation. Mirrors vacationMoveDrag but isn't
+  // tied to an existing vacation id — previewItems injects a virtual occupant
+  // keyed 'new-vacation' so the cascade preview runs the same as a real move.
+  const newVacationDrag = ref<{ personId: number } | null>(null)
+  const newVacationPreviewDate = ref<CalendarDate | null>(null)
+
+  function startNewVacationDrag(personId: number) {
+    newVacationDrag.value = { personId }
+    newVacationPreviewDate.value = null
+    movePreviewRow.value = null
+  }
+
+  function updateNewVacationPreview(date: CalendarDate) {
+    if (!newVacationDrag.value) return
+    const cur = newVacationPreviewDate.value
+    if (cur && cur.year === date.year && cur.month === date.month && cur.day === date.day) return
+    newVacationPreviewDate.value = date
+  }
+
+  function clearNewVacationDrag() {
+    newVacationDrag.value = null
+    newVacationPreviewDate.value = null
+    movePreviewRow.value = null
+    hoveredTicketId.value = null
+    hoveredVacationId.value = null
+  }
+
   const hoveredTicketId = ref<number | null>(null)
   const hoveredVacationId = ref<number | null>(null)
 
@@ -118,6 +146,7 @@ export const useDragStateStore = defineStore('dragState', () => {
     resizeDrag, resizePreviewDate, startResizeDrag, updateResizePreview, clearResizeDrag,
     vacationResizeDrag, vacationResizePreviewDate, startVacationResizeDrag, updateVacationResizePreview, clearVacationResizeDrag,
     vacationMoveDrag, vacationMovePreviewDate, startVacationMoveDrag, updateVacationMovePreview, clearVacationMoveDrag,
+    newVacationDrag, newVacationPreviewDate, startNewVacationDrag, updateNewVacationPreview, clearNewVacationDrag,
     hoveredTicketId, hoveredVacationId,
   }
 })
