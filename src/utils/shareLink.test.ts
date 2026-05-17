@@ -11,8 +11,8 @@ function makeProject(overrides: Partial<ProjectData> = {}): ProjectData {
   return {
     name: 'Test Project',
     people: [
-      { id: 1, name: 'Alice', color: '#ff0000' },
-      { id: 2, name: 'Bob', color: '#00ff00' },
+      { id: 1, name: 'Alice', color: '#ff0000', emails: [] },
+      { id: 2, name: 'Bob', color: '#00ff00', emails: [] },
     ],
     tickets: [
       { id: 10, number: 'T-1', title: 'First ticket', assignedTo: 1, link: '' },

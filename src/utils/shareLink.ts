@@ -2,19 +2,20 @@ import LZString from 'lz-string'
 import type { ProjectData } from './projectStorage'
 import type { CalendarDate } from '../stores/tickets'
 
-// v4 — positional tuples + day-offset dates (days since EPOCH) + row index
+// v5 — positional tuples + day-offset dates (days since EPOCH) + row index +
+// per-person emails
 // tickets:    [id, number, title, assignedTo, labelColor?]
 // placements: [ticketId, startOffset, endOffset, row]
 // vacations:  [personId, startOffset, endOffset, row]
-// people:     [id, name, color]
-interface SharePayloadV4 {
-  v: 4
+// people:     [id, name, color, emails[]?]
+interface SharePayloadV5 {
+  v: 5
   name: string
   linkBase?: string
   tickets: Array<[number, string, string, number | null] | [number, string, string, number | null, string]>
   placements: Array<[number, number, number, number]>
   vacations: Array<[number, number, number, number]>
-  people: Array<[number, string, string]>
+  people: Array<[number, string, string] | [number, string, string, string[]]>
   selectedMonths: number[]
 }
 
@@ -40,8 +41,8 @@ function extractLinkBase(tickets: ProjectData['tickets']): string | undefined {
 export function encodeShareLink(data: ProjectData): string {
   const linkBase = extractLinkBase(data.tickets)
 
-  const payload: SharePayloadV4 = {
-    v: 4,
+  const payload: SharePayloadV5 = {
+    v: 5,
     name: data.name,
     linkBase,
     tickets: data.tickets.map(({ id, number, title, assignedTo, labelColor }) =>
@@ -55,7 +56,11 @@ export function encodeShareLink(data: ProjectData): string {
     vacations: data.vacations
       .filter((v) => v.startDate !== null && v.endDate !== null)
       .map((v) => [v.personId, dateToOffset(v.startDate!), dateToOffset(v.endDate!), v.row]),
-    people: data.people.map(({ id, name, color }) => [id, name, color]),
+    // Skip the emails slot entirely when empty so the common case stays the
+    // same byte-length as v4.
+    people: data.people.map(({ id, name, color, emails }) =>
+      emails.length > 0 ? [id, name, color, emails] : [id, name, color],
+    ),
     selectedMonths: data.selectedMonths,
   }
 
@@ -66,9 +71,9 @@ export function decodeShareLink(encoded: string): ProjectData | null {
   try {
     const json = LZString.decompressFromEncodedURIComponent(encoded)
     if (!json) return null
-    const raw = JSON.parse(json) as SharePayloadV4
+    const raw = JSON.parse(json) as SharePayloadV5
 
-    if (raw.v !== 4) return null
+    if (raw.v !== 5) return null
 
     return {
       name: raw.name,
@@ -93,7 +98,9 @@ export function decodeShareLink(encoded: string): ProjectData | null {
         endDate: offsetToDate(v[2]),
         row: v[3],
       })),
-      people: raw.people.map((p) => ({ id: p[0], name: p[1], color: p[2] })),
+      people: raw.people.map((p) => ({
+        id: p[0], name: p[1], color: p[2], emails: p[3] ?? [],
+      })),
       selectedMonths: raw.selectedMonths,
     }
   } catch {

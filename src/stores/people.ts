@@ -5,6 +5,10 @@ export interface Person {
   id: number
   name: string
   color: string
+  // Every email ever associated with this person via import. Used by the
+  // people-matching tier (PEOPLE_MATCH_SPEC: Email-known auto-merges with no
+  // prompt) so re-imports of the same email stay silent.
+  emails: string[]
 }
 
 const COLORS = [
@@ -24,11 +28,20 @@ export const usePeopleStore = defineStore('people', () => {
   const people = ref<Person[]>([])
   let nextId = 0
 
-  function addPerson(name: string, color?: string): number {
+  function addPerson(name: string, color?: string, emails: string[] = []): number {
     const id = nextId++
     const assignedColor = color ?? COLORS[people.value.length % COLORS.length]!
-    people.value.push({ id, name, color: assignedColor })
+    people.value.push({ id, name, color: assignedColor, emails })
     return id
+  }
+
+  function addEmail(id: number, email: string) {
+    const person = people.value.find((p) => p.id === id)
+    if (!person) return
+    const normalized = email.toLowerCase().trim()
+    if (!normalized) return
+    if (person.emails.some((e) => e.toLowerCase() === normalized)) return
+    person.emails.push(email)
   }
 
   function removePerson(id: number) {
@@ -45,10 +58,11 @@ export const usePeopleStore = defineStore('people', () => {
     updatePerson(id, { name })
   }
 
-  function loadData(loaded: Person[]) {
-    people.value = loaded
-    nextId = loaded.length > 0 ? Math.max(...loaded.map((p) => p.id)) + 1 : 0
+  function loadData(loaded: Array<Person | Omit<Person, 'emails'>>) {
+    // Older saves predate the emails field; default to [] so they keep working.
+    people.value = loaded.map((p) => ({ ...p, emails: 'emails' in p ? p.emails : [] }))
+    nextId = people.value.length > 0 ? Math.max(...people.value.map((p) => p.id)) + 1 : 0
   }
 
-  return { people, addPerson, removePerson, updatePerson, updatePersonName, loadData }
+  return { people, addPerson, addEmail, removePerson, updatePerson, updatePersonName, loadData }
 })
