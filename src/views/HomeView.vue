@@ -540,6 +540,8 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
             <MonthCalendar
               :year="m.year"
               :month="m.month"
+              @edit-ticket="(t) => editingTicket = t"
+              @edit-label="(l) => editingLabel = l"
               @edit-vacation="editingVacationId = $event"
             />
           </div>

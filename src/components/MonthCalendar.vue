@@ -8,12 +8,8 @@ import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
 import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
 import { useUndoStack } from '../composables/useUndoStack'
-import { useRejectionToast } from '../composables/useRejectionToast'
 import { cascadePush, shrinkRows, type CascadeItem } from '../utils/cascade'
-import { compactCalendarLayout } from '../utils/layout'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
-import EditTicketModal from './EditTicketModal.vue'
-import AddLabelModal from './AddLabelModal.vue'
 
 const props = defineProps<{
   year: number
@@ -21,7 +17,11 @@ const props = defineProps<{
   flashToday?: boolean
 }>()
 
-const emit = defineEmits<{ editVacation: [vacationId: number] }>()
+const emit = defineEmits<{
+  editTicket: [ticket: Ticket]
+  editLabel: [ticket: Ticket]
+  editVacation: [vacationId: number]
+}>()
 
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const WEEKDAY_HEADERS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -103,40 +103,6 @@ const holidayMap = computed(() => {
 })
 
 const dragOverDay = ref<number | null>(null)
-const editingTicket = ref<Ticket | null>(null)
-const editingLabel = ref<Ticket | null>(null)
-const { showRejection } = useRejectionToast()
-
-function handleEditSubmit(data: { number: string; title: string; assignedTo: number | null; link: string; startDate: CalendarDate | null; endDate: CalendarDate | null }) {
-  if (!editingTicket.value) return
-  const id = editingTicket.value.id
-
-  if (data.assignedTo !== null && data.startDate) {
-    const end = data.endDate ?? data.startDate
-    if (vacationsStore.isPersonOnVacation(data.assignedTo, data.startDate, end)) {
-      const person = peopleStore.people.find((p) => p.id === data.assignedTo)
-      showRejection(`Can't assign to ${person?.name ?? 'this person'} — they're on vacation during those dates.`)
-      return
-    }
-  }
-
-  ticketsStore.updateTicket(id, { number: data.number, title: data.title, assignedTo: data.assignedTo, link: data.link })
-  if (data.startDate && data.endDate) {
-    ticketsStore.moveTicket(id, data.startDate, data.endDate)
-  } else {
-    ticketsStore.removePlacement(id)
-    compactCalendarLayout(ticketsStore, vacationsStore)
-  }
-  editingTicket.value = null
-}
-
-function handleDeleteTicket() {
-  if (editingTicket.value) {
-    ticketsStore.deleteTicket(editingTicket.value.id)
-    compactCalendarLayout(ticketsStore, vacationsStore)
-  }
-  editingTicket.value = null
-}
 
 function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
@@ -1075,9 +1041,9 @@ function onDrop(event: DragEvent, day: number) {
                   @mouseleave="hideTicketTooltip()"
                   @focus="showTicketTooltip($event, slot.info)"
                   @blur="hideTicketTooltip()"
-                  @click.stop="slot.info.ticket.isLabel ? (editingLabel = slot.info.ticket) : (editingTicket = slot.info.ticket)"
-                  @keydown.enter.stop="slot.info.ticket.isLabel ? (editingLabel = slot.info.ticket) : (editingTicket = slot.info.ticket)"
-                  @keydown.space.prevent.stop="slot.info.ticket.isLabel ? (editingLabel = slot.info.ticket) : (editingTicket = slot.info.ticket)"
+                  @click.stop="slot.info.ticket.isLabel ? emit('editLabel', slot.info.ticket) : emit('editTicket', slot.info.ticket)"
+                  @keydown.enter.stop="slot.info.ticket.isLabel ? emit('editLabel', slot.info.ticket) : emit('editTicket', slot.info.ticket)"
+                  @keydown.space.prevent.stop="slot.info.ticket.isLabel ? emit('editLabel', slot.info.ticket) : emit('editTicket', slot.info.ticket)"
                   @dragstart="onTicketDragStart($event, slot.info)"
                   @dragend="dragState.clearMoveDrag"
                 >
@@ -1175,28 +1141,6 @@ function onDrop(event: DragEvent, day: number) {
       </div>
     </div>
   </div>
-
-  <Transition name="modal">
-    <EditTicketModal
-      v-if="editingTicket"
-      :ticket="editingTicket"
-      :people="peopleStore.people"
-      :placement="ticketsStore.placements.find((p) => p.ticketId === editingTicket!.id) ?? null"
-      @submit="handleEditSubmit"
-      @delete="handleDeleteTicket"
-      @cancel="editingTicket = null"
-    />
-  </Transition>
-
-  <Transition name="modal">
-    <AddLabelModal
-      v-if="editingLabel"
-      :existing="editingLabel"
-      @save="(text, color) => { ticketsStore.updateTicket(editingLabel!.id, { title: text, labelColor: color }); editingLabel = null }"
-      @delete="() => { ticketsStore.deleteTicket(editingLabel!.id); compactCalendarLayout(ticketsStore, vacationsStore); editingLabel = null }"
-      @cancel="editingLabel = null"
-    />
-  </Transition>
 
   <Teleport to="body">
     <Transition name="tooltip">
