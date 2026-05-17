@@ -68,39 +68,44 @@ button:hover:not(:disabled)::after {
 }
 
 /* Modal body containers. Owners place content inside; the simplebar directive
-   can be applied here to scroll long content. Padding-y matches gap so the
-   rhythm at the scroll edges and between siblings is a single value. Two tier
+   can be applied here to scroll long content. Inter-sibling spacing comes from
+   margin-top on consecutive children, not container gap — that way the edge
+   spacing (padding) is the only thing visible above the first child or below
+   the last, with no phantom-gap rhythm at the scroll boundaries. Padding-y
+   matches the margin step so the rhythm is one value end-to-end. Two tier
    classes provide denser (.form-body) and looser (.wide-body) spacing. */
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
   padding: 0.7rem 1.25rem;
   overflow-y: auto;
 }
 .modal-body.form-body {
-  gap: 1rem;
   padding: 1rem 1.5rem;
 }
 .modal-body.wide-body {
-  gap: 1.25rem;
   padding: 1.25rem 1.5rem;
 }
 
-/* Inside a simplebar-wrapped .modal-body, the actual flex container is
-   .simplebar-content (simplebar copies our padding here and offsets the
-   wrapper with negative margin so the host's padding is canceled). Mirror
-   each tier's gap so layout matches with or without simplebar. */
+.modal-body > * + *,
+.modal-body .simplebar-content > * + * {
+  margin-top: 0.7rem;
+}
+.modal-body.form-body > * + *,
+.modal-body.form-body .simplebar-content > * + * {
+  margin-top: 1rem;
+}
+.modal-body.wide-body > * + *,
+.modal-body.wide-body .simplebar-content > * + * {
+  margin-top: 1.25rem;
+}
+
+/* Simplebar wraps content in .simplebar-content (with our padding copied
+   here and the wrapper offset to cancel the host's). Mirror the flex layout
+   so it stacks the same as a non-simplebar .modal-body. */
 .modal-body .simplebar-content {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-}
-.modal-body.form-body .simplebar-content {
-  gap: 1rem;
-}
-.modal-body.wide-body .simplebar-content {
-  gap: 1.25rem;
 }
 
 /* Custom checkbox — animated gradient fill on check + drawn check mark. Used

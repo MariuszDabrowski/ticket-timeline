@@ -21,10 +21,12 @@ const emit = defineEmits<{ close: [] }>()
 /* Local overrides for the dense paragraph layout this modal uses. */
 .share-info-body {
   padding: 0.75rem 1.5rem;
-  gap: 0.75rem;
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.84rem;
   line-height: 1.6;
+}
+.share-info-body > * + * {
+  margin-top: 0.75rem;
 }
 
 .note {
