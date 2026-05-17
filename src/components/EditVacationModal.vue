@@ -43,7 +43,7 @@ const { trapRef, onKeydown } = useFocusTrap()
       </div>
 
       <div class="actions">
-        <button class="btn delete-btn" @click="emit('delete', vacationId)">Delete</button>
+        <button class="btn btn-danger" @click="emit('delete', vacationId)">Delete</button>
         <div class="actions-right">
           <button class="btn" @click="emit('cancel')">Cancel</button>
           <button class="btn" @click="emit('save', vacationId, selectedPersonId)">Save</button>
@@ -182,9 +182,4 @@ label {
   gap: 0.5rem;
 }
 
-.delete-btn {
-  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
-  color: rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 </style>

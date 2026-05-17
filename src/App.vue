@@ -127,7 +127,6 @@ p {
 }
 
 .error-btn.primary {
-  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.85);
 }
 </style>

@@ -46,6 +46,21 @@ button:hover:not(:disabled)::after {
   pointer-events: none;
 }
 
+/* Destructive action modifier — single shared red style for any "Delete",
+   "Clear", "Replace", etc. confirmation. Muted dark-red fill with brighter
+   red text so it signals "destructive" without shouting. Matches the delete
+   button in the Load Project modal. */
+.btn.btn-danger {
+  background: linear-gradient(180deg, rgba(160, 40, 30, 0.35) 0%, rgba(120, 30, 20, 0.35) 100%);
+  border-color: transparent;
+  color: rgba(255, 120, 110, 0.8);
+}
+
+.btn.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(180, 50, 40, 0.45) 0%, rgba(140, 35, 25, 0.45) 100%);
+  color: rgba(255, 140, 130, 1);
+}
+
 .simplebar-scrollbar::before {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;

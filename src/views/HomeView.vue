@@ -903,7 +903,7 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
         </div>
         <div class="reset-actions">
           <button class="btn" @click="showReset = false">Cancel</button>
-          <button class="btn reset-confirm-btn" @click="resetAll">Clear Everything</button>
+          <button class="btn btn-danger" @click="resetAll">Clear Everything</button>
         </div>
       </div>
     </div>
@@ -920,7 +920,7 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
         <div class="reset-actions">
           <button class="btn" @click="onImportCancel">Cancel</button>
           <button class="btn" @click="onImportMerge">Merge</button>
-          <button class="btn reset-confirm-btn" @click="onImportReplace">Replace</button>
+          <button class="btn btn-danger" @click="onImportReplace">Replace</button>
         </div>
       </div>
     </div>
@@ -1067,11 +1067,6 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   flex-shrink: 0;
 }
 
-.reset-confirm-btn {
-  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
-  color: rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
 .below-header {
   display: flex;
@@ -1190,6 +1185,10 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   display: flex;
   align-items: stretch;
   padding: 0;
+  /* Keep the button at its original visual size while the inner body has
+     zero padding (so labels can fill the full height and slide cleanly off
+     the top/bottom edges). */
+  min-height: 36px;
   overflow: hidden;
   font-size: 14px;
   cursor: pointer;
@@ -1228,15 +1227,16 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
 .share-btn-body {
   flex: 1;
   display: flex;
-  align-items: center;
-  padding: 10px 0.75rem 8px;
+  align-items: stretch;
 }
 
+/* Labels viewport spans the full button height so the slide enters/exits at
+   the top and bottom edges of the button instead of clipping in a 1.1em
+   strip in the middle. The button itself owns the overflow:hidden, so a
+   translateY(±100%) moves the label cleanly off either edge. */
 .share-btn-labels {
   flex: 1;
   position: relative;
-  overflow: hidden;
-  height: 1.1em;
 }
 
 .label-idle,
@@ -1245,6 +1245,7 @@ function handleHiBobConfirm(selectedGroups: ICSPersonGroup[]) {
   inset: 0;
   display: flex;
   align-items: center;
+  padding: 0 0.75rem;
   white-space: nowrap;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }

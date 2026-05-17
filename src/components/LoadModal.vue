@@ -82,7 +82,7 @@ function fmtDate(iso: string) {
                 <div class="project-actions">
                   <template v-if="confirmId === project.id">
                     <span class="confirm-text">Delete?</span>
-                    <button class="btn action-btn danger" @click="deleteProject(project.id); confirmId = null">Yes</button>
+                    <button class="btn btn-danger action-btn" @click="deleteProject(project.id); confirmId = null">Yes</button>
                     <button class="btn action-btn" @click="confirmId = null">No</button>
                   </template>
                   <template v-else>
@@ -291,19 +291,6 @@ h3 span {
   color: rgba(255, 120, 110, 0.8);
 }
 
-
-.action-btn.danger {
-  background: transparent;
-  border-color: rgba(231, 76, 60, 0.35);
-  color: rgba(231, 76, 60, 0.75);
-  box-shadow: none;
-}
-
-.action-btn.danger:hover {
-  border-color: rgba(231, 76, 60, 0.7);
-  color: rgba(231, 76, 60, 1);
-  box-shadow: none;
-}
 
 .upload-area {
   display: flex;

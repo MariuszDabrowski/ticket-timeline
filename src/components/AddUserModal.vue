@@ -73,7 +73,7 @@ function handleSubmit() {
       </div>
 
       <div class="actions">
-        <button v-if="props.existing" class="btn delete-btn" @click="emit('delete')">Delete</button>
+        <button v-if="props.existing" class="btn btn-danger" @click="emit('delete')">Delete</button>
         <div class="actions-right">
           <button class="btn" @click="emit('cancel')">Cancel</button>
           <button class="btn" @click="handleSubmit" :disabled="!name.trim()">{{ props.existing ? 'Save' : 'Add' }}</button>
@@ -216,9 +216,4 @@ input:focus {
   margin-left: auto;
 }
 
-.delete-btn {
-  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
-  color: rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 </style>
