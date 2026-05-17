@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, toRaw } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
 import { useUndoStack } from '../composables/useUndoStack'
@@ -33,7 +33,8 @@ import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
 import PeopleConfirmModal from '../components/PeopleConfirmModal.vue'
 import BaseModal from '../components/BaseModal.vue'
-import { classifyIncoming, uniquifyName, type Classification, type IncomingPerson, type Decision } from '../utils/peopleMatch'
+import type { IncomingPerson } from '../utils/peopleMatch'
+import { useImportFlow } from '../composables/useImportFlow'
 
 
 // Absolute month key: year * 12 + month — spans across year boundaries
@@ -124,11 +125,27 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
 
 const showUploadEpic = ref(false)
 
-// PeopleConfirmModal state. Shared by CSV (epic) and HiBob flows; whichever
-// path opens the modal stashes its follow-up in `pendingPeopleConfirm` so
-// the user's decisions can be applied and the import resumed.
-const peopleConfirmRows = ref<Classification[]>([])
-const pendingPeopleConfirm = ref<((decisions: Decision[]) => void) | null>(null)
+// Import orchestration (classification + PeopleConfirmModal + sample-data
+// prompt) lives in useImportFlow. HomeView only wires the source-specific
+// apply step (place tickets / vacations) in the doImport callback.
+const {
+  peopleConfirmRows,
+  handlePeopleConfirm,
+  handlePeopleCancel,
+  showImportPrompt,
+  withImportGate,
+  onImportReplace,
+  onImportMerge,
+  onImportCancel,
+  setOnClearProject,
+  startImport,
+} = useImportFlow()
+// The composable owns the stores; HomeView owns the bookkeeping the stores
+// don't know about (project name + sample-data flag).
+setOnClearProject(() => {
+  currentProjectName.value = ''
+  isSampleData.value = false
+})
 
 function expandSelectedMonthsForPlacements() {
   const selected = new Set(selectedMonths.value)
@@ -146,177 +163,6 @@ function expandSelectedMonthsForPlacements() {
   }
   selectedMonths.value = [...selected]
   if (minAbs !== Infinity) sidebarRef.value?.expandVisibleRange(minAbs, maxAbs)
-}
-
-// Pure classification step. Buckets each incoming person by what the
-// orchestrator should do at commit time:
-//   - autoMerge: email-known or single exact-name match (silent merge)
-//   - autoCreate: no match anywhere (silent create)
-//   - needsConfirm: fuzzy / ambiguous (user must decide)
-//
-// Exact-name auto-merges only when there's a single unambiguous candidate —
-// multiple existing people with the same name promote to 'ambiguous' inside
-// classifyIncoming, which still routes to confirm.
-//
-// No store mutations here; every side effect runs in commit so cancelling
-// the people-confirm modal leaves zero trace.
-function resolveIncomingPeople(
-  incoming: IncomingPerson[],
-): {
-  autoMerge: Array<{ incoming: IncomingPerson; personId: number }>
-  autoCreate: Classification[]
-  needsConfirm: Classification[]
-} {
-  const autoMerge: Array<{ incoming: IncomingPerson; personId: number }> = []
-  const autoCreate: Classification[] = []
-  const needsConfirm: Classification[] = []
-  for (const p of incoming) {
-    const c = classifyIncoming(p, people.people)
-    if ((c.tier === 'email-known' || c.tier === 'exact-name') && c.suggestedPersonId !== undefined) {
-      autoMerge.push({ incoming: p, personId: c.suggestedPersonId })
-    } else if (c.tier === 'none') {
-      autoCreate.push(c)
-    } else {
-      needsConfirm.push(c)
-    }
-  }
-  return { autoMerge, autoCreate, needsConfirm }
-}
-
-// Spin up a new Person for one incoming person and record its email if any.
-function createPersonFor(c: Classification): number {
-  const id = people.addPerson(uniquifyName(c.incoming.name, people.people))
-  if (c.incoming.email) people.addEmail(id, c.incoming.email)
-  return id
-}
-
-// Materialize user decisions: merges record the incoming email on the matched
-// person; creates spin up a new Person with uniquifyName so two real Jonathans
-// don't collapse. Resolves each Decision back into the shared map keyed by
-// IncomingPerson ref. Returns the count of newly-created people.
-//
-// toRaw unwraps the IncomingPerson the modal echoed back: Vue deep-wraps
-// objects stored in ref(), so `d.incoming` is a Proxy while the doImport
-// callback looks up by the original (non-Proxy) ref from the closure's
-// `incoming` array. Without this unwrap, Map.get returns undefined for every
-// merge-confirmed person and their vacations/tickets get silently skipped.
-function applyDecisions(resolved: Map<IncomingPerson, number>, decisions: Decision[]): number {
-  let created = 0
-  for (const d of decisions) {
-    const incoming = toRaw(d.incoming)
-    let personId: number
-    if (d.action === 'merge' && d.personId !== undefined) {
-      personId = d.personId
-    } else {
-      personId = people.addPerson(uniquifyName(incoming.name, people.people))
-      created++
-    }
-    if (incoming.email) people.addEmail(personId, incoming.email)
-    resolved.set(incoming, personId)
-  }
-  return created
-}
-
-// Common entry for any import source. Given the unique incoming people list
-// and a doImport callback (consumes resolved map + count of newly-created
-// people), either runs immediately if there's nothing to confirm, or opens
-// PeopleConfirmModal first. All side effects happen at commit time so a
-// cancel leaves no trace.
-function startImport(
-  incoming: IncomingPerson[],
-  doImport: (resolved: Map<IncomingPerson, number>, createdCount: number) => void,
-) {
-  const { autoMerge, autoCreate, needsConfirm } = resolveIncomingPeople(incoming)
-
-  const commit = (decisions: Decision[]) => {
-    const resolved = new Map<IncomingPerson, number>()
-    for (const m of autoMerge) {
-      resolved.set(m.incoming, m.personId)
-      // Record the incoming email on the matched person so future imports of
-      // the same email go email-known (silent) rather than re-routing through
-      // exact-name. Deferred until here so a cancel above leaves no trace.
-      if (m.incoming.email) people.addEmail(m.personId, m.incoming.email)
-    }
-    let created = 0
-    for (const c of autoCreate) {
-      resolved.set(c.incoming, createPersonFor(c))
-      created++
-    }
-    created += applyDecisions(resolved, decisions)
-    doImport(resolved, created)
-  }
-
-  if (needsConfirm.length === 0) {
-    commit([])
-    return
-  }
-  peopleConfirmRows.value = needsConfirm
-  pendingPeopleConfirm.value = commit
-}
-
-function handlePeopleConfirm(decisions: Decision[]) {
-  const cb = pendingPeopleConfirm.value
-  pendingPeopleConfirm.value = null
-  peopleConfirmRows.value = []
-  cb?.(decisions)
-}
-
-function handlePeopleCancel() {
-  pendingPeopleConfirm.value = null
-  peopleConfirmRows.value = []
-}
-
-function clearAllProjectData() {
-  people.loadData([])
-  tickets.loadData({ tickets: [], placements: [] })
-  vacations.loadData([])
-  currentProjectName.value = ''
-  isSampleData.value = false
-}
-
-const hasAnyCalendarData = computed(() =>
-  people.people.length > 0 ||
-  tickets.tickets.length > 0 ||
-  vacations.entries.length > 0,
-)
-
-// Import gate: if the calendar has any existing data (seeded sample OR the
-// user's real work), ask up front whether to replace it or merge the import
-// alongside. The clear happens immediately on Replace (NOT deferred):
-// classification needs to see the right roster, and a deferred clear could
-// wipe a Person whose id we'd already resolved against. Cancelling here
-// aborts the import entirely; cancelling later in PeopleConfirmModal leaves
-// whatever state the gate decision produced.
-const showImportPrompt = ref(false)
-const pendingImportRun = ref<(() => void) | null>(null)
-
-function withImportGate(run: () => void) {
-  if (!hasAnyCalendarData.value) {
-    run()
-    return
-  }
-  pendingImportRun.value = run
-  showImportPrompt.value = true
-}
-
-function onImportReplace() {
-  showImportPrompt.value = false
-  clearAllProjectData()
-  const run = pendingImportRun.value
-  pendingImportRun.value = null
-  run?.()
-}
-
-function onImportMerge() {
-  showImportPrompt.value = false
-  const run = pendingImportRun.value
-  pendingImportRun.value = null
-  run?.()
-}
-
-function onImportCancel() {
-  showImportPrompt.value = false
-  pendingImportRun.value = null
 }
 
 function handleEpicImport(csvText: string, workspaceSlug: string) {
