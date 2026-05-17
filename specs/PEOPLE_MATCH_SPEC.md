@@ -21,13 +21,13 @@ Every incoming person is classified into one of these tiers. The tier decides wh
 
 | Tier | Definition | Default action |
 |---|---|---|
-| **Email-known** | The incoming email is already stored on a Person record | Auto-merge, silent (no modal row) |
-| **No match** | Nothing similar exists | Auto-create, silent (no modal row). No conflict — no decision to make. |
-| **Exact name** | Case-insensitive name equality, but the email is new (or no email comes in, like HiBob) | **Confirm** with merge pre-selected. Two "Jonathan"s could legitimately be two different people. |
-| **Fuzzy** | One name is a substring of the other after normalization | **Confirm** with merge pre-selected |
-| **Ambiguous** | Multiple people could be a fuzzy/exact-name match | **Confirm** with no pre-selection — user must pick |
+| **Email-known** | The incoming email is already stored on a Person record | Auto-merge, silent |
+| **Exact name** | Case-insensitive name equality against a *single* existing person (the email, if any, is new) | Auto-merge, silent. The incoming email (if any) is recorded on the matched person so future imports go email-known. |
+| **No match** | Nothing similar exists | Auto-create, silent. No conflict — no decision to make. |
+| **Fuzzy** | One name is a substring of the other after normalization, single candidate | **Confirm** with merge pre-selected |
+| **Ambiguous** | Multiple existing people could be the match (exact-name OR fuzzy with 2+ candidates) | **Confirm** with no pre-selection — user must pick |
 
-Only tiers where the matcher could be wrong (exact-name, fuzzy, ambiguous) interrupt the user. Clearly safe cases — already-known emails and entirely-new names — proceed silently.
+Only tiers where the matcher could be wrong (fuzzy, ambiguous) interrupt the user. Clearly safe cases — already-known emails, single unambiguous name matches, entirely-new names — proceed silently. If two people in the roster already share the same name, an incoming name match becomes ambiguous and surfaces the modal so the user can disambiguate.
 
 There is no "Skip" action. Every incoming person is either merged into an existing one or created new. (If the user genuinely doesn't want them, they can delete the person afterward.)
 

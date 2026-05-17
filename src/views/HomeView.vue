@@ -146,32 +146,39 @@ function expandSelectedMonthsForPlacements() {
   if (minAbs !== Infinity) sidebarRef.value?.expandVisibleRange(minAbs, maxAbs)
 }
 
-// Walks incoming people and splits into three groups:
-//   - resolved: email-known matches (auto-merge silently)
-//   - autoCreate: no match anywhere (silent create — no decision to make)
-//   - needsConfirm: exact-name / fuzzy / ambiguous (user must decide)
-// Only side effects happen at commit time, not here.
+// Pure classification step. Buckets each incoming person by what the
+// orchestrator should do at commit time:
+//   - autoMerge: email-known or single exact-name match (silent merge)
+//   - autoCreate: no match anywhere (silent create)
+//   - needsConfirm: fuzzy / ambiguous (user must decide)
+//
+// Exact-name auto-merges only when there's a single unambiguous candidate —
+// multiple existing people with the same name promote to 'ambiguous' inside
+// classifyIncoming, which still routes to confirm.
+//
+// No store mutations here; every side effect runs in commit so cancelling
+// the people-confirm modal leaves zero trace.
 function resolveIncomingPeople(
   incoming: IncomingPerson[],
 ): {
-  resolved: Map<IncomingPerson, number>
+  autoMerge: Array<{ incoming: IncomingPerson; personId: number }>
   autoCreate: Classification[]
   needsConfirm: Classification[]
 } {
-  const resolved = new Map<IncomingPerson, number>()
+  const autoMerge: Array<{ incoming: IncomingPerson; personId: number }> = []
   const autoCreate: Classification[] = []
   const needsConfirm: Classification[] = []
   for (const p of incoming) {
     const c = classifyIncoming(p, people.people)
-    if (c.tier === 'email-known' && c.suggestedPersonId !== undefined) {
-      resolved.set(p, c.suggestedPersonId)
+    if ((c.tier === 'email-known' || c.tier === 'exact-name') && c.suggestedPersonId !== undefined) {
+      autoMerge.push({ incoming: p, personId: c.suggestedPersonId })
     } else if (c.tier === 'none') {
       autoCreate.push(c)
     } else {
       needsConfirm.push(c)
     }
   }
-  return { resolved, autoCreate, needsConfirm }
+  return { autoMerge, autoCreate, needsConfirm }
 }
 
 // Spin up a new Person for one incoming person and record its email if any.
@@ -217,9 +224,17 @@ function startImport(
   incoming: IncomingPerson[],
   doImport: (resolved: Map<IncomingPerson, number>, createdCount: number) => void,
 ) {
-  const { resolved, autoCreate, needsConfirm } = resolveIncomingPeople(incoming)
+  const { autoMerge, autoCreate, needsConfirm } = resolveIncomingPeople(incoming)
 
   const commit = (decisions: Decision[]) => {
+    const resolved = new Map<IncomingPerson, number>()
+    for (const m of autoMerge) {
+      resolved.set(m.incoming, m.personId)
+      // Record the incoming email on the matched person so future imports of
+      // the same email go email-known (silent) rather than re-routing through
+      // exact-name. Deferred until here so a cancel above leaves no trace.
+      if (m.incoming.email) people.addEmail(m.personId, m.incoming.email)
+    }
     let created = 0
     for (const c of autoCreate) {
       resolved.set(c.incoming, createPersonFor(c))
