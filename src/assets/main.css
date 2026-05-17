@@ -81,7 +81,7 @@ button:hover:not(:disabled)::after {
   overflow-y: auto;
 }
 .modal-body.form-body {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem;
 }
 .modal-body.wide-body {
   padding: 1.25rem 1.5rem;
