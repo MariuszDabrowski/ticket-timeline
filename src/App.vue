@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onErrorCaptured } from 'vue'
+import { ref, computed, onMounted, onUnmounted, onErrorCaptured } from 'vue'
 import HomeView from './views/HomeView.vue'
+import StyleGuideView from './views/StyleGuideView.vue'
 
 const error = ref<Error | null>(null)
 
@@ -16,6 +17,18 @@ function reload() {
 }
 
 const bugReportUrl = 'https://github.com/MariuszDabrowski/ticket-timeline/issues/new?template=bug_report.md'
+
+// Lightweight hash-based routing — only used for the dev-facing style guide
+// at #styleguide. Anything else (including the # used by the share link
+// payload, which is `#share=...`) falls through to the main app.
+const route = ref(window.location.hash)
+function onHashChange() {
+  route.value = window.location.hash
+}
+onMounted(() => window.addEventListener('hashchange', onHashChange))
+onUnmounted(() => window.removeEventListener('hashchange', onHashChange))
+
+const isStyleGuide = computed(() => route.value === '#styleguide')
 </script>
 
 <template>
@@ -30,6 +43,7 @@ const bugReportUrl = 'https://github.com/MariuszDabrowski/ticket-timeline/issues
       </div>
     </div>
   </div>
+  <StyleGuideView v-else-if="isStyleGuide" />
   <HomeView v-else />
 </template>
 
