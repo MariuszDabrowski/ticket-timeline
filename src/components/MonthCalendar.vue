@@ -6,7 +6,7 @@ import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useVacationsStore } from '../stores/vacations'
 import { getCanadianHolidays, getAmericanHolidays } from '../utils/holidays'
-import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/dates'
+import { snapToWeekday, workingDaysBetween, addWorkingDays, addDays, spanInDays, fmtShortDate } from '../utils/dates'
 import { useUndoStack } from '../composables/useUndoStack'
 import { cascadePush, shrinkRows, type CascadeItem } from '../utils/cascade'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
@@ -108,24 +108,6 @@ function calDate(day: number): CalendarDate {
   return { year: props.year, month: props.month, day }
 }
 
-function addDays(date: CalendarDate, days: number): CalendarDate {
-  const d = new Date(date.year, date.month, date.day)
-  d.setDate(d.getDate() + days)
-  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
-}
-
-function spanInDays(start: CalendarDate, end: CalendarDate): number {
-  return Math.round(
-    (new Date(end.year, end.month, end.day).getTime() -
-      new Date(start.year, start.month, start.day).getTime()) /
-      86_400_000,
-  )
-}
-
-const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-function fmtDate(d: { year: number; month: number; day: number }): string {
-  return `${MONTH_SHORT[d.month]} ${d.day}`
-}
 
 function assignedName(ticket: Ticket): string {
   if (ticket.assignedTo === null) return 'Unassigned'
@@ -1150,7 +1132,7 @@ function onDrop(event: DragEvent, day: number) {
         :style="{ '--tx': ticketTooltip.x + 'px', '--ty': ticketTooltip.y + 'px' }"
       >
         <div v-if="ticketTooltip.title" class="tooltip-title">{{ ticketTooltip.title }}</div>
-        <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtDate(ticketTooltip.startDate) : `${fmtDate(ticketTooltip.startDate)} – ${fmtDate(ticketTooltip.endDate)}` }}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">{{ ticketTooltip.duration === 1 ? 'Date' : 'Dates' }}</span><span>{{ ticketTooltip.duration === 1 ? fmtShortDate(ticketTooltip.startDate) : `${fmtShortDate(ticketTooltip.startDate)} – ${fmtShortDate(ticketTooltip.endDate)}` }}</span></div>
         <div v-if="ticketTooltip.duration !== 1" class="tooltip-row"><span class="tooltip-label">Duration</span><span>{{ ticketTooltip.duration }} days</span></div>
         <div v-if="ticketTooltip.assignedTo !== null" class="tooltip-row"><span class="tooltip-label">Assigned to</span><span>{{ ticketTooltip.assignedTo }}</span></div>
       </div>

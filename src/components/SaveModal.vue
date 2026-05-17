@@ -6,6 +6,7 @@ import {
 } from '../utils/projectStorage'
 import type { ProjectData, SavedProject } from '../utils/projectStorage'
 import BaseModal from './BaseModal.vue'
+import { fmtTimestamp } from '../utils/dates'
 
 const props = defineProps<{ data: Omit<ProjectData, 'name'>; initialName?: string; exportingImage?: boolean }>()
 const emit = defineEmits<{ close: []; save: [name: string]; exportImage: [includeSummary: boolean] }>()
@@ -61,11 +62,6 @@ function downloadJSON() {
 }
 
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-}
 </script>
 
 <template>
@@ -85,7 +81,7 @@ function fmtDate(iso: string) {
               the Load screen.
               <span v-if="existingProject" class="overwrite-note">
                 A project named <strong>{{ existingProject.name }}</strong> was last saved
-                {{ fmtDate(existingProject.savedAt) }} — saving will update it.
+                {{ fmtTimestamp(existingProject.savedAt) }} — saving will update it.
               </span>
             </div>
           </div>

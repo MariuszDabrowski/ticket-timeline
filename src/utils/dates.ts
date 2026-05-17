@@ -41,3 +41,31 @@ export function addWorkingDays(start: CalendarDate, n: number): CalendarDate {
   }
   return fromDate(d)
 }
+
+// Add n calendar days (no weekend skipping). Negative values walk backward.
+export function addDays(date: CalendarDate, days: number): CalendarDate {
+  const d = toDate(date)
+  d.setDate(d.getDate() + days)
+  return fromDate(d)
+}
+
+// Number of calendar days between start and end (inclusive of both endpoints
+// when same day → 0). Mirrors what MonthCalendar uses for pill drag span.
+export function spanInDays(start: CalendarDate, end: CalendarDate): number {
+  return Math.round(
+    (toDate(end).getTime() - toDate(start).getTime()) / 86_400_000,
+  )
+}
+
+// Short calendar-date formatter: "Jan 5", "Dec 31". Used in tooltips.
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+export function fmtShortDate(d: CalendarDate): string {
+  return `${MONTH_SHORT[d.month]} ${d.day}`
+}
+
+// "Jan 5, 2026, 2:30 PM" — used for save/load timestamps. Locale-aware.
+export function fmtTimestamp(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+}

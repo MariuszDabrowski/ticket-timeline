@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { getSavedProjects, setSavedProjects } from '../utils/projectStorage'
 import type { ProjectData } from '../utils/projectStorage'
 import BaseModal from './BaseModal.vue'
+import { fmtTimestamp } from '../utils/dates'
 
 const emit = defineEmits<{
   load: [data: ProjectData]
@@ -48,11 +49,6 @@ function onFileInput(e: Event) {
   reader.readAsText(file)
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-}
 </script>
 
 <template>
@@ -72,7 +68,7 @@ function fmtDate(iso: string) {
                 <span class="project-meta">
                   {{ project.data.tickets.length }} ticket{{ project.data.tickets.length !== 1 ? 's' : '' }}
                   · {{ project.data.people.length }} people
-                  · saved {{ fmtDate(project.savedAt) }}
+                  · saved {{ fmtTimestamp(project.savedAt) }}
                 </span>
               </div>
               <div class="project-actions">
