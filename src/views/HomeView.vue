@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, toRaw } from 'vue'
 import { decodeShareLink } from '../utils/shareLink'
 import { useShareLink } from '../composables/useShareLink'
 import { useUndoStack } from '../composables/useUndoStack'
@@ -185,18 +185,25 @@ function createPersonFor(c: Classification): number {
 // person; creates spin up a new Person with uniquifyName so two real Jonathans
 // don't collapse. Resolves each Decision back into the shared map keyed by
 // IncomingPerson ref. Returns the count of newly-created people.
+//
+// toRaw unwraps the IncomingPerson the modal echoed back: Vue deep-wraps
+// objects stored in ref(), so `d.incoming` is a Proxy while the doImport
+// callback looks up by the original (non-Proxy) ref from the closure's
+// `incoming` array. Without this unwrap, Map.get returns undefined for every
+// merge-confirmed person and their vacations/tickets get silently skipped.
 function applyDecisions(resolved: Map<IncomingPerson, number>, decisions: Decision[]): number {
   let created = 0
   for (const d of decisions) {
+    const incoming = toRaw(d.incoming)
     let personId: number
     if (d.action === 'merge' && d.personId !== undefined) {
       personId = d.personId
     } else {
-      personId = people.addPerson(uniquifyName(d.incoming.name, people.people))
+      personId = people.addPerson(uniquifyName(incoming.name, people.people))
       created++
     }
-    if (d.incoming.email) people.addEmail(personId, d.incoming.email)
-    resolved.set(d.incoming, personId)
+    if (incoming.email) people.addEmail(personId, incoming.email)
+    resolved.set(incoming, personId)
   }
   return created
 }
