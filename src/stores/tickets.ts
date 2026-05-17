@@ -21,6 +21,7 @@ export interface Placement {
   ticketId: number
   startDate: CalendarDate
   endDate: CalendarDate
+  row: number
 }
 
 
@@ -28,6 +29,46 @@ export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
   if (a.year !== b.year) return a.year - b.year
   if (a.month !== b.month) return a.month - b.month
   return a.day - b.day
+}
+
+// Lowest row that doesn't overlap any occupant on any day in [startDate, endDate].
+// Used for first-time placement (sample seed, CSV import, ICS import) where the
+// user hasn't explicitly picked a row. Accepts a generic occupant shape so it
+// can fold tickets + vacations together (both share the row space).
+export interface RowOccupant {
+  startDate: CalendarDate
+  endDate: CalendarDate
+  row: number
+}
+export function findFirstFreeRow(
+  occupants: RowOccupant[],
+  startDate: CalendarDate,
+  endDate: CalendarDate,
+): number {
+  for (let row = 0; ; row++) {
+    const conflict = occupants.some((o) =>
+      o.row === row &&
+      compareCalendarDates(o.startDate, endDate) <= 0 &&
+      compareCalendarDates(o.endDate, startDate) >= 0,
+    )
+    if (!conflict) return row
+  }
+}
+
+// Merge ticket placements + placed vacations into a single occupant list so
+// findFirstFreeRow considers the shared row space (per the drag/drop spec).
+// Caller passes the raw store collections — kept generic so this util doesn't
+// need to import the vacations store directly.
+export function combineRowOccupants(
+  ticketPlacements: Placement[],
+  vacationEntries: Array<{ startDate: CalendarDate | null; endDate: CalendarDate | null; row: number }>,
+): RowOccupant[] {
+  const occupants: RowOccupant[] = [...ticketPlacements]
+  for (const v of vacationEntries) {
+    if (v.startDate === null || v.endDate === null) continue
+    occupants.push({ startDate: v.startDate, endDate: v.endDate, row: v.row })
+  }
+  return occupants
 }
 
 
@@ -42,17 +83,18 @@ export const useTicketsStore = defineStore('tickets', () => {
     return id
   }
 
-  function placeTicket(ticketId: number, date: CalendarDate) {
+  function placeTicket(ticketId: number, date: CalendarDate, row: number) {
     const existing = placements.value.findIndex((p) => p.ticketId === ticketId)
     if (existing !== -1) placements.value.splice(existing, 1)
-    placements.value.push({ ticketId, startDate: date, endDate: date })
+    placements.value.push({ ticketId, startDate: date, endDate: date, row })
   }
 
-  function moveTicket(ticketId: number, newStartDate: CalendarDate, newEndDate: CalendarDate) {
+  function moveTicket(ticketId: number, newStartDate: CalendarDate, newEndDate: CalendarDate, row?: number) {
     const placement = placements.value.find((p) => p.ticketId === ticketId)
     if (!placement) return
     placement.startDate = newStartDate
     placement.endDate = newEndDate
+    if (row !== undefined) placement.row = row
   }
 
   function updateTicket(id: number, data: Partial<Omit<Ticket, 'id'>>) {

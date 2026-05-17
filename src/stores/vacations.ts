@@ -8,6 +8,7 @@ export interface VacationEntry {
   personId: number
   startDate: CalendarDate | null  // null = unplaced (sidebar only)
   endDate: CalendarDate | null
+  row: number  // shared row space with ticket placements; ignored when unplaced
 }
 
 export const useVacationsStore = defineStore('vacations', () => {
@@ -18,23 +19,25 @@ export const useVacationsStore = defineStore('vacations', () => {
 
   function addVacation(personId: number): number {
     const id = nextId++
-    entries.value.push({ id, personId, startDate: null, endDate: null })
+    entries.value.push({ id, personId, startDate: null, endDate: null, row: 0 })
     return id
   }
 
-  function placeVacation(id: number, startDate: CalendarDate, endDate: CalendarDate) {
+  function placeVacation(id: number, startDate: CalendarDate, endDate: CalendarDate, row = 0) {
     const entry = entries.value.find((e) => e.id === id)
     if (entry) {
       entry.startDate = startDate
       entry.endDate = endDate
+      entry.row = row
     }
   }
 
-  function moveVacation(id: number, startDate: CalendarDate, endDate: CalendarDate) {
+  function moveVacation(id: number, startDate: CalendarDate, endDate: CalendarDate, row?: number) {
     const entry = entries.value.find((e) => e.id === id)
     if (entry) {
       entry.startDate = startDate
       entry.endDate = endDate
+      if (row !== undefined) entry.row = row
     }
   }
 

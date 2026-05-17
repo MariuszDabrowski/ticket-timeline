@@ -182,8 +182,9 @@ function onTicketListDrop(event: DragEvent) {
   if (prev) {
     const oldStart = prev.startDate
     const oldEnd = prev.endDate
+    const oldRow = prev.row
     undoStack.push(() => {
-      tickets.placeTicket(Number(id), oldStart)
+      tickets.placeTicket(Number(id), oldStart, oldRow)
       tickets.moveTicket(Number(id), oldStart, oldEnd)
     })
   }
@@ -211,8 +212,9 @@ function onEventListDrop(event: DragEvent) {
   if (prev) {
     const oldStart = prev.startDate
     const oldEnd = prev.endDate
+    const oldRow = prev.row
     undoStack.push(() => {
-      tickets.placeTicket(Number(id), oldStart)
+      tickets.placeTicket(Number(id), oldStart, oldRow)
       tickets.moveTicket(Number(id), oldStart, oldEnd)
     })
   }

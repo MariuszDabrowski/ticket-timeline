@@ -2,6 +2,7 @@ import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
 import type { useVacationsStore } from '../stores/vacations'
 import type { CalendarDate } from '../stores/tickets'
+import { findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
 
 function toCalDate(d: Date): CalendarDate {
   return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() }
@@ -35,7 +36,8 @@ export function seedSampleData(
   function placeFor(weekStart: Date, ticketId: number, startOffset: number, endOffset: number) {
     const start = toCalDate(calAddDays(weekStart, startOffset))
     const end = toCalDate(calAddDays(weekStart, endOffset))
-    tickets.placeTicket(ticketId, start)
+    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), start, end)
+    tickets.placeTicket(ticketId, start, row)
     tickets.moveTicket(ticketId, start, end)
   }
 
@@ -61,8 +63,17 @@ export function seedSampleData(
 
   // Myra is out for the back half of week 2 — shows the vacation pill in context
   // without overlapping any of her assigned work (which would look like a planning error).
+  // Compute the row against tickets + earlier-placed vacations so the vacation
+  // lands at the lowest free row (and doesn't collide with PROJ-156 on Wed).
+  const vacStart = toCalDate(calAddDays(monday2, 2))
+  const vacEnd = toCalDate(calAddDays(monday2, 4))
+  const vacRow = findFirstFreeRow(
+    combineRowOccupants(tickets.placements, vacations.entries),
+    vacStart,
+    vacEnd,
+  )
   const vacId = vacations.addVacation(myraId)
-  vacations.placeVacation(vacId, toCalDate(calAddDays(monday2, 2)), toCalDate(calAddDays(monday2, 4)))
+  vacations.placeVacation(vacId, vacStart, vacEnd, vacRow)
 
   // Backlog — gives a first-time visitor something to drag onto the calendar
   tickets.addTicket({ number: 'PROJ-161', title: 'Add audit logging', assignedTo: alexId, link: '' })

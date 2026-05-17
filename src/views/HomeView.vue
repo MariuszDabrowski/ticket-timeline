@@ -10,7 +10,7 @@ import MonthCalendar from '../components/MonthCalendar.vue'
 import AddUserModal from '../components/AddUserModal.vue'
 import AppLogo from '../components/AppLogo.vue'
 import { usePeopleStore } from '../stores/people'
-import { useTicketsStore } from '../stores/tickets'
+import { useTicketsStore, findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
 import AddTicketModal from '../components/AddTicketModal.vue'
 import EditTicketModal from '../components/EditTicketModal.vue'
 import UploadEpicModal from '../components/UploadEpicModal.vue'
@@ -86,8 +86,10 @@ const editingLabel = ref<Ticket | null>(null)
 function handleAddLabel(text: string, color: string, startDate: CalendarDate | null, endDate: CalendarDate | null) {
   const id = tickets.addTicket({ number: '', title: text, assignedTo: null, link: '', isLabel: true, labelColor: color })
   if (startDate) {
-    tickets.placeTicket(id, startDate)
-    tickets.moveTicket(id, startDate, endDate ?? startDate)
+    const end = endDate ?? startDate
+    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+    tickets.placeTicket(id, startDate, row)
+    tickets.moveTicket(id, startDate, end)
   }
   showAddLabel.value = false
   dismissHint()
@@ -108,7 +110,8 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
   const id = tickets.addTicket(ticketData)
   if (startDate) {
     const end = endDate ?? startDate
-    tickets.placeTicket(id, startDate)
+    const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+    tickets.placeTicket(id, startDate, row)
     tickets.moveTicket(id, startDate, end)
   }
   showAddTicket.value = false
@@ -125,7 +128,7 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
     currentProjectName.value = ''
     isSampleData.value = false
   }
-  importEpicCSV(csvText, people, tickets, workspaceSlug)
+  importEpicCSV(csvText, people, tickets, vacations, workspaceSlug)
   showUploadEpic.value = false
 
   // Auto-select any months that have newly placed tickets
@@ -179,7 +182,10 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
   tickets.updateTicket(id, ticketData)
   if (startDate) {
     const end = endDate ?? startDate
-    if (!tickets.placements.find((p) => p.ticketId === id)) tickets.placeTicket(id, startDate)
+    if (!tickets.placements.find((p) => p.ticketId === id)) {
+      const row = findFirstFreeRow(combineRowOccupants(tickets.placements, vacations.entries), startDate, end)
+      tickets.placeTicket(id, startDate, row)
+    }
     tickets.moveTicket(id, startDate, end)
   } else {
     tickets.removePlacement(id)
@@ -427,15 +433,24 @@ function handleHiBobConfirm(
     matches.push({ personId, group })
   }
   if (newPeople.length > 0) sidebarRef.value?.openPeopleSection()
-  vacations.addVacations(
-    matches.flatMap(({ personId, group }) =>
-      group.events.map((ev) => ({
+  // Greedy row assignment per the spec: each incoming vacation gets the lowest
+  // free row considering current tickets + vacations + others already added in
+  // this batch. Vacations on different days share rows when possible; same-day
+  // vacations stack vertically.
+  const occupants = combineRowOccupants(tickets.placements, vacations.entries)
+  const newVacations = matches.flatMap(({ personId, group }) =>
+    group.events.map((ev) => {
+      const row = findFirstFreeRow(occupants, ev.startDate, ev.endDate)
+      occupants.push({ startDate: ev.startDate, endDate: ev.endDate, row })
+      return {
         personId,
         startDate: ev.startDate,
         endDate: ev.endDate,
-      }))
-    )
+        row,
+      }
+    })
   )
+  vacations.addVacations(newVacations)
   hibobGroups.value = []
 }
 

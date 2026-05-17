@@ -73,7 +73,7 @@ describe('tickets store: deleteTicket', () => {
   it('also removes any placement for the ticket', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 10))
+    tickets.placeTicket(id, d(2026, 4, 10), 0)
     expect(tickets.placements).toHaveLength(1)
     tickets.deleteTicket(id)
     expect(tickets.placements).toHaveLength(0)
@@ -86,7 +86,7 @@ describe('tickets store: placeTicket / moveTicket / removePlacement', () => {
   it('placeTicket creates a single-day placement', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     expect(tickets.placements).toHaveLength(1)
     expect(tickets.placements[0]).toMatchObject({
       ticketId: id,
@@ -98,8 +98,8 @@ describe('tickets store: placeTicket / moveTicket / removePlacement', () => {
   it('placeTicket replaces an existing placement (no duplicates)', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
-    tickets.placeTicket(id, d(2026, 4, 20))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
+    tickets.placeTicket(id, d(2026, 4, 20), 0)
     expect(tickets.placements).toHaveLength(1)
     expect(tickets.placements[0]!.startDate).toEqual(d(2026, 4, 20))
   })
@@ -107,7 +107,7 @@ describe('tickets store: placeTicket / moveTicket / removePlacement', () => {
   it('moveTicket updates start and end dates', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.moveTicket(id, d(2026, 4, 12), d(2026, 4, 15))
     expect(tickets.placements[0]).toMatchObject({
       startDate: d(2026, 4, 12),
@@ -125,7 +125,7 @@ describe('tickets store: placeTicket / moveTicket / removePlacement', () => {
   it('removePlacement leaves the ticket but drops the placement', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.removePlacement(id)
     expect(tickets.placements).toHaveLength(0)
     expect(tickets.tickets).toHaveLength(1)
@@ -138,7 +138,7 @@ describe('tickets store: resizePlacement', () => {
   it('extends the start backward when given an earlier date', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.moveTicket(id, d(2026, 4, 11), d(2026, 4, 15))
     tickets.resizePlacement(id, 'start', d(2026, 4, 8))
     expect(tickets.placements[0]!.startDate).toEqual(d(2026, 4, 8))
@@ -147,7 +147,7 @@ describe('tickets store: resizePlacement', () => {
   it('extends the end forward when given a later date', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.resizePlacement(id, 'end', d(2026, 4, 20))
     expect(tickets.placements[0]!.endDate).toEqual(d(2026, 4, 20))
   })
@@ -155,7 +155,7 @@ describe('tickets store: resizePlacement', () => {
   it('refuses to drag start past end (would invert)', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.moveTicket(id, d(2026, 4, 11), d(2026, 4, 15))
     tickets.resizePlacement(id, 'start', d(2026, 4, 20)) // after end
     expect(tickets.placements[0]!.startDate).toEqual(d(2026, 4, 11)) // unchanged
@@ -164,7 +164,7 @@ describe('tickets store: resizePlacement', () => {
   it('refuses to drag end before start (would invert)', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.moveTicket(id, d(2026, 4, 11), d(2026, 4, 15))
     tickets.resizePlacement(id, 'end', d(2026, 4, 5)) // before start
     expect(tickets.placements[0]!.endDate).toEqual(d(2026, 4, 15)) // unchanged
@@ -177,7 +177,7 @@ describe('tickets store: getPlacementsForMonth', () => {
   it('returns placements whose dates fall in the given month', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     expect(tickets.getPlacementsForMonth(2026, 4)).toHaveLength(1)
     expect(tickets.getPlacementsForMonth(2026, 5)).toHaveLength(0)
   })
@@ -185,7 +185,7 @@ describe('tickets store: getPlacementsForMonth', () => {
   it('returns placements that straddle the month boundary', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'A', title: 'a', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 28))
+    tickets.placeTicket(id, d(2026, 4, 28), 0)
     tickets.moveTicket(id, d(2026, 4, 28), d(2026, 5, 3))
     expect(tickets.getPlacementsForMonth(2026, 4)).toHaveLength(1)
     expect(tickets.getPlacementsForMonth(2026, 5)).toHaveLength(1)
@@ -200,7 +200,7 @@ describe('tickets store: loadData', () => {
     tickets.addTicket({ number: 'OLD', title: 'old', assignedTo: 1, link: '' })
     tickets.loadData({
       tickets: [{ id: 100, number: 'NEW', title: 'new', assignedTo: 2, link: '' }],
-      placements: [{ ticketId: 100, startDate: d(2026, 4, 11), endDate: d(2026, 4, 12) }],
+      placements: [{ ticketId: 100, startDate: d(2026, 4, 11), endDate: d(2026, 4, 12), row: 0 }],
     })
     expect(tickets.tickets).toHaveLength(1)
     expect(tickets.tickets[0]!.number).toBe('NEW')
@@ -231,7 +231,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('returns true when a single-day ticket falls inside the range', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 12))).toBe(true)
   })
 
@@ -240,7 +240,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
     // endpoint of the ticket is inside the range, but it clearly overlaps.
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     tickets.moveTicket(id, d(2026, 4, 11), d(2026, 4, 15)) // Mon–Fri
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 13), d(2026, 4, 14))).toBe(true)
   })
@@ -248,7 +248,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('returns true when only the ticket end falls inside the range', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 8))
+    tickets.placeTicket(id, d(2026, 4, 8), 0)
     tickets.moveTicket(id, d(2026, 4, 8), d(2026, 4, 11))
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 13))).toBe(true)
   })
@@ -256,7 +256,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('returns true when only the ticket start falls inside the range', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 12))
+    tickets.placeTicket(id, d(2026, 4, 12), 0)
     tickets.moveTicket(id, d(2026, 4, 12), d(2026, 4, 15))
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 13))).toBe(true)
   })
@@ -264,7 +264,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('returns false when the ticket is entirely before the range', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 5))
+    tickets.placeTicket(id, d(2026, 4, 5), 0)
     tickets.moveTicket(id, d(2026, 4, 5), d(2026, 4, 8))
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 13))).toBe(false)
   })
@@ -272,7 +272,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('returns false when the ticket is entirely after the range', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 20))
+    tickets.placeTicket(id, d(2026, 4, 20), 0)
     tickets.moveTicket(id, d(2026, 4, 20), d(2026, 4, 22))
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 13))).toBe(false)
   })
@@ -280,7 +280,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('ignores tickets assigned to a different person', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 2, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 12))).toBe(false)
   })
 
@@ -288,7 +288,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
     // Events aren't owned by a person; they should never block vacation assignment.
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: '', title: 'Beta release', assignedTo: null, link: '', isLabel: true })
-    tickets.placeTicket(id, d(2026, 4, 11))
+    tickets.placeTicket(id, d(2026, 4, 11), 0)
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 12))).toBe(false)
   })
 
@@ -301,7 +301,7 @@ describe('tickets store: hasTicketOverlappingRange', () => {
   it('handles range and ticket touching at exactly one day (inclusive boundaries)', () => {
     const tickets = useTicketsStore()
     const id = tickets.addTicket({ number: 'T-1', title: 't', assignedTo: 1, link: '' })
-    tickets.placeTicket(id, d(2026, 4, 13))
+    tickets.placeTicket(id, d(2026, 4, 13), 0)
     tickets.moveTicket(id, d(2026, 4, 13), d(2026, 4, 13))
     // Range ends exactly where ticket starts — single-day overlap counts.
     expect(tickets.hasTicketOverlappingRange(1, d(2026, 4, 10), d(2026, 4, 13))).toBe(true)

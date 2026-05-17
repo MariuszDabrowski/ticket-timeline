@@ -106,8 +106,8 @@ describe('vacations store: addVacations', () => {
   it('appends new entries with fresh ids', () => {
     const vacations = useVacationsStore()
     vacations.addVacations([
-      { personId: 1, startDate: d(2026, 4, 1), endDate: d(2026, 4, 2) },
-      { personId: 2, startDate: d(2026, 4, 3), endDate: d(2026, 4, 4) },
+      { personId: 1, startDate: d(2026, 4, 1), endDate: d(2026, 4, 2), row: 0 },
+      { personId: 2, startDate: d(2026, 4, 3), endDate: d(2026, 4, 4), row: 0 },
     ])
     expect(vacations.entries).toHaveLength(2)
     expect(vacations.entries[0]!.id).not.toBe(vacations.entries[1]!.id)
@@ -123,7 +123,7 @@ describe('vacations store: addVacations', () => {
     vacations.placeVacation(myra, d(2026, 4, 10), d(2026, 4, 12))
 
     vacations.addVacations([
-      { personId: 1, startDate: d(2026, 4, 20), endDate: d(2026, 4, 22) },
+      { personId: 1, startDate: d(2026, 4, 20), endDate: d(2026, 4, 22), row: 0 },
     ])
 
     expect(vacations.entries).toHaveLength(2)
@@ -169,7 +169,7 @@ describe('vacations store: loadData', () => {
     const vacations = useVacationsStore()
     vacations.addVacation(1) // gets id 0 — should be wiped
     vacations.loadData([
-      { id: 10, personId: 5, startDate: d(2026, 4, 1), endDate: d(2026, 4, 2) },
+      { id: 10, personId: 5, startDate: d(2026, 4, 1), endDate: d(2026, 4, 2), row: 0 },
     ])
     expect(vacations.entries).toHaveLength(1)
     expect(vacations.entries[0]!.id).toBe(10)

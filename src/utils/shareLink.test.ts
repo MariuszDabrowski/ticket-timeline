@@ -23,6 +23,7 @@ function makeProject(overrides: Partial<ProjectData> = {}): ProjectData {
         ticketId: 10,
         startDate: { year: 2026, month: 4, day: 12 },
         endDate: { year: 2026, month: 4, day: 14 },
+        row: 0,
       },
     ],
     vacations: [
@@ -31,6 +32,7 @@ function makeProject(overrides: Partial<ProjectData> = {}): ProjectData {
         personId: 1,
         startDate: { year: 2026, month: 5, day: 1 },
         endDate: { year: 2026, month: 5, day: 5 },
+        row: 0,
       },
     ],
     selectedMonths: [24316, 24317],
@@ -71,12 +73,13 @@ describe('shareLink: encode → decode round-trip', () => {
   it('drops vacations missing start or end dates', () => {
     const project = makeProject({
       vacations: [
-        { id: 1, personId: 1, startDate: null, endDate: null },
+        { id: 1, personId: 1, startDate: null, endDate: null, row: 0 },
         {
           id: 2,
           personId: 2,
           startDate: { year: 2026, month: 0, day: 1 },
           endDate: { year: 2026, month: 0, day: 3 },
+          row: 0,
         },
       ],
     })

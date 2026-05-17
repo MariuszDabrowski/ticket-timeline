@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { importEpicCSV } from './epicCsv'
 import { usePeopleStore } from '../stores/people'
 import { useTicketsStore } from '../stores/tickets'
+import { useVacationsStore } from '../stores/vacations'
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -15,7 +16,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,Build login,alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.tickets).toHaveLength(1)
     expect(tickets.tickets[0]!.number).toBe('100')
@@ -26,7 +28,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,Build login,alice.smith@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(1)
     expect(people.people[0]!.name).toBe('Alice Smith')
@@ -36,10 +39,11 @@ describe('importEpicCSV', () => {
   it('reuses existing people matched by name (case-insensitive)', () => {
     const people = usePeopleStore()
     const tickets = useTicketsStore()
+    const vacations = useVacationsStore()
     const existingId = people.addPerson('Alice Smith')
 
     const csv = `${HEADER}\n100,T1,alice.smith@example.com,,false`
-    importEpicCSV(csv, people, tickets)
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(1)
     expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
@@ -51,11 +55,12 @@ describe('importEpicCSV', () => {
   it('fuzzy-matches CSV name as a substring of an existing full name', () => {
     const people = usePeopleStore()
     const tickets = useTicketsStore()
+    const vacations = useVacationsStore()
     const existingId = people.addPerson('Mariusz Dabrowski')
 
     // email's local part becomes just "Mariusz" — substring of "Mariusz Dabrowski"
     const csv = `${HEADER}\n100,T1,mariusz@example.com,,false`
-    importEpicCSV(csv, people, tickets)
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(1)
     expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
@@ -64,11 +69,12 @@ describe('importEpicCSV', () => {
   it('fuzzy-matches existing first-name when CSV provides full name', () => {
     const people = usePeopleStore()
     const tickets = useTicketsStore()
+    const vacations = useVacationsStore()
     const existingId = people.addPerson('Mariusz')
 
     // CSV email yields "Mariusz Dabrowski" — should collapse onto existing "Mariusz"
     const csv = `${HEADER}\n100,T1,mariusz.dabrowski@example.com,,false`
-    importEpicCSV(csv, people, tickets)
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(1)
     expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
@@ -77,10 +83,11 @@ describe('importEpicCSV', () => {
   it('creates separate people when names share no substring', () => {
     const people = usePeopleStore()
     const tickets = useTicketsStore()
+    const vacations = useVacationsStore()
     people.addPerson('Alice Smith')
 
     const csv = `${HEADER}\n100,T1,bob.jones@example.com,,false`
-    importEpicCSV(csv, people, tickets)
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(2)
     expect(people.people.map((p) => p.name).sort()).toEqual(['Alice Smith', 'Bob Jones'])
@@ -90,7 +97,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,team+alpha@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(people.people).toHaveLength(0)
     expect(tickets.tickets[0]!.assignedTo).toBeNull()
@@ -100,7 +108,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,true\n101,T2,alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.tickets).toHaveLength(1)
     expect(tickets.tickets[0]!.number).toBe('101')
@@ -110,7 +119,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,2026/05/14,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.placements).toHaveLength(1)
     expect(tickets.placements[0]!.startDate).toEqual({ year: 2026, month: 4, day: 14 })
@@ -120,7 +130,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.placements).toHaveLength(0)
   })
@@ -129,7 +140,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,"Title, with comma",alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.tickets[0]!.title).toBe('Title, with comma')
   })
@@ -138,7 +150,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,"He said ""hi""",alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     expect(tickets.tickets[0]!.title).toBe('He said "hi"')
   })
@@ -147,7 +160,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets, 'my-workspace')
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations, 'my-workspace')
 
     expect(tickets.tickets[0]!.link).toBe('https://app.shortcut.com/my-workspace/story/100')
   })
@@ -155,7 +169,8 @@ describe('importEpicCSV', () => {
   it('returns silently for empty input', () => {
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV('', people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV('', people, tickets, vacations)
     expect(tickets.tickets).toHaveLength(0)
   })
 
@@ -163,7 +178,8 @@ describe('importEpicCSV', () => {
     const csv = 'foo,bar\nbaz,qux'
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
     expect(tickets.tickets).toHaveLength(0)
   })
 
@@ -171,7 +187,8 @@ describe('importEpicCSV', () => {
     const csv = `${HEADER}\n100,T1,"team+x@example.com,alice@example.com,bob@example.com",,false`
     const people = usePeopleStore()
     const tickets = useTicketsStore()
-    importEpicCSV(csv, people, tickets)
+    const vacations = useVacationsStore()
+    importEpicCSV(csv, people, tickets, vacations)
 
     const alice = people.people.find((p) => p.name === 'Alice')!
     expect(tickets.tickets[0]!.assignedTo).toBe(alice.id)

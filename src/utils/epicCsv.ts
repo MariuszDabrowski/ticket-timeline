@@ -1,5 +1,7 @@
 import type { usePeopleStore } from '../stores/people'
 import type { useTicketsStore } from '../stores/tickets'
+import type { useVacationsStore } from '../stores/vacations'
+import { findFirstFreeRow, combineRowOccupants } from '../stores/tickets'
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
@@ -68,6 +70,7 @@ export function importEpicCSV(
   text: string,
   peopleStore: ReturnType<typeof usePeopleStore>,
   ticketsStore: ReturnType<typeof useTicketsStore>,
+  vacationsStore: ReturnType<typeof useVacationsStore>,
   workspaceSlug = '',
 ) {
   const rows = parseCSV(text)
@@ -131,7 +134,12 @@ export function importEpicCSV(
     // work look like it took way longer than it actually did.
     const startedDate = startedAtIdx !== -1 ? parseDate(row[startedAtIdx] ?? '') : null
     if (startedDate) {
-      ticketsStore.placeTicket(ticketId, startedDate)
+      const placementRow = findFirstFreeRow(
+        combineRowOccupants(ticketsStore.placements, vacationsStore.entries),
+        startedDate,
+        startedDate,
+      )
+      ticketsStore.placeTicket(ticketId, startedDate, placementRow)
     }
   }
 }
