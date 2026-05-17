@@ -114,7 +114,6 @@ function onFileInput(e: Event) {
 }
 .wide-body :deep(.simplebar-content) {
   gap: 1rem;
-  padding-bottom: 1.25rem;
 }
 
 .section {

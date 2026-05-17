@@ -109,7 +109,6 @@ function handleImport() {
 }
 .wide-body :deep(.simplebar-content) {
   gap: 1.25rem;
-  padding-bottom: 1.25rem;
 }
 
 .instructions {

@@ -78,11 +78,15 @@ button:hover:not(:disabled)::after {
   overflow-y: auto;
 }
 
+/* Inside a simplebar-wrapped .modal-body, the actual flex container is
+   .simplebar-content (simplebar copies our padding here and offsets the
+   wrapper with negative margin so the host's padding is canceled — net
+   result: padding shows once and scrolls with content). Mirror modal-body's
+   layout so flex/gap work the same with or without simplebar. */
 .modal-body .simplebar-content {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  padding-bottom: 0;
 }
 
 /* Custom checkbox — animated gradient fill on check + drawn check mark. Used

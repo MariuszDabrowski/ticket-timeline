@@ -99,7 +99,6 @@ function handleSubmit() {
 }
 .form-body :deep(.simplebar-content) {
   gap: 1rem;
-  padding-bottom: 1.25rem;
 }
 
 .date-row {

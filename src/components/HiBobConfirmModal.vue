@@ -107,13 +107,6 @@ function confirm() {
 </template>
 
 <style scoped>
-.modal-body :deep(.simplebar-content) {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  padding-bottom: 0;
-}
-
 .subtitle {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
