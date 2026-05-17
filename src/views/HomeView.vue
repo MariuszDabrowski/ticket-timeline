@@ -28,9 +28,11 @@ import AppSidebar from '../components/AppSidebar.vue'
 import type { ProjectData } from '../utils/projectStorage'
 import type { Ticket, CalendarDate } from '../stores/tickets'
 import { compareCalendarDates } from '../stores/tickets'
-import { importEpicCSV } from '../utils/epicCsv'
+import { parseEpicCSV, type EpicCsvImport } from '../utils/epicCsv'
 import { useVacationsStore } from '../stores/vacations'
 import type { ICSPersonGroup } from '../utils/icsParser'
+import PeopleConfirmModal from '../components/PeopleConfirmModal.vue'
+import { classifyIncoming, uniquifyName, type Classification, type IncomingPerson, type Decision } from '../utils/peopleMatch'
 
 
 // Absolute month key: year * 12 + month — spans across year boundaries
@@ -120,18 +122,13 @@ function handleAddTicket(ticket: { number: string; title: string; assignedTo: nu
 
 const showUploadEpic = ref(false)
 
-function handleEpicImport(csvText: string, workspaceSlug: string) {
-  if (isSampleData.value) {
-    people.loadData([])
-    tickets.loadData({ tickets: [], placements: [] })
-    vacations.loadData([])
-    currentProjectName.value = ''
-    isSampleData.value = false
-  }
-  importEpicCSV(csvText, people, tickets, vacations, workspaceSlug)
-  showUploadEpic.value = false
+// PeopleConfirmModal state. Shared by CSV (epic) and HiBob flows; whichever
+// path opens the modal stashes its follow-up in `pendingPeopleConfirm` so
+// the user's decisions can be applied and the import resumed.
+const peopleConfirmRows = ref<Classification[]>([])
+const pendingPeopleConfirm = ref<((decisions: Decision[]) => void) | null>(null)
 
-  // Auto-select any months that have newly placed tickets
+function expandSelectedMonthsForPlacements() {
   const selected = new Set(selectedMonths.value)
   let minAbs = Infinity
   let maxAbs = -Infinity
@@ -147,6 +144,92 @@ function handleEpicImport(csvText: string, workspaceSlug: string) {
   }
   selectedMonths.value = [...selected]
   if (minAbs !== Infinity) sidebarRef.value?.expandVisibleRange(minAbs, maxAbs)
+}
+
+// Walks incoming people, runs them through classifyIncoming, and splits into
+// (a) email-known auto-merges that go straight into the map, and (b) rows
+// that need user confirmation.
+function resolveIncomingPeople(
+  incoming: IncomingPerson[],
+): { autoMap: Map<string, number>; needsConfirm: Classification[] } {
+  const autoMap = new Map<string, number>()
+  const needsConfirm: Classification[] = []
+  for (const p of incoming) {
+    const c = classifyIncoming(p, people.people)
+    if (c.tier === 'email-known' && p.email && c.suggestedPersonId !== undefined) {
+      autoMap.set(p.email.toLowerCase(), c.suggestedPersonId)
+    } else {
+      needsConfirm.push(c)
+    }
+  }
+  return { autoMap, needsConfirm }
+}
+
+// Materialize decisions onto the roster: merges store the incoming email on
+// the matched person; creates spin up a new Person (with auto-suffix to dodge
+// visual duplicates) and store the email on it. Mutates `map` in place.
+function applyDecisions(map: Map<string, number>, decisions: Decision[]) {
+  for (const d of decisions) {
+    let personId: number
+    if (d.action === 'merge' && d.personId !== undefined) {
+      personId = d.personId
+    } else {
+      personId = people.addPerson(uniquifyName(d.name, people.people))
+    }
+    if (d.email) {
+      people.addEmail(personId, d.email)
+      map.set(d.email.toLowerCase(), personId)
+    }
+  }
+}
+
+// Common entry: given the list of unique incoming people from any source and
+// a follow-up action that consumes the resolved email→personId map, either
+// run the action immediately (all email-known) or open PeopleConfirmModal.
+function startImport(
+  incoming: IncomingPerson[],
+  doImport: (emailToPersonId: Map<string, number>) => void,
+) {
+  const { autoMap, needsConfirm } = resolveIncomingPeople(incoming)
+  if (needsConfirm.length === 0) {
+    doImport(autoMap)
+    return
+  }
+  peopleConfirmRows.value = needsConfirm
+  pendingPeopleConfirm.value = (decisions) => {
+    applyDecisions(autoMap, decisions)
+    doImport(autoMap)
+  }
+}
+
+function handlePeopleConfirm(decisions: Decision[]) {
+  const cb = pendingPeopleConfirm.value
+  pendingPeopleConfirm.value = null
+  peopleConfirmRows.value = []
+  cb?.(decisions)
+}
+
+function handlePeopleCancel() {
+  pendingPeopleConfirm.value = null
+  peopleConfirmRows.value = []
+}
+
+function handleEpicImport(csvText: string, workspaceSlug: string) {
+  if (isSampleData.value) {
+    people.loadData([])
+    tickets.loadData({ tickets: [], placements: [] })
+    vacations.loadData([])
+    currentProjectName.value = ''
+    isSampleData.value = false
+  }
+  const parsed: EpicCsvImport | null = parseEpicCSV(csvText, tickets, vacations, workspaceSlug)
+  showUploadEpic.value = false
+  if (!parsed) return
+
+  startImport(parsed.incomingPeople, (map) => {
+    parsed.apply(map)
+    expandSelectedMonthsForPlacements()
+  })
 }
 
 const editingTicket = ref<Ticket | null>(null)
@@ -307,6 +390,7 @@ const anyModalOpen = computed(() =>
   showSave.value || showLoad.value || showReset.value ||
   showAddPerson.value || editingPerson.value !== null ||
   showHiBob.value || hibobGroups.value.length > 0 ||
+  peopleConfirmRows.value.length > 0 ||
   showShareInfo.value || editingVacationId.value !== null ||
   showAddVacation.value || showAddLabel.value ||
   editingLabel.value !== null || editingTicket.value !== null
@@ -681,6 +765,16 @@ function handleHiBobConfirm(
       :people="people.people"
       @confirm="(matches, newPeople) => handleHiBobConfirm(matches, newPeople)"
       @cancel="hibobGroups = []"
+    />
+  </Transition>
+
+  <Transition name="modal">
+    <PeopleConfirmModal
+      v-if="peopleConfirmRows.length > 0"
+      :rows="peopleConfirmRows"
+      :people="people.people"
+      @confirm="handlePeopleConfirm"
+      @cancel="handlePeopleCancel"
     />
   </Transition>
 

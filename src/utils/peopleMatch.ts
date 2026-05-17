@@ -83,6 +83,16 @@ export function classifyIncoming(incoming: IncomingPerson, existing: Person[]): 
   return { incoming, tier: 'none' }
 }
 
+// One user decision emitted by PeopleConfirmModal. Merge → personId is set;
+// Create → personId is omitted and the caller creates a new Person (using
+// uniquifyName to avoid visual duplicates).
+export interface Decision {
+  email: string | null
+  name: string
+  action: 'merge' | 'create'
+  personId?: number
+}
+
 // Lowest-unused-suffix for a Create-New action when the requested name
 // collides with an existing one. "Jonathan" → "Jonathan (2)" if a Jonathan
 // already exists; "Jonathan (3)" if (2) is also taken, etc.

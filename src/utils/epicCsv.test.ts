@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { importEpicCSV } from './epicCsv'
-import { usePeopleStore } from '../stores/people'
+import { parseEpicCSV } from './epicCsv'
 import { useTicketsStore } from '../stores/tickets'
 import { useVacationsStore } from '../stores/vacations'
 
@@ -11,186 +10,122 @@ beforeEach(() => {
 
 const HEADER = 'id,name,owners,started_at,is_archived'
 
-describe('importEpicCSV', () => {
-  it('imports tickets with title and number from id+name columns', () => {
-    const csv = `${HEADER}\n100,Build login,alice@example.com,,false`
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
+// Two-phase API: parseEpicCSV extracts the list of incoming people (the caller
+// resolves them via classifyIncoming + PeopleConfirmModal); apply() then
+// places tickets given the resolved email→personId map.
 
+describe('parseEpicCSV: incoming people extraction', () => {
+  it('returns null for empty input', () => {
+    expect(parseEpicCSV('', useTicketsStore(), useVacationsStore())).toBeNull()
+  })
+
+  it('returns null when required columns are missing', () => {
+    expect(parseEpicCSV('foo,bar\nbaz,qux', useTicketsStore(), useVacationsStore())).toBeNull()
+  })
+
+  it('emits a single IncomingPerson per unique email', () => {
+    const csv = `${HEADER}\n100,T1,alice.smith@example.com,,false\n101,T2,alice.smith@example.com,,false`
+    const parsed = parseEpicCSV(csv, useTicketsStore(), useVacationsStore())
+    expect(parsed!.incomingPeople).toHaveLength(1)
+    expect(parsed!.incomingPeople[0]).toEqual({ name: 'Alice Smith', email: 'alice.smith@example.com' })
+  })
+
+  it('skips team-alias emails (containing "+")', () => {
+    const csv = `${HEADER}\n100,T1,team+alpha@example.com,,false`
+    const parsed = parseEpicCSV(csv, useTicketsStore(), useVacationsStore())
+    expect(parsed!.incomingPeople).toHaveLength(0)
+  })
+
+  it('extracts multiple owners listed in one cell', () => {
+    const csv = `${HEADER}\n100,T1,"alice@example.com,bob@example.com",,false`
+    const parsed = parseEpicCSV(csv, useTicketsStore(), useVacationsStore())
+    expect(parsed!.incomingPeople.map((p) => p.email).sort()).toEqual([
+      'alice@example.com', 'bob@example.com',
+    ])
+  })
+
+  it('skips archived rows when collecting people', () => {
+    const csv = `${HEADER}\n100,T1,archived@example.com,,true\n101,T2,active@example.com,,false`
+    const parsed = parseEpicCSV(csv, useTicketsStore(), useVacationsStore())
+    expect(parsed!.incomingPeople.map((p) => p.email)).toEqual(['active@example.com'])
+  })
+})
+
+describe('parseEpicCSV.apply: ticket placement', () => {
+  it('creates tickets with title + number from id+name columns', () => {
+    const csv = `${HEADER}\n100,Build login,alice@example.com,,false`
+    const tickets = useTicketsStore()
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 99]]))
     expect(tickets.tickets).toHaveLength(1)
     expect(tickets.tickets[0]!.number).toBe('100')
     expect(tickets.tickets[0]!.title).toBe('Build login')
+    expect(tickets.tickets[0]!.assignedTo).toBe(99)
   })
 
-  it('creates a person from owner email and assigns the ticket to them', () => {
-    const csv = `${HEADER}\n100,Build login,alice.smith@example.com,,false`
-    const people = usePeopleStore()
+  it('assigns ticket to first non-team email when multiple owners listed', () => {
+    const csv = `${HEADER}\n100,T1,"team+x@example.com,alice@example.com,bob@example.com",,false`
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(1)
-    expect(people.people[0]!.name).toBe('Alice Smith')
-    expect(tickets.tickets[0]!.assignedTo).toBe(people.people[0]!.id)
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1], ['bob@example.com', 2]]))
+    expect(tickets.tickets[0]!.assignedTo).toBe(1)
   })
 
-  it('reuses existing people matched by name (case-insensitive)', () => {
-    const people = usePeopleStore()
+  it('leaves assignedTo null when the email is not in the map', () => {
+    const csv = `${HEADER}\n100,T1,unknown@example.com,,false`
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    const existingId = people.addPerson('Alice Smith')
-
-    const csv = `${HEADER}\n100,T1,alice.smith@example.com,,false`
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(1)
-    expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
-  })
-
-  // Regression: importing HiBob vacations first ("Mariusz Dabrowski") then
-  // importing a CSV (email "mariusz@...") used to create a duplicate "Mariusz".
-  // The fuzzy match now collapses them onto the existing person.
-  it('fuzzy-matches CSV name as a substring of an existing full name', () => {
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    const existingId = people.addPerson('Mariusz Dabrowski')
-
-    // email's local part becomes just "Mariusz" — substring of "Mariusz Dabrowski"
-    const csv = `${HEADER}\n100,T1,mariusz@example.com,,false`
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(1)
-    expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
-  })
-
-  it('fuzzy-matches existing first-name when CSV provides full name', () => {
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    const existingId = people.addPerson('Mariusz')
-
-    // CSV email yields "Mariusz Dabrowski" — should collapse onto existing "Mariusz"
-    const csv = `${HEADER}\n100,T1,mariusz.dabrowski@example.com,,false`
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(1)
-    expect(tickets.tickets[0]!.assignedTo).toBe(existingId)
-  })
-
-  it('creates separate people when names share no substring', () => {
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    people.addPerson('Alice Smith')
-
-    const csv = `${HEADER}\n100,T1,bob.jones@example.com,,false`
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(2)
-    expect(people.people.map((p) => p.name).sort()).toEqual(['Alice Smith', 'Bob Jones'])
-  })
-
-  it('filters out emails containing "+" (team aliases)', () => {
-    const csv = `${HEADER}\n100,T1,team+alpha@example.com,,false`
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
-    expect(people.people).toHaveLength(0)
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map())
     expect(tickets.tickets[0]!.assignedTo).toBeNull()
   })
 
   it('skips archived rows', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,true\n101,T2,alice@example.com,,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.tickets).toHaveLength(1)
     expect(tickets.tickets[0]!.number).toBe('101')
   })
 
   it('places tickets that have a started_at date', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,2026/05/14,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.placements).toHaveLength(1)
     expect(tickets.placements[0]!.startDate).toEqual({ year: 2026, month: 4, day: 14 })
   })
 
   it('leaves tickets unplaced when started_at is empty', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.placements).toHaveLength(0)
   })
 
   it('handles quoted fields containing commas', () => {
     const csv = `${HEADER}\n100,"Title, with comma",alice@example.com,,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.tickets[0]!.title).toBe('Title, with comma')
   })
 
   it('handles escaped double quotes inside quoted fields', () => {
     const csv = `${HEADER}\n100,"He said ""hi""",alice@example.com,,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore())!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.tickets[0]!.title).toBe('He said "hi"')
   })
 
   it('builds Shortcut links when workspaceSlug is provided', () => {
     const csv = `${HEADER}\n100,T1,alice@example.com,,false`
-    const people = usePeopleStore()
     const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations, 'my-workspace')
-
+    const parsed = parseEpicCSV(csv, tickets, useVacationsStore(), 'my-workspace')!
+    parsed.apply(new Map([['alice@example.com', 1]]))
     expect(tickets.tickets[0]!.link).toBe('https://app.shortcut.com/my-workspace/story/100')
-  })
-
-  it('returns silently for empty input', () => {
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV('', people, tickets, vacations)
-    expect(tickets.tickets).toHaveLength(0)
-  })
-
-  it('returns silently when required columns are missing', () => {
-    const csv = 'foo,bar\nbaz,qux'
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-    expect(tickets.tickets).toHaveLength(0)
-  })
-
-  it('assigns to first non-team email when multiple owners listed', () => {
-    const csv = `${HEADER}\n100,T1,"team+x@example.com,alice@example.com,bob@example.com",,false`
-    const people = usePeopleStore()
-    const tickets = useTicketsStore()
-    const vacations = useVacationsStore()
-    importEpicCSV(csv, people, tickets, vacations)
-
-    const alice = people.people.find((p) => p.name === 'Alice')!
-    expect(tickets.tickets[0]!.assignedTo).toBe(alice.id)
   })
 })
