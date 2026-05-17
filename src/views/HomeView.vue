@@ -35,6 +35,7 @@ import PeopleConfirmModal from '../components/PeopleConfirmModal.vue'
 import BaseModal from '../components/BaseModal.vue'
 import type { IncomingPerson } from '../utils/peopleMatch'
 import { useImportFlow } from '../composables/useImportFlow'
+import { compactCalendarLayout } from '../utils/layout'
 
 
 // Absolute month key: year * 12 + month — spans across year boundaries
@@ -81,6 +82,7 @@ function handleRemovePerson(id: number) {
   })
   vacations.removeVacationsForPerson(id)
   people.removePerson(id)
+  compactCalendarLayout(tickets, vacations)
 }
 
 const tickets = useTicketsStore()
@@ -106,7 +108,10 @@ function handleSaveLabel(text: string, color: string) {
 }
 
 function handleDeleteLabel() {
-  if (editingLabel.value) tickets.deleteTicket(editingLabel.value.id)
+  if (editingLabel.value) {
+    tickets.deleteTicket(editingLabel.value.id)
+    compactCalendarLayout(tickets, vacations)
+  }
   editingLabel.value = null
 }
 
@@ -217,12 +222,16 @@ function handleEditTicket(data: { number: string; title: string; assignedTo: num
     tickets.moveTicket(id, startDate, end)
   } else {
     tickets.removePlacement(id)
+    compactCalendarLayout(tickets, vacations)
   }
   editingTicket.value = null
 }
 
 function handleDeleteTicket() {
-  if (editingTicket.value) tickets.deleteTicket(editingTicket.value.id)
+  if (editingTicket.value) {
+    tickets.deleteTicket(editingTicket.value.id)
+    compactCalendarLayout(tickets, vacations)
+  }
   editingTicket.value = null
 }
 
@@ -267,6 +276,7 @@ function handleEditVacation(vacationId: number, personId: number) {
 
 function handleDeleteVacation(vacationId: number) {
   vacations.removeVacation(vacationId)
+  compactCalendarLayout(tickets, vacations)
   editingVacationId.value = null
 }
 

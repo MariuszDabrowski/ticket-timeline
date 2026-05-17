@@ -10,6 +10,7 @@ import { snapToWeekday, workingDaysBetween, addWorkingDays } from '../utils/date
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
 import { cascadePush, shrinkRows, type CascadeItem } from '../utils/cascade'
+import { compactCalendarLayout } from '../utils/layout'
 import type { Ticket, Placement, CalendarDate } from '../stores/tickets'
 import EditTicketModal from './EditTicketModal.vue'
 import AddLabelModal from './AddLabelModal.vue'
@@ -124,12 +125,16 @@ function handleEditSubmit(data: { number: string; title: string; assignedTo: num
     ticketsStore.moveTicket(id, data.startDate, data.endDate)
   } else {
     ticketsStore.removePlacement(id)
+    compactCalendarLayout(ticketsStore, vacationsStore)
   }
   editingTicket.value = null
 }
 
 function handleDeleteTicket() {
-  if (editingTicket.value) ticketsStore.deleteTicket(editingTicket.value.id)
+  if (editingTicket.value) {
+    ticketsStore.deleteTicket(editingTicket.value.id)
+    compactCalendarLayout(ticketsStore, vacationsStore)
+  }
   editingTicket.value = null
 }
 
@@ -1550,7 +1555,7 @@ h2 {
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
-.ticket-pill.is-hovered:not(.is-on-vacation)::before {
+.ticket-pill.is-hovered::before {
   opacity: 0.35;
 }
 
