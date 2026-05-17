@@ -167,10 +167,21 @@ test('Reset → CSV import → ICS import does not wipe the CSV tickets', async 
     buffer: Buffer.from(icsContent),
   })
 
-  // Confirm modal opens — accept the default match (creates "Vacation Person")
-  const confirmDialog = page.getByRole('dialog', { name: 'Confirm Sync' })
-  await expect(confirmDialog).toBeVisible()
-  await confirmDialog.getByRole('button', { name: 'Complete Sync' }).click()
+  // Picker opens. "Vacation Person" doesn't match the existing roster
+  // (just Test User), so the picker starts it unchecked — click to opt in.
+  const pickerDialog = page.getByRole('dialog', { name: 'Sync HiBob Vacations' })
+  await expect(pickerDialog).toBeVisible()
+  await pickerDialog.getByText('Vacation Person').click()
+  await pickerDialog.getByRole('button', { name: 'Next' }).click()
+
+  // The calendar already has CSV data, so the import gate opens — pick Merge
+  // so the existing TT-500 ticket isn't wiped.
+  const importPrompt = page.getByRole('dialog', { name: 'Calendar Has Data' })
+  await expect(importPrompt).toBeVisible()
+  await importPrompt.getByRole('button', { name: 'Merge' }).click()
+
+  // Vacation Person doesn't exist in the roster → none tier → auto-create
+  // silently. No PeopleConfirmModal step.
 
   // CSV ticket must STILL be there
   await expandSection(page, 'Tickets')
