@@ -430,7 +430,7 @@ const previewItems = computed<CascadeItem[]>(() => {
     // they'll get on release. Without this, a downward drag briefly shows
     // an empty row at the top (cascade pushed everything down, hasn't
     // compacted yet).
-    return shrinkRows(pushed, weeksFromItems(pushed))
+    return shrinkRows(pushed)
   }
 
   if (dragState.vacationMoveDrag && dragState.vacationMovePreviewDate && dragState.movePreviewRow !== null) {
@@ -445,7 +445,7 @@ const previewItems = computed<CascadeItem[]>(() => {
       endDate: newEnd,
       row: dragState.movePreviewRow,
     })
-    return shrinkRows(pushed, weeksFromItems(pushed))
+    return shrinkRows(pushed)
   }
 
   // Sidebar new-vacation drag: not tied to an existing vacation id. We use
@@ -459,7 +459,7 @@ const previewItems = computed<CascadeItem[]>(() => {
       endDate: date,
       row: dragState.movePreviewRow,
     })
-    return shrinkRows(pushed, weeksFromItems(pushed))
+    return shrinkRows(pushed)
   }
 
   // Ticket or vacation resize: the dragged item's `items` entry already has
@@ -475,7 +475,7 @@ const previewItems = computed<CascadeItem[]>(() => {
     const dragged = items.find((i) => i.key === resizedKey)
     if (dragged) {
       const pushed = cascadePush(items, dragged)
-      return shrinkRows(pushed, weeksFromItems(pushed))
+      return shrinkRows(pushed)
     }
   }
 
@@ -577,36 +577,6 @@ function daySlots(day: number): UnifiedSlot[] {
   // We'll pad back to the week's effectiveRowCount in effectiveDaySlots().
   while (slots.length > 0 && slots[slots.length - 1] === null) slots.pop()
   return slots
-}
-
-// Weeks that contain any day touched by any input item — used by shrinkRows.
-//
-// We can't just use the current month's weeks: a cross-month pill (PROJ-156
-// spanning May 29 → June 2, say) lives in both May's and June's calendars,
-// and if each MonthCalendar shrinks only its own weeks, they produce
-// different rows for the same placement, and the cross-month preview goes
-// out of sync. Working from the items' actual dates gives every
-// MonthCalendar the same shrink result.
-function weeksFromItems(items: CascadeItem[]): CalendarDate[][] {
-  const buckets = new Map<string, CalendarDate[]>()
-  for (const item of items) {
-    let cursor = new Date(item.startDate.year, item.startDate.month, item.startDate.day)
-    const end = new Date(item.endDate.year, item.endDate.month, item.endDate.day)
-    while (cursor <= end) {
-      const dow = cursor.getDay() // Sun=0
-      const weekStart = new Date(cursor)
-      weekStart.setDate(cursor.getDate() - dow)
-      const key = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`
-      let bucket = buckets.get(key)
-      if (!bucket) {
-        bucket = []
-        buckets.set(key, bucket)
-      }
-      bucket.push({ year: cursor.getFullYear(), month: cursor.getMonth(), day: cursor.getDate() })
-      cursor.setDate(cursor.getDate() + 1)
-    }
-  }
-  return Array.from(buckets.values())
 }
 
 // Apply a cascaded layout back to the stores. Walks each item in the new

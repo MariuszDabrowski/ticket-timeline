@@ -44,25 +44,22 @@ export function cascadePush(items: CascadeItem[], target: CascadeItem): CascadeI
   return place(base, target)
 }
 
-// Maintains the no-holes invariant after a removal or move-out:
-// For each week (passed in as an array of CalendarDates), find any empty row
-// between occupied rows in that week and shift everything above it down by 1.
+// Compacts the layout by sliding each item down to the lowest row it can
+// occupy without colliding. Lower-row items are tried first so they settle
+// before higher ones get a chance.
 //
-// Shifts apply globally to a placement (a multi-week pill is one stored row,
-// shifting it changes its row in every week it touches). So a candidate shift
-// is only applied if it doesn't create collisions elsewhere — if shifting
-// would collide, the gap stays.
+// Each item's row is a single value shared across all weeks it spans, so a
+// shift is only applied if it's collision-free globally (a multi-week pill
+// can't drop into row N in one week if it would collide in another).
 //
-// Repeats until no safe shift is available, so multiple gaps close in one call.
-export function shrinkRows(items: CascadeItem[], weeks: CalendarDate[][]): CascadeItem[] {
-  function touchesWeek(item: CascadeItem, weekDays: CalendarDate[]): boolean {
-    return weekDays.some(
-      (d) =>
-        compareCalendarDates(item.startDate, d) <= 0 &&
-        compareCalendarDates(item.endDate, d) >= 0,
-    )
-  }
-
+// This covers both vertical holes (an unused row index in a week) and
+// horizontal gaps (an item sitting higher than necessary because the row
+// below is only busy on days the item doesn't touch — e.g. after a resize
+// contraction frees up space the cascade had previously pushed into).
+//
+// Terminates: each successful shift strictly decreases an item's row, so
+// total row sum strictly decreases until no shift is safe.
+export function shrinkRows(items: CascadeItem[]): CascadeItem[] {
   function hasCollision(list: CascadeItem[]): boolean {
     for (let i = 0; i < list.length; i++) {
       for (let j = i + 1; j < list.length; j++) {
@@ -76,32 +73,15 @@ export function shrinkRows(items: CascadeItem[], weeks: CalendarDate[][]): Casca
   let changed = true
   while (changed) {
     changed = false
-    for (const weekDays of weeks) {
-      const occupiedRows = new Set<number>()
-      for (const item of current) {
-        if (touchesWeek(item, weekDays)) occupiedRows.add(item.row)
+    const sorted = [...current].sort((a, b) => a.row - b.row)
+    for (const item of sorted) {
+      if (item.row === 0) continue
+      const proposed = current.map((i) => (i === item ? { ...i, row: i.row - 1 } : i))
+      if (!hasCollision(proposed)) {
+        current = proposed
+        changed = true
+        break
       }
-      const sorted = [...occupiedRows].sort((a, b) => a - b)
-
-      // Two kinds of gap to close: (1) the lowest row > 0 (everything can slide
-      // down by 1) and (2) any gap between two occupied rows in this week.
-      const gapTargets: number[] = []
-      if (sorted.length > 0 && sorted[0]! > 0) gapTargets.push(sorted[0]! - 1)
-      for (let i = 0; i < sorted.length - 1; i++) {
-        if (sorted[i + 1]! - sorted[i]! > 1) gapTargets.push(sorted[i + 1]! - 1)
-      }
-
-      for (const gap of gapTargets) {
-        const proposed = current.map((item) =>
-          touchesWeek(item, weekDays) && item.row > gap ? { ...item, row: item.row - 1 } : item,
-        )
-        if (!hasCollision(proposed)) {
-          current = proposed
-          changed = true
-          break // restart the outer loop so the new sorted-rows for this week is re-evaluated
-        }
-      }
-      if (changed) break
     }
   }
   return current
