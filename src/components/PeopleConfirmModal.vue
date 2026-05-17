@@ -82,7 +82,7 @@ function confirm() {
             </div>
 
             <div class="row-action">
-              <select v-model="state.action" class="action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
+              <select v-model="state.action" class="app-select action-select" :aria-label="`Action for ${state.classification.incoming.name}`">
                 <option value="merge">Merge with</option>
                 <option value="create">Create new</option>
               </select>
@@ -90,7 +90,7 @@ function confirm() {
               <select
                 v-if="state.action === 'merge'"
                 v-model="state.personId"
-                class="person-select"
+                class="app-select person-select"
                 :class="{ 'needs-pick': state.personId === null }"
                 :aria-label="`Person to merge ${state.classification.incoming.name} with`"
               >
@@ -177,25 +177,14 @@ function confirm() {
   align-items: center;
 }
 
+/* Override the default .app-select 14px/.45rem padding — this modal uses a
+   denser type scale for the inline picker. */
 .action-select,
 .person-select {
-  font-family: inherit;
   font-size: 0.8rem;
   padding: 0.3rem 1.8rem 0.3rem 0.55rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.9);
-  outline: none;
-  /* Native dropdown arrow on macOS sits flush against the right edge and
-     ignores padding-right. Suppress it and paint our own SVG chevron with
-     room to breathe. */
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.55rem center;
-  background-size: 12px;
+  width: auto;
 }
 
 .person-select {
@@ -205,10 +194,5 @@ function confirm() {
 
 .person-select.needs-pick {
   border-color: rgba(231, 76, 60, 0.6);
-}
-
-.action-select:focus,
-.person-select:focus {
-  border-color: rgba(255, 255, 255, 0.3);
 }
 </style>

@@ -38,9 +38,10 @@ const datesValid = computed(() => {
 <template>
   <BaseModal :title="props.existing ? 'Edit Event' : 'Add Event'" size="compact" @close="emit('cancel')">
     <div class="modal-body form-body" v-simplebar>
-      <div class="field">
-        <label>Event name</label>
+      <div class="app-field">
+        <label class="app-label">Event name</label>
         <input
+          class="app-input"
           v-model="text"
           type="text"
           placeholder="e.g. Design freeze"
@@ -49,18 +50,18 @@ const datesValid = computed(() => {
         />
       </div>
 
-      <div class="field schedule-field">
-        <label>Schedule <span class="label-hint">— optional</span></label>
+      <div class="app-field schedule-field">
+        <label class="app-label">Schedule <span class="app-label-hint">— optional</span></label>
         <div class="date-row">
-          <input v-model="startDateStr" type="date" />
+          <input class="app-input" v-model="startDateStr" type="date" />
           <span class="date-sep">to</span>
-          <input v-model="endDateStr" type="date" :min="startDateStr" />
+          <input class="app-input" v-model="endDateStr" type="date" :min="startDateStr" />
         </div>
         <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
       </div>
 
-      <div class="field">
-        <label>Color</label>
+      <div class="app-field">
+        <label class="app-label">Color</label>
         <div class="swatches">
           <button
             v-for="color in COLORS"
@@ -94,20 +95,6 @@ const datesValid = computed(() => {
   padding-bottom: 1.25rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
-}
-
 .swatches {
   display: flex;
   flex-wrap: wrap;
@@ -134,34 +121,13 @@ label {
   outline-offset: 1px;
 }
 
-input {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-input:focus { border-color: rgba(255, 255, 255, 0.3); }
-
-.label-hint {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: 0.7;
-}
-
 .date-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.date-row input {
+.date-row .app-input {
   flex: 1;
 }
 
@@ -174,11 +140,6 @@ input:focus { border-color: rgba(255, 255, 255, 0.3); }
 .date-error {
   font-size: 12px;
   color: #e74c3c;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.4);
-  cursor: pointer;
 }
 
 .schedule-field {

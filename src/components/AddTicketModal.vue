@@ -48,19 +48,19 @@ function handleSubmit() {
 <template>
   <BaseModal title="Add Ticket" size="compact" @close="emit('cancel')">
     <div class="modal-body form-body" v-simplebar>
-      <div class="field">
-        <label>Ticket ID</label>
-        <input v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" />
+      <div class="app-field">
+        <label class="app-label">Ticket ID</label>
+        <input class="app-input" v-model="number" type="text" placeholder="e.g. PROJ-123" @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field">
-        <label>Title</label>
-        <input v-model="title" type="text" placeholder="Ticket title" @keydown.enter.prevent="handleSubmit" />
+      <div class="app-field">
+        <label class="app-label">Title</label>
+        <input class="app-input" v-model="title" type="text" placeholder="Ticket title" @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field">
-        <label>Assigned To</label>
-        <select v-model="assignedTo">
+      <div class="app-field">
+        <label class="app-label">Assigned To</label>
+        <select class="app-select" v-model="assignedTo">
           <option :value="null">Unassigned</option>
           <option v-for="person in props.people" :key="person.id" :value="person.id">
             {{ person.name }}
@@ -68,17 +68,17 @@ function handleSubmit() {
         </select>
       </div>
 
-      <div class="field">
-        <label>Ticket Link</label>
-        <input v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
+      <div class="app-field">
+        <label class="app-label">Ticket Link</label>
+        <input class="app-input" v-model="link" type="url" placeholder="https://..." @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field schedule-field">
-        <label>Schedule <span class="label-hint">— optional</span></label>
+      <div class="app-field schedule-field">
+        <label class="app-label">Schedule <span class="app-label-hint">— optional</span></label>
         <div class="date-row">
-          <input v-model="startDateStr" type="date" />
+          <input class="app-input" v-model="startDateStr" type="date" />
           <span class="date-sep">to</span>
-          <input v-model="endDateStr" type="date" :min="startDateStr" />
+          <input class="app-input" v-model="endDateStr" type="date" :min="startDateStr" />
         </div>
         <p v-if="!datesValid" class="date-error">End date must be on or after start date.</p>
       </div>
@@ -102,73 +102,13 @@ function handleSubmit() {
   padding-bottom: 1.25rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
-}
-
-.label-hint {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: 0.7;
-}
-
-input,
-select {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-select {
-  padding-right: 2rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.65rem center;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-select option {
-  background: #1a1a1a;
-  color: #fff;
-}
-
-input:focus,
-select:focus {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.4);
-  cursor: pointer;
-}
-
 .date-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.date-row input {
+.date-row .app-input {
   flex: 1;
 }
 

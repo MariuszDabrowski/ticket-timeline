@@ -78,12 +78,13 @@ function handleImport() {
         </template>
       </div>
 
-      <div class="field">
-        <label>
+      <div class="app-field">
+        <label class="app-label">
           Shortcut workspace slug
           <span class="hint">Found in your Shortcut URL: app.shortcut.com/<strong>your-slug</strong>/…</span>
         </label>
         <input
+          class="app-input"
           v-model="workspaceSlug"
           type="text"
           placeholder="e.g. clearbanc"
@@ -168,18 +169,9 @@ function handleImport() {
   text-align: center;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+/* The label/hint pair in this modal stacks vertically — override the
+   default app-label which lays out in a row. */
+.app-label {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -196,25 +188,5 @@ label {
 .hint strong {
   font-weight: 600;
   opacity: 1;
-}
-
-input[type='text'] {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-input[type='text']::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-input[type='text']:focus {
-  border-color: rgba(255, 255, 255, 0.3);
 }
 </style>

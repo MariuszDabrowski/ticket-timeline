@@ -64,22 +64,22 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
       <h2>Form controls</h2>
       <p class="sg-section-desc">Text, select, date, and the custom checkbox. The select uses a hand-painted SVG chevron because the native macOS arrow ignores <code>padding-right</code>.</p>
       <div class="sg-grid">
-        <label class="sg-field">
-          <span>Text input</span>
-          <input class="sg-input" type="text" placeholder="Type here…" />
-        </label>
-        <label class="sg-field">
-          <span>Select</span>
-          <select class="sg-select" v-model="selectVal">
+        <div class="app-field">
+          <label class="app-label">Text input</label>
+          <input class="app-input" type="text" placeholder="Type here…" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">Select</label>
+          <select class="app-select" v-model="selectVal">
             <option value="alice">Alice</option>
             <option value="bob">Bob</option>
             <option value="charlie">Charlie</option>
           </select>
-        </label>
-        <label class="sg-field">
-          <span>Date</span>
-          <input class="sg-input" type="date" />
-        </label>
+        </div>
+        <div class="app-field">
+          <label class="app-label">Date</label>
+          <input class="app-input" type="date" />
+        </div>
         <label class="sg-checkbox-row">
           <input type="checkbox" class="app-checkbox" v-model="checkboxOn" />
           <span>Custom checkbox</span>
@@ -297,52 +297,6 @@ const modalSize = ref<'compact' | 'wide' | null>(null)
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-}
-
-.sg-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.sg-input,
-.sg-select {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.85);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.sg-input:focus,
-.sg-select:focus {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.sg-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 1.8rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.55rem center;
-  background-size: 12px;
-  cursor: pointer;
-}
-
-.sg-select option {
-  background: #1a1a1a;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.4);
-  cursor: pointer;
 }
 
 .sg-checkbox-row {

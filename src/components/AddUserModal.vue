@@ -48,13 +48,13 @@ function handleSubmit() {
 <template>
   <BaseModal :title="props.existing ? 'Edit Person' : 'Add Person'" size="compact" @close="emit('cancel')">
     <div class="modal-body form-body" v-simplebar>
-      <div class="field">
-        <label>Name</label>
-        <input v-model="name" type="text" placeholder="Name" @keydown.enter.prevent="handleSubmit" />
+      <div class="app-field">
+        <label class="app-label">Name</label>
+        <input class="app-input" v-model="name" type="text" placeholder="Name" @keydown.enter.prevent="handleSubmit" />
       </div>
 
-      <div class="field">
-        <label>Color</label>
+      <div class="app-field">
+        <label class="app-label">Color</label>
         <div class="swatches">
           <button
             v-for="color in COLORS"
@@ -86,20 +86,6 @@ function handleSubmit() {
   padding-bottom: 1.25rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
-}
-
 .swatches {
   display: flex;
   flex-wrap: wrap;
@@ -126,22 +112,5 @@ label {
   border-color: #fff;
   outline: 2px solid rgba(255, 255, 255, 0.3);
   outline-offset: 1px;
-}
-
-input {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-
-input:focus {
-  border-color: rgba(255, 255, 255, 0.3);
 }
 </style>
