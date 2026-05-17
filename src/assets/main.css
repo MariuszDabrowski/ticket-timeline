@@ -68,21 +68,21 @@ button:hover:not(:disabled)::after {
 }
 
 /* Default modal body container. Modal owners place content inside; the simplebar
-   directive can be applied here to scroll long content. Padding/gap chosen to
-   match what most modals were already using before BaseModal. */
+   directive can be applied here to scroll long content. Vertical spacing comes
+   from gap only — no padding-top/bottom — so the rhythm between fields and at
+   the scroll edges is a single value. */
 .modal-body {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  padding: 1rem 1.25rem;
+  padding: 0 1.25rem;
   overflow-y: auto;
 }
 
 /* Inside a simplebar-wrapped .modal-body, the actual flex container is
    .simplebar-content (simplebar copies our padding here and offsets the
-   wrapper with negative margin so the host's padding is canceled — net
-   result: padding shows once and scrolls with content). Mirror modal-body's
-   layout so flex/gap work the same with or without simplebar. */
+   wrapper with negative margin so the host's padding is canceled). Mirror
+   modal-body's flex/gap so layout matches with or without simplebar. */
 .modal-body .simplebar-content {
   display: flex;
   flex-direction: column;

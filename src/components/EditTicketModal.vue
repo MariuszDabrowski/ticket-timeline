@@ -115,7 +115,7 @@ function handleSubmit() {
 
 <style scoped>
 .form-body {
-  padding: 1.25rem 1.5rem;
+  padding: 0 1.5rem;
   gap: 1rem;
 }
 .form-body :deep(.simplebar-content) {

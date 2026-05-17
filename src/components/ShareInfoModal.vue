@@ -20,7 +20,7 @@ const emit = defineEmits<{ close: [] }>()
 <style scoped>
 /* Local overrides for the dense paragraph layout this modal uses. */
 .share-info-body {
-  padding: 1.25rem 1.5rem;
+  padding: 0 1.5rem;
   gap: 0.75rem;
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.84rem;
