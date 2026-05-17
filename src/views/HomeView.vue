@@ -194,7 +194,7 @@ function handleDeleteTicket() {
 
 const vacations = useVacationsStore()
 const undoStack = useUndoStack()
-const { message: rejectionMessage } = useRejectionToast()
+const { message: rejectionMessage, showRejection } = useRejectionToast()
 const showAddVacation = ref(false)
 const vacationModalPersonId = ref<number | null>(null)
 const editingVacationId = ref<number | null>(null)
@@ -208,7 +208,32 @@ function handleAddVacation(personId: number, startDate: CalendarDate | null, end
 
 function handleEditVacation(vacationId: number, personId: number) {
   const entry = vacations.entries.find((e) => e.id === vacationId)
-  if (entry) entry.personId = personId
+  if (!entry) {
+    editingVacationId.value = null
+    return
+  }
+
+  // Reject if the new person has any ticket overlapping the vacation dates —
+  // otherwise the swap would silently clip those tickets on the vacation days.
+  // Skip the check when the person isn't actually changing or when the vacation
+  // hasn't been placed yet (no dates).
+  if (entry.personId !== personId && entry.startDate && entry.endDate) {
+    const vStart = entry.startDate
+    const vEnd = entry.endDate
+    const conflict = tickets.placements.some((p) => {
+      const ticket = tickets.tickets.find((t) => t.id === p.ticketId)
+      if (!ticket || ticket.isLabel || ticket.assignedTo !== personId) return false
+      return compareCalendarDates(p.startDate, vEnd) <= 0 &&
+             compareCalendarDates(p.endDate, vStart) >= 0
+    })
+    if (conflict) {
+      const person = people.people.find((p) => p.id === personId)
+      showRejection(`Can't assign vacation to ${person?.name ?? 'this person'} — they have a ticket during these dates.`)
+      return
+    }
+  }
+
+  entry.personId = personId
   editingVacationId.value = null
 }
 
@@ -706,7 +731,7 @@ function handleHiBobConfirm(
     linear-gradient(90deg, #191919 0%, #2a2a2a 60%, #242424 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0),
-    0 2px 20px rgba(0, 0, 0, 0.3);
+    0 1px 4px rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 

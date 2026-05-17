@@ -1,6 +1,9 @@
 @import './base.css';
 
-/* Global button hover fade via ::after overlay — works on any gradient background */
+/* Global button hover fade via ::after overlay — works on any gradient background.
+   Transition opacity (not background) so it's GPU-composited; transitioning a
+   color/background under Safari + the body's brightness filter causes paint
+   leaks into the surrounding area on hover. */
 button {
   position: relative;
   overflow: hidden;
@@ -10,14 +13,15 @@ button::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0);
-  transition: background 0.2s ease;
+  background: rgba(255, 255, 255, 0.07);
+  opacity: 0;
+  transition: opacity 0.2s ease;
   pointer-events: none;
   border-radius: inherit;
 }
 
 button:hover:not(:disabled)::after {
-  background: rgba(255, 255, 255, 0.07);
+  opacity: 1;
 }
 
 /* Standard small dark button used throughout modals and the app header */

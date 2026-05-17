@@ -105,13 +105,15 @@ const editingTicket = ref<Ticket | null>(null)
 const editingLabel = ref<Ticket | null>(null)
 const { showRejection } = useRejectionToast()
 
-function hasTicketEndpointInRange(personId: number, start: CalendarDate, end: CalendarDate): boolean {
+// True overlap check (not just endpoint hits): catches multi-day tickets that
+// span the given range without either endpoint falling inside it — e.g. a
+// Mon–Fri ticket vs a Wed–Thu vacation, which an endpoint-only check missed.
+function hasTicketOverlappingRange(personId: number, start: CalendarDate, end: CalendarDate): boolean {
   return ticketsStore.placements.some((p) => {
     const ticket = ticketsStore.tickets.find((t) => t.id === p.ticketId)
     if (!ticket || ticket.isLabel || ticket.assignedTo !== personId) return false
-    const startHit = compareCalendarDates(p.startDate, start) >= 0 && compareCalendarDates(p.startDate, end) <= 0
-    const endHit = compareCalendarDates(p.endDate, start) >= 0 && compareCalendarDates(p.endDate, end) <= 0
-    return startHit || endHit
+    return compareCalendarDates(p.startDate, end) <= 0 &&
+           compareCalendarDates(p.endDate, start) >= 0
   })
 }
 
@@ -822,7 +824,7 @@ function onDrop(event: DragEvent, day: number) {
       let newEnd = entry.endDate
       if (side === 'start' && compareCalendarDates(calDate(day), entry.endDate) <= 0) newStart = calDate(day)
       else if (side === 'end' && compareCalendarDates(calDate(day), entry.startDate) >= 0) newEnd = calDate(day)
-      if (hasTicketEndpointInRange(entry.personId, newStart, newEnd)) {
+      if (hasTicketOverlappingRange(entry.personId, newStart, newEnd)) {
         dragState.clearVacationResizeDrag()
         showRejection("Vacations can't cover a ticket's start or end day")
         return
@@ -837,7 +839,7 @@ function onDrop(event: DragEvent, day: number) {
   const vacationId = event.dataTransfer?.getData('vacationId')
   if (vacationId) {
     const entry = vacationsStore.entries.find((v) => v.id === Number(vacationId))
-    if (entry && hasTicketEndpointInRange(entry.personId, calDate(day), calDate(day))) {
+    if (entry && hasTicketOverlappingRange(entry.personId, calDate(day), calDate(day))) {
       dragState.clearVacationMoveDrag()
       showRejection("Vacations can't cover a ticket's start or end day")
       return
@@ -855,7 +857,7 @@ function onDrop(event: DragEvent, day: number) {
   const newVacationPersonId = event.dataTransfer?.getData('newVacationPersonId')
   if (newVacationPersonId) {
     const personId = Number(newVacationPersonId)
-    if (hasTicketEndpointInRange(personId, calDate(day), calDate(day))) {
+    if (hasTicketOverlappingRange(personId, calDate(day), calDate(day))) {
       showRejection("Vacations can't cover a ticket's start or end day")
       return
     }
@@ -870,7 +872,7 @@ function onDrop(event: DragEvent, day: number) {
     const entry = vacationsStore.entries.find((v) => v.id === Number(moveVacationData))
     const newStart = calDate(day)
     const newEnd = addDays(newStart, dragState.vacationMoveDrag.span)
-    if (entry && hasTicketEndpointInRange(entry.personId, newStart, newEnd)) {
+    if (entry && hasTicketOverlappingRange(entry.personId, newStart, newEnd)) {
       dragState.clearVacationMoveDrag()
       showRejection("Vacations can't cover a ticket's start or end day")
       return
