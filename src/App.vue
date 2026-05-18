@@ -1,7 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onErrorCaptured } from 'vue'
+import { ref, computed, onMounted, onUnmounted, onErrorCaptured, watch } from 'vue'
 import HomeView from './views/HomeView.vue'
 import StyleGuideView from './views/StyleGuideView.vue'
+import { useDragStateStore } from './stores/dragState'
+
+// Force the grabbing cursor through the whole drag. macOS Chrome paints the
+// move arrow during native HTML5 drag because dropEffect = 'move', and CSS
+// cursor on individual draggable elements only sticks until the OS picks
+// up the drag. Toggling a body class lets us apply cursor: grabbing
+// !important to every descendant — whether the browser honors it depends
+// on the platform, but it's a one-class change and costs nothing if it
+// doesn't.
+const dragState = useDragStateStore()
+watch(
+  () => dragState.isAnyActive,
+  (active) => {
+    document.body.classList.toggle('is-dragging', active)
+  },
+)
 
 const error = ref<Error | null>(null)
 

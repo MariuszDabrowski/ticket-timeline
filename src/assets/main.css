@@ -1,5 +1,16 @@
 @import './base.css';
 
+/* Body class toggled in App.vue while any drag is in flight. Forces the
+   grabbing cursor across the whole document so it stays consistent with
+   the source pill's :active cursor once the drag actually begins.
+   Whether the OS honors this during native HTML5 drag varies by
+   platform — on macOS Chrome the OS may still paint its own move arrow
+   on top. */
+body.is-dragging,
+body.is-dragging * {
+  cursor: grabbing !important;
+}
+
 /* Global button hover fade via ::after overlay — works on any gradient background.
    Transition opacity (not background) so it's GPU-composited; transitioning a
    color/background under Safari + the body's brightness filter causes paint
