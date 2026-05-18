@@ -23,15 +23,21 @@ if (EMPTY_DRAG_IMAGE) {
     'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
 }
 
+// Lock the drag's effectAllowed to 'move' at dragstart. Without this Chrome
+// guesses from heuristics and can land on "link" — which paints a globe icon
+// next to the cursor until the first dragover sets dropEffect. Used on every
+// dragstart in the app, whether or not we also suppress the native drag image.
+export function lockMoveEffectAllowed(event: DragEvent): void {
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+}
+
 export function suppressNativeDragImage(event: DragEvent): void {
   if (!event.dataTransfer) return
   if (EMPTY_DRAG_IMAGE?.complete) {
     event.dataTransfer.setDragImage(EMPTY_DRAG_IMAGE, 0, 0)
   }
-  // Without effectAllowed Chrome guesses the drop effect from heuristics and
-  // can land on "link" — which paints a globe icon next to the cursor until
-  // the first dragover sets dropEffect. Lock it to move from the start.
-  event.dataTransfer.effectAllowed = 'move'
+  lockMoveEffectAllowed(event)
 }
 
 // Pair with suppressNativeDragImage on every drop target's dragover so the
