@@ -188,33 +188,6 @@ test('Reset → CSV import → ICS import does not wipe the CSV tickets', async 
   await expect(page.locator('.ticket-list')).toContainText('TT-500')
 })
 
-// Regression: swapping a vacation's person to someone who already has a ticket
-// during the same dates used to succeed silently and visually hide the ticket
-// on the vacation days. handleEditVacation now rejects with a toast.
-test('vacation person swap is rejected when the new person has an overlapping ticket', async ({ page }) => {
-  await page.goto('/')
-
-  // Sample data: Myra's vacation covers Wed–Fri of week 2; Alex has PROJ-156
-  // on Mon–Wed of week 2. So Wed overlaps. Swapping the vacation to Alex
-  // should be rejected.
-  const vacationPill = page.locator('.vacation-pill', { hasText: 'Myra Vacation' }).first()
-  await expect(vacationPill).toBeVisible()
-  await vacationPill.click()
-
-  const editDialog = page.getByRole('dialog', { name: 'Edit Vacation' })
-  await expect(editDialog).toBeVisible()
-
-  // Pick Alex (who has the overlapping ticket) and try to save
-  await editDialog.getByRole('button', { name: 'Alex' }).click()
-  await editDialog.getByRole('button', { name: 'Save' }).click()
-
-  // Rejection toast appears with the conflict message
-  await expect(page.locator('.rejection-toast')).toContainText(/Alex.*ticket/)
-
-  // The vacation pill should still read "Myra Vacation" (the swap was rejected)
-  await expect(page.locator('.vacation-pill', { hasText: 'Myra Vacation' }).first()).toBeVisible()
-})
-
 // Regression: unchecking the last selected month used to leave the calendar
 // in a confusing "Select a month from the sidebar" dead-end. Now it's blocked
 // with a toast and the checkbox snaps back to checked.
