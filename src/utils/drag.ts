@@ -2,27 +2,32 @@
 // clone of the source element under the cursor during HTML5 drag — for our
 // pills that's duplicate feedback because the cascade preview already
 // shows the would-be landing position live. Replace it with a 1x1
-// transparent canvas so the cursor stays clean.
+// transparent GIF so the cursor stays clean.
 //
-// Why a canvas and not an Image: an Image from a data URL still decodes
-// asynchronously, and on the very first drag setDragImage() fires before
-// the bitmap is ready — the browser then falls back to its default drag
-// image (Chrome renders a globe icon for payloads it can't classify). A
-// canvas is pixel-ready synchronously, so the first drag works too.
-let transparentDragImage: HTMLCanvasElement | null = null
-
-function getTransparentDragImage(): HTMLCanvasElement {
-  if (!transparentDragImage) {
-    transparentDragImage = document.createElement('canvas')
-    transparentDragImage.width = 1
-    transparentDragImage.height = 1
-  }
-  return transparentDragImage
+// Three things matter here, all about the very first drag:
+//
+//   1. Eager construction at module load. If we lazily new Image() inside
+//      dragstart, the bitmap hasn't decoded yet when setDragImage runs and
+//      macOS falls back to its default drag image — a globe icon, used for
+//      drags it treats as URL/link. Constructing at import time gives the
+//      decoder a head start before any user interaction.
+//   2. GIF, not PNG. Tiny GIFs decode synchronously off the data URL on
+//      Chrome/Safari; PNGs don't always. (Credit: sam.today/blog/html5-dnd-globe-icon.)
+//   3. Skip setDragImage if .complete is still false on the very first
+//      dragstart. Passing an undecoded image triggers the globe fallback;
+//      passing nothing falls back to the source-element clone, which is a
+//      far better degradation for one frame than the globe.
+const EMPTY_DRAG_IMAGE = typeof Image !== 'undefined' ? new Image(1, 1) : null
+if (EMPTY_DRAG_IMAGE) {
+  EMPTY_DRAG_IMAGE.src =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
 }
 
 export function suppressNativeDragImage(event: DragEvent): void {
   if (!event.dataTransfer) return
-  event.dataTransfer.setDragImage(getTransparentDragImage(), 0, 0)
+  if (EMPTY_DRAG_IMAGE?.complete) {
+    event.dataTransfer.setDragImage(EMPTY_DRAG_IMAGE, 0, 0)
+  }
   // Without effectAllowed Chrome guesses the drop effect from heuristics and
   // can land on "link" — which paints a globe icon next to the cursor until
   // the first dragover sets dropEffect. Lock it to move from the start.
