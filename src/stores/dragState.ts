@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { CalendarDate } from './tickets'
 
@@ -65,14 +65,6 @@ export const useDragStateStore = defineStore('dragState', () => {
     movePreviewRow.value = row
   }
 
-  const isAnyActive = computed(() =>
-    ticketMove.drag.value !== null ||
-    ticketResize.drag.value !== null ||
-    vacationMove.drag.value !== null ||
-    vacationResize.drag.value !== null ||
-    newVacation.drag.value !== null,
-  )
-
   // External API names + positional start signatures preserved verbatim so
   // every call site continues to work unchanged.
   return {
@@ -110,7 +102,5 @@ export const useDragStateStore = defineStore('dragState', () => {
 
     hoveredTicketId,
     hoveredVacationId,
-
-    isAnyActive,
   }
 })
