@@ -92,7 +92,7 @@ Modern evergreen browsers — Chrome, Firefox, Safari (last 2 major versions). B
 
 ## About
 
-Built by [Mariusz Dabrowski](https://www.linkedin.com/in/mariuszpdabrowski/) — designer turned front-end dev turned full-stack engineer. This project was a chance to scratch the design itch again.
+Built by [Mariusz Dabrowski](https://www.linkedin.com/in/mariuszpdabrowski/)
 
 ## License
 
