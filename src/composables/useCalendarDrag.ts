@@ -2,12 +2,14 @@ import { ref, type Ref } from 'vue'
 import { compareCalendarDates, type CalendarDate } from '../stores/tickets'
 import { useTicketsStore } from '../stores/tickets'
 import { useVacationsStore } from '../stores/vacations'
+import { usePeopleStore } from '../stores/people'
 import { useDragStateStore } from '../stores/dragState'
 import { useOptionsStore } from '../stores/options'
 import { useUndoStack } from './useUndoStack'
 import { workingDaysBetween } from '../utils/dates'
 import { spanInDays } from '../utils/dates'
-import { suppressNativeDragImage, lockMoveEffectAllowed, setMoveDropEffect } from '../utils/drag'
+import { suppressNativeDragImage, setMoveDropEffect, setPillDragImage } from '../utils/drag'
+import { colorForTicket, pillGradient } from '../utils/colors'
 import type { CascadeItem } from '../utils/cascade'
 
 // Drop-target info the drag handlers report up to the renderer (typed loosely
@@ -45,6 +47,7 @@ export function useCalendarDrag(opts: {
 
   const ticketsStore = useTicketsStore()
   const vacationsStore = useVacationsStore()
+  const peopleStore = usePeopleStore()
   const dragState = useDragStateStore()
   const options = useOptionsStore()
   const undoStack = useUndoStack()
@@ -177,9 +180,14 @@ export function useCalendarDrag(opts: {
   }
 
   function onVacationDragStart(event: DragEvent, info: DragStartVacationInfo) {
-    // Keep the native drag image so the user sees the vacation bar follow the
-    // cursor — feels like you're holding the pill, same as sidebar drags.
-    lockMoveEffectAllowed(event)
+    // Custom pill ghost so the cursor carries a labeled "{Name} Vacation"
+    // chip regardless of which segment of a multi-day bar was grabbed.
+    const entry = vacationsStore.entries.find((v) => v.id === info.vacationId)
+    const person = entry ? peopleStore.people.find((p) => p.id === entry.personId) : null
+    const text = `${person?.name ?? 'Person'} Vacation`
+    const background =
+      'repeating-linear-gradient(45deg, #2a2a2a 0px, #2a2a2a 3px, #323232 3px, #323232 9px)'
+    setPillDragImage(event, { text, background })
     event.dataTransfer?.setData('moveCalendarVacation', String(info.vacationId))
     const span = options.hideWeekends
       ? workingDaysBetween(info.startDate, info.endDate)
@@ -188,9 +196,19 @@ export function useCalendarDrag(opts: {
   }
 
   function onTicketDragStart(event: DragEvent, info: DragStartTicketInfo) {
-    // Keep the native drag image so the user sees the ticket pill follow the
-    // cursor — feels like you're holding the pill, same as sidebar drags.
-    lockMoveEffectAllowed(event)
+    // Custom pill ghost so the cursor always carries a labeled chip — needed
+    // for multi-day pills where grabbing a middle segment would otherwise
+    // show a label-less chunk under the cursor.
+    const ticket = ticketsStore.tickets.find((t) => t.id === info.ticket.id)
+    if (ticket) {
+      const text = ticket.isLabel ? ticket.title || 'Event' : ticket.number
+      const color = colorForTicket(ticket, peopleStore.people)
+      // Layer a 45° stripe overlay on event pills to match their calendar look.
+      const background = ticket.isLabel
+        ? `repeating-linear-gradient(45deg, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 3px, transparent 3px, transparent 9px), ${pillGradient(color)}`
+        : pillGradient(color)
+      setPillDragImage(event, { text, background })
+    }
     event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
     const span = options.hideWeekends
       ? workingDaysBetween(info.placement.startDate, info.placement.endDate)

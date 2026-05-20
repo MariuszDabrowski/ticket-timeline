@@ -46,3 +46,42 @@ export function setMoveDropEffect(event: DragEvent): void {
   if (!event.dataTransfer) return
   event.dataTransfer.dropEffect = 'move'
 }
+
+// Render a compact pill DOM node and use it as the drag image. The pill
+// follows the cursor instead of the native clone of the source — needed for
+// multi-segment calendar items where grabbing a middle segment would
+// otherwise produce a label-less chunk under the cursor. The ghost always
+// shows the title.
+//
+// The browser snapshots the element synchronously when setDragImage is
+// called, so we append off-screen, set the image, then remove on the next
+// task (the snapshot has already been taken by then).
+export function setPillDragImage(
+  event: DragEvent,
+  opts: { text: string; background: string },
+): void {
+  if (!event.dataTransfer) return
+  lockMoveEffectAllowed(event)
+
+  const el = document.createElement('div')
+  el.textContent = opts.text
+  el.style.cssText = `
+    position: absolute;
+    top: -1000px;
+    left: -1000px;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: ${opts.background};
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.07);
+    white-space: nowrap;
+    pointer-events: none;
+  `
+  document.body.appendChild(el)
+  event.dataTransfer.setDragImage(el, 10, 10)
+  setTimeout(() => el.remove(), 0)
+}
