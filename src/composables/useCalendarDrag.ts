@@ -7,7 +7,7 @@ import { useOptionsStore } from '../stores/options'
 import { useUndoStack } from './useUndoStack'
 import { workingDaysBetween } from '../utils/dates'
 import { spanInDays } from '../utils/dates'
-import { suppressNativeDragImage, setMoveDropEffect } from '../utils/drag'
+import { suppressNativeDragImage, lockMoveEffectAllowed, setMoveDropEffect } from '../utils/drag'
 import type { CascadeItem } from '../utils/cascade'
 
 // Drop-target info the drag handlers report up to the renderer (typed loosely
@@ -177,7 +177,9 @@ export function useCalendarDrag(opts: {
   }
 
   function onVacationDragStart(event: DragEvent, info: DragStartVacationInfo) {
-    suppressNativeDragImage(event)
+    // Keep the native drag image so the user sees the vacation bar follow the
+    // cursor — feels like you're holding the pill, same as sidebar drags.
+    lockMoveEffectAllowed(event)
     event.dataTransfer?.setData('moveCalendarVacation', String(info.vacationId))
     const span = options.hideWeekends
       ? workingDaysBetween(info.startDate, info.endDate)
@@ -186,7 +188,9 @@ export function useCalendarDrag(opts: {
   }
 
   function onTicketDragStart(event: DragEvent, info: DragStartTicketInfo) {
-    suppressNativeDragImage(event)
+    // Keep the native drag image so the user sees the ticket pill follow the
+    // cursor — feels like you're holding the pill, same as sidebar drags.
+    lockMoveEffectAllowed(event)
     event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
     const span = options.hideWeekends
       ? workingDaysBetween(info.placement.startDate, info.placement.endDate)
