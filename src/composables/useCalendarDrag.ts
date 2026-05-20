@@ -8,8 +8,8 @@ import { useOptionsStore } from '../stores/options'
 import { useUndoStack } from './useUndoStack'
 import { workingDaysBetween } from '../utils/dates'
 import { spanInDays } from '../utils/dates'
-import { suppressNativeDragImage, setMoveDropEffect, setPillDragImage } from '../utils/drag'
-import { colorForTicket, pillGradient } from '../utils/colors'
+import { suppressNativeDragImage, setMoveDropEffect, attachFollowPill } from '../utils/drag'
+import { colorForTicket } from '../utils/colors'
 import type { CascadeItem } from '../utils/cascade'
 
 // Drop-target info the drag handlers report up to the renderer (typed loosely
@@ -184,10 +184,10 @@ export function useCalendarDrag(opts: {
     // chip regardless of which segment of a multi-day bar was grabbed.
     const entry = vacationsStore.entries.find((v) => v.id === info.vacationId)
     const person = entry ? peopleStore.people.find((p) => p.id === entry.personId) : null
-    const text = `${person?.name ?? 'Person'} Vacation`
-    const background =
-      'repeating-linear-gradient(45deg, #2a2a2a 0px, #2a2a2a 3px, #323232 3px, #323232 9px)'
-    setPillDragImage(event, { text, background })
+    attachFollowPill(event, {
+      text: `${person?.name ?? 'Person'} Vacation`,
+      background: { kind: 'striped-grey' },
+    })
     event.dataTransfer?.setData('moveCalendarVacation', String(info.vacationId))
     const span = options.hideWeekends
       ? workingDaysBetween(info.startDate, info.endDate)
@@ -201,13 +201,11 @@ export function useCalendarDrag(opts: {
     // show a label-less chunk under the cursor.
     const ticket = ticketsStore.tickets.find((t) => t.id === info.ticket.id)
     if (ticket) {
-      const text = ticket.isLabel ? ticket.title || 'Event' : ticket.number
-      const color = colorForTicket(ticket, peopleStore.people)
-      // Layer a 45° stripe overlay on event pills to match their calendar look.
-      const background = ticket.isLabel
-        ? `repeating-linear-gradient(45deg, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 3px, transparent 3px, transparent 9px), ${pillGradient(color)}`
-        : pillGradient(color)
-      setPillDragImage(event, { text, background })
+      const hex = colorForTicket(ticket, peopleStore.people)
+      attachFollowPill(event, {
+        text: ticket.isLabel ? ticket.title || 'Event' : ticket.number,
+        background: ticket.isLabel ? { kind: 'striped-color', hex } : { kind: 'color', hex },
+      })
     }
     event.dataTransfer?.setData('moveCalendarTicket', String(info.ticket.id))
     const span = options.hideWeekends

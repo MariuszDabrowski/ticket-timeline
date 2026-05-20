@@ -5,7 +5,7 @@ import { useTicketsStore, type Ticket } from '../stores/tickets'
 import { useVacationsStore, type VacationEntry } from '../stores/vacations'
 import { compactCalendarLayout } from '../utils/layout'
 import { colorForPerson, pillGradient } from '../utils/colors'
-import { lockMoveEffectAllowed, setMoveDropEffect } from '../utils/drag'
+import { attachFollowPill, setMoveDropEffect } from '../utils/drag'
 import { useDragStateStore } from '../stores/dragState'
 import { useUndoStack } from '../composables/useUndoStack'
 import { useRejectionToast } from '../composables/useRejectionToast'
@@ -151,6 +151,38 @@ const draggingPersonId = ref<number | null>(null)
 const ticketListIsOver = ref(false)
 const eventListIsOver = ref(false)
 const vacationListIsOver = ref(false)
+
+// Sidebar dragstart handlers — each attaches the cursor-follow pill ghost
+// so the dragged item matches the look of an on-calendar drag.
+function onSidebarTicketDragStart(event: DragEvent, ticket: Ticket) {
+  attachFollowPill(event, {
+    text: ticket.number,
+    background: { kind: 'color', hex: ticketColor(ticket.assignedTo) },
+  })
+  event.dataTransfer?.setData('ticketId', String(ticket.id))
+  draggingTicketId.value = ticket.id
+  dragState.startMoveDrag(ticket.id, 0)
+}
+
+function onSidebarLabelDragStart(event: DragEvent, label: Ticket) {
+  attachFollowPill(event, {
+    text: label.title || 'Event',
+    background: { kind: 'striped-color', hex: label.labelColor ?? '#555' },
+  })
+  event.dataTransfer?.setData('ticketId', String(label.id))
+  draggingTicketId.value = label.id
+  dragState.startMoveDrag(label.id, 0)
+}
+
+function onSidebarVacationPersonDragStart(event: DragEvent, person: Person) {
+  attachFollowPill(event, {
+    text: `${person.name} Vacation`,
+    background: { kind: 'striped-grey' },
+  })
+  event.dataTransfer?.setData('newVacationPersonId', String(person.id))
+  draggingPersonId.value = person.id
+  dragState.startNewVacationDrag(person.id)
+}
 
 function onTicketListDragOver(event: DragEvent) {
   if (!event.dataTransfer?.types.includes('movecalendarticket')) return
@@ -351,7 +383,7 @@ function onVacationPersonClick(personId: number) {
                     @click.stop="emit('edit-ticket', ticket)"
                     @keydown.enter.stop="emit('edit-ticket', ticket)"
                     @keydown.space.prevent.stop="emit('edit-ticket', ticket)"
-                    @dragstart="(e) => { lockMoveEffectAllowed(e); e.dataTransfer?.setData('ticketId', String(ticket.id)); draggingTicketId = ticket.id; dragState.startMoveDrag(ticket.id, 0) }"
+                    @dragstart="onSidebarTicketDragStart($event, ticket)"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ ticket.number }}<div v-if="ticket.title" class="sidebar-pill-tooltip">{{ ticket.title }}</div></span>
                 </li>
@@ -397,7 +429,7 @@ function onVacationPersonClick(personId: number) {
                     @click.stop="emit('edit-label', label)"
                     @keydown.enter.stop="emit('edit-label', label)"
                     @keydown.space.prevent.stop="emit('edit-label', label)"
-                    @dragstart="(e) => { lockMoveEffectAllowed(e); e.dataTransfer?.setData('ticketId', String(label.id)); draggingTicketId = label.id; dragState.startMoveDrag(label.id, 0) }"
+                    @dragstart="onSidebarLabelDragStart($event, label)"
                     @dragend="draggingTicketId = null; dragState.clearMoveDrag()"
                   >{{ label.title }}</span>
                 </li>
@@ -439,7 +471,7 @@ function onVacationPersonClick(personId: number) {
                   @click="onVacationPersonClick(person.id)"
                   @keydown.enter.stop="onVacationPersonClick(person.id)"
                   @keydown.space.prevent.stop="onVacationPersonClick(person.id)"
-                  @dragstart="(e) => { lockMoveEffectAllowed(e); e.dataTransfer?.setData('newVacationPersonId', String(person.id)); draggingPersonId = person.id; dragState.startNewVacationDrag(person.id) }"
+                  @dragstart="onSidebarVacationPersonDragStart($event, person)"
                   @dragend="draggingPersonId = null; dragState.clearNewVacationDrag()"
                 >
                   <span class="vac-pill-dot" :style="{ background: person.color }" />
